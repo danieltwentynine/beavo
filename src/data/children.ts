@@ -29,7 +29,7 @@ const childSchema = z.object({
   avatarColor: z.string(),
   avatarIcon: z.string(),
   birthYear: z.number().int().nullish().transform((v) => v ?? undefined),
-  kidMode: z.boolean().default(true),
+  kidMode: z.boolean().default(false),
   createdAt: date,
   archivedAt: optionalDate,
 });
@@ -60,7 +60,7 @@ export function createChild(
     avatarColor: input.avatarColor,
     avatarIcon: input.avatarIcon,
     birthYear: input.birthYear ?? null,
-    kidMode: true,
+    kidMode: false, // the parent is setting up; they switch it on before handing over
     createdAt: now,
     archivedAt: null,
   });

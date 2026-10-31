@@ -13,6 +13,7 @@ import {
   localDate,
   moveSlot,
   pickSlotForTime,
+  slotAt,
   slotRemoval,
   slotsActiveOn,
 } from './schedule.ts';
@@ -108,4 +109,11 @@ test('moveSlot swaps neighbours and stops at the ends', () => {
   assert.deepEqual(moveSlot(slots, 'b', 1), ['a', 'c', 'b']);
   assert.deepEqual(moveSlot(slots, 'a', -1), ['a', 'b', 'c']);
   assert.deepEqual(moveSlot(slots, 'c', 1), ['a', 'b', 'c']);
+});
+
+test('slotAt: only a window that contains the time', () => {
+  const slots = [slot('breakfast', { windowStart: '06:00', windowEnd: '10:00' }), slot('lunch', { windowStart: '11:00', windowEnd: '15:00', sortOrder: 1 })];
+  assert.equal(slotAt(slots, at('2026-10-01T10:00:00'))?.id, 'breakfast');
+  assert.equal(slotAt(slots, at('2026-10-01T10:30:00')), null);
+  assert.equal(slotAt(slots, at('2026-10-01T11:00:00'))?.id, 'lunch');
 });

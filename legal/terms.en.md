@@ -23,7 +23,7 @@ These Terms govern the use of the Zing app, provided by [COMPANY NAME], CNPJ [CN
 
 - Keep your sign-in details secure. You are responsible for activity in your account.
 - You are responsible for the information you record (profiles, brushing times, dental records); keep it accurate.
-- You can export your data and delete your account at any time in the app (*More → Export my data* and *More → Delete account*).
+- You can export your data and delete your account at any time in the app (*More → Export backup* and *More → Delete account*).
 
 ## 4. The camera
 

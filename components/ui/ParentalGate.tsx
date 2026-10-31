@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
@@ -24,6 +24,18 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
   const [question, setQuestion] = useState(newQuestion);
   const [answer, setAnswer] = useState('');
   const [wrong, setWrong] = useState(false);
+  // iOS can't present an Alert or sheet while this modal is still animating out,
+  // so a pass hides the modal first and calls onPass once it has dismissed.
+  const [passed, setPassed] = useState(false);
+  const passTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Calls onPass once: from onDismiss, or from a fallback timer if onDismiss never fires.
+  const finishPass = () => {
+    if (passTimer.current === null) return;
+    clearTimeout(passTimer.current);
+    passTimer.current = null;
+    setPassed(false);
+    onPass();
+  };
 
   const reset = () => {
     setQuestion(newQuestion());
@@ -34,7 +46,12 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
     if (Number(answer) === question.a * question.b) {
       setWrong(false);
       reset();
-      onPass();
+      if (Platform.OS === 'ios') {
+        setPassed(true);
+        passTimer.current = setTimeout(finishPass, 600); // longer than the fade-out
+      } else {
+        onPass();
+      }
     } else {
       setWrong(true);
       reset();
@@ -48,7 +65,13 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={cancel}>
+    <Modal
+      visible={visible && !passed}
+      transparent
+      animationType="fade"
+      onRequestClose={cancel}
+      onDismiss={finishPass}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, justifyContent: 'center', padding: 24, backgroundColor: 'rgba(20,20,43,0.6)' }}
@@ -87,4 +110,24 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
       </KeyboardAvoidingView>
     </Modal>
   );
+}
+
+/**
+ * `requireParent(action)` runs `action` after the grown-ups check passes.
+ * Render `gate` once in the screen.
+ */
+export function useParentalGate() {
+  const [pending, setPending] = useState<(() => void) | null>(null);
+  const gate = (
+    <ParentalGate
+      visible={pending !== null}
+      onPass={() => {
+        const action = pending;
+        setPending(null);
+        action?.();
+      }}
+      onCancel={() => setPending(null)}
+    />
+  );
+  return { gate, requireParent: (action: () => void) => setPending(() => action) };
 }

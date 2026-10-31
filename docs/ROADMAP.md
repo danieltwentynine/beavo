@@ -34,9 +34,12 @@ Status confirmed by the owner on 2026-10-06 (previously inferred from the repo: 
 - [x] Tooth sheet (view/add/delete events; batch log for several teeth) and Dental History list
 - [ ] Verify on device (needs the step 1 rules deployed and a dev-client rebuild)
 
-## Foundation rebuild — step 3 (next)
-- [ ] Visual redesign of Brushing / Progress / More
-- [ ] Streaks, badges and progress derived from `brushingSessions`
+## Foundation rebuild — step 3 of 3 (2026-10-31)
+- [x] Brushing (Today): slot cards (1–6, grid), current slot, start button with halo, slot picking, configurable length, kid mode (gated), Edit routine (gated)
+- [x] Progress: streak + best, 30-day completion rate, This Week dots per slot active that day, derived badges, Brushing History
+- [x] More: Premium placeholder, Profiles, Categories, Export/Import backup (.json), Settings, Review, Legal, Account — all gated per Apple Kids rules
+- [x] GlassSurface (expo-glass-effect) on floating chrome and sheets, solid fallback
+- [ ] Fill `APP_STORE_ID` (lib/legal.ts) once the app exists in App Store Connect
 - [ ] Translate remaining legacy screens (welcome, auth, session, results) to pt-BR
 
 ## Before Phase 2

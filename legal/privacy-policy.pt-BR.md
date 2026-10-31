@@ -34,7 +34,7 @@ Esta Política explica como o aplicativo Zing ("Zing", "nós") trata dados pesso
 Os registros de escovação e os registros dentários são **dados referentes à saúde** e, por isso, **dados pessoais sensíveis** (LGPD, art. 5º, II).
 
 ### 2.4 Dados guardados só no seu aparelho
-Para o app funcionar sem internet, o aparelho guarda: sua sessão de login, uma cópia dos perfis e horários das crianças, a criança selecionada, sessões de escovação ainda não enviadas e o registro local do seu consentimento. A cópia dos perfis é apagada quando você sai da conta. As sessões pendentes são enviadas à sua conta quando houver internet.
+Para o app funcionar sem internet, o aparelho guarda: sua sessão de login, uma cópia dos perfis e horários das crianças, a criança selecionada, sessões de escovação ainda não enviadas, o registro local do seu consentimento e os ajustes do app (como o tempo de escovação). A cópia dos perfis é apagada quando você sai da conta. O arquivo de backup criado ao exportar é temporário: é apagado do app assim que a folha de compartilhamento fecha (ou na próxima abertura, se o app tiver sido fechado antes); a cópia temporária de um backup importado também é apagada logo após a leitura; a cópia que você salvar ou enviar fica sob sua responsabilidade. As sessões pendentes são enviadas à sua conta quando houver internet.
 
 ### 2.5 O que NÃO coletamos
 - **Não** usamos ferramentas de análise (analytics), relatórios de falhas, publicidade ou rastreamento de qualquer tipo.
@@ -83,7 +83,8 @@ O Google atua como **operador**, seguindo nossas instruções e os termos de tra
 Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados, acesso, correção, anonimização, bloqueio ou eliminação de dados desnecessários, portabilidade, informação sobre com quem compartilhamos, informação sobre não consentir e revogação do consentimento.
 
 No próprio app:
-- **Acessar e levar seus dados (portabilidade):** *Mais → Exportar meus dados* (pede uma confirmação para adultos). Gera um texto em formato JSON com todos os dados da sua conta (incluindo nome e e-mail de login) e das crianças, que você pode salvar ou compartilhar pela folha de compartilhamento do aparelho.
+- **Acessar e levar seus dados (portabilidade):** *Mais → Exportar backup* (pede uma confirmação para adultos). Gera um arquivo `.json` com todos os dados da sua conta (incluindo nome e e-mail de login) e das crianças, que você pode salvar ou compartilhar pela folha de compartilhamento do aparelho.
+- **Restaurar um backup:** *Mais → Importar backup* (pede uma confirmação para adultos). Você escolhe um arquivo de backup do Zing; os dados são conferidos e juntados à sua conta (itens com o mesmo identificador são substituídos; nada é apagado).
 - **Corrigir:** para o perfil, toque no seletor de criança, no canto superior direito, e depois em *Editar*. Para um registro dentário, toque no dente em *Visão geral*, apague o registro e registre de novo.
 - **Excluir uma criança:** *Editar perfil → Excluir perfil* (pede uma confirmação para adultos).
 - **Excluir sua conta e todos os dados:** *Mais → Excluir conta* (pede uma confirmação para adultos e uma nova confirmação de login).

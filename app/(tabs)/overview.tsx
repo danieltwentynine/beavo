@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DentalArch, DentalArchLegend } from '@/components/teeth/DentalArch';
+import { GlassSurface } from '@/components/ui/GlassSurface';
 import { Card } from '@/components/ui/Card';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
@@ -46,9 +47,6 @@ function CornerButton({
           width: 48,
           height: 48,
           borderRadius: radius.pill,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: active ? tokens.brandPrimary : tokens.surfaceCard,
           opacity: disabled ? 0.4 : 1,
           zIndex: 2,
         },
@@ -56,7 +54,14 @@ function CornerButton({
         style,
       ]}
     >
-      {children}
+      {/* Floating chrome → Liquid Glass where available (GlassSurface falls back to solid). */}
+      <GlassSurface
+        interactive
+        tint={active ? tokens.brandPrimary : undefined}
+        style={{ flex: 1, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' }}
+      >
+        {children}
+      </GlassSurface>
     </Pressable>
   );
 }
@@ -64,7 +69,16 @@ function CornerButton({
 function StatCard({ count, label, color }: { count: number; label: string; color: string }) {
   return (
     <Card padding={16} style={{ flex: 1, rowGap: 6 }}>
-      <View style={{ width: 20, height: 20, borderRadius: 6, backgroundColor: color, borderWidth: 2, borderColor: tokens.borderStrong }} />
+      <View
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: 6,
+          backgroundColor: color,
+          borderWidth: 2,
+          borderColor: tokens.borderStrong,
+        }}
+      />
       <Text className="font-numeric" style={{ fontSize: 36, color: tokens.textPrimary, lineHeight: 40 }}>
         {count}
       </Text>
@@ -80,6 +94,8 @@ const openToothSheet = (teeth: readonly number[]) =>
 
 export default function OverviewScreen() {
   const { child } = useActiveChild();
+  // Kid mode: the chart is view-only (no records, no history).
+  const kidMode = child?.kidMode ?? true; // fails closed while the child loads
   const events = useToothEvents();
   const status = useMemo(() => statusByTooth(events), [events]);
   const year = new Date().getFullYear();
@@ -98,7 +114,7 @@ export default function OverviewScreen() {
       return;
     }
     setSelected([fdi]);
-    openToothSheet([fdi]);
+    if (!kidMode) openToothSheet([fdi]);
   };
 
   const toggleMultiSelect = () => {
@@ -112,23 +128,27 @@ export default function OverviewScreen() {
         <TabHeader title={t('overview.title')} />
 
         <Card tone="soft" padding={CARD_PADDING} radius={radius['2xl']}>
-          <CornerButton
-            label={multiSelect ? t('arch.multiSelectOff') : t('arch.multiSelectOn')}
-            active={multiSelect}
-            onPress={toggleMultiSelect}
-            style={{ left: 12 }}
-          >
-            <SelectionPlus size={24} color={multiSelect ? tokens.textOnBrand : tokens.textPrimary} weight="bold" />
-          </CornerButton>
-          <CornerButton
-            label={t('arch.logSelection')}
-            active={selected.length > 0}
-            disabled={selected.length === 0}
-            onPress={() => openToothSheet(selected)}
-            style={{ right: 12 }}
-          >
-            <Check size={24} color={selected.length > 0 ? tokens.textOnBrand : tokens.textPrimary} weight="bold" />
-          </CornerButton>
+          {kidMode ? null : (
+            <>
+              <CornerButton
+                label={multiSelect ? t('arch.multiSelectOff') : t('arch.multiSelectOn')}
+                active={multiSelect}
+                onPress={toggleMultiSelect}
+                style={{ left: 12 }}
+              >
+                <SelectionPlus size={24} color={multiSelect ? tokens.textOnBrand : tokens.textPrimary} weight="bold" />
+              </CornerButton>
+              <CornerButton
+                label={t('arch.logSelection')}
+                active={selected.length > 0}
+                disabled={selected.length === 0}
+                onPress={() => openToothSheet(selected)}
+                style={{ right: 12 }}
+              >
+                <Check size={24} color={selected.length > 0 ? tokens.textOnBrand : tokens.textPrimary} weight="bold" />
+              </CornerButton>
+            </>
+          )}
 
           <View
             accessibilityLabel={t('arch.chartLabel')}
@@ -136,7 +156,13 @@ export default function OverviewScreen() {
             style={{ alignSelf: 'stretch', marginTop: 8 }}
           >
             {archWidth > 0 ? (
-              <DentalArch size={archWidth} selected={selected} onSelect={onSelect} multiSelect={multiSelect} statusByTooth={status} />
+              <DentalArch
+                size={archWidth}
+                selected={selected}
+                onSelect={onSelect}
+                multiSelect={multiSelect && !kidMode}
+                statusByTooth={status}
+              />
             ) : null}
           </View>
           <View style={{ marginTop: 10 }}>
@@ -152,22 +178,24 @@ export default function OverviewScreen() {
           </View>
         </View>
 
-        <Card
-          padding={18}
-          onPress={() => router.push('/dental-history')}
-          accessibilityLabel={`${t('overview.history')}, ${t('overview.historyCount', { count: events.length })}`}
-          style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}
-        >
-          <View style={{ flex: 1 }}>
-            <Text className="font-display-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
-              {t('overview.history')}
-            </Text>
-            <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary }}>
-              {t('overview.historyCount', { count: events.length })}
-            </Text>
-          </View>
-          <CaretRight size={22} color={tokens.textPrimary} weight="bold" />
-        </Card>
+        {kidMode ? null : (
+          <Card
+            padding={18}
+            onPress={() => router.push('/dental-history')}
+            accessibilityLabel={`${t('overview.history')}, ${t('overview.historyCount', { count: events.length })}`}
+            style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text className="font-display-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
+                {t('overview.history')}
+              </Text>
+              <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary }}>
+                {t('overview.historyCount', { count: events.length })}
+              </Text>
+            </View>
+            <CaretRight size={22} color={tokens.textPrimary} weight="bold" />
+          </Card>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -2,6 +2,7 @@ import { Fire, type IconProps, LockSimple, Star, Tooth, Trophy } from 'phosphor-
 import type { ComponentType } from 'react';
 import { Text, View, type ViewStyle } from 'react-native';
 
+import { t } from '@/lib/i18n';
 import type { Badge } from '@/types';
 import { hardShadow, outline, palette, radius, tokens } from '@/lib/tokens';
 
@@ -9,10 +10,10 @@ type BadgeType = Badge['type'];
 
 // Light fills carry an ink icon; only cobalt / bubblegum-600 carry white.
 const BADGE_META: Record<BadgeType, { Icon: ComponentType<IconProps>; color: string; fg: string; label: string }> = {
-  streak: { Icon: Fire, color: palette.sunny[500], fg: tokens.textPrimary, label: 'On Fire' },
-  perfect: { Icon: Star, color: palette.cobalt[500], fg: tokens.textOnBrand, label: 'Perfect Brush' },
-  firstSession: { Icon: Tooth, color: palette.sky[400], fg: tokens.textPrimary, label: 'First Brush' },
-  weeklyGoal: { Icon: Trophy, color: palette.bubblegum[600], fg: tokens.textOnBrand, label: 'Weekly Star' },
+  streak: { Icon: Fire, color: palette.sunny[500], fg: tokens.textPrimary, label: t('badge.streak') },
+  perfect: { Icon: Star, color: palette.cobalt[500], fg: tokens.textOnBrand, label: t('badge.perfect') },
+  firstSession: { Icon: Tooth, color: palette.sky[400], fg: tokens.textPrimary, label: t('badge.firstSession') },
+  weeklyGoal: { Icon: Trophy, color: palette.bubblegum[600], fg: tokens.textOnBrand, label: t('badge.weeklyGoal') },
 };
 
 interface BadgeCardProps {

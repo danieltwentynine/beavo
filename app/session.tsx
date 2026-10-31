@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { X } from 'phosphor-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -14,9 +14,10 @@ import { Sticker } from '@/components/kids/Sticker';
 import { Button } from '@/components/ui/Button';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { buildCoachMessage } from '@/lib/coach';
-import { ALL_TOOTH_ZONES, BRUSHING_DURATION_SECONDS, COUNTDOWN_SECONDS } from '@/lib/constants';
+import { ALL_TOOTH_ZONES, COUNTDOWN_SECONDS } from '@/lib/constants';
 import { outline, palette, tokens } from '@/lib/tokens';
 import { useSessionStore } from '@/stores/sessionStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import type { ToothZone } from '@/types';
 
 const ZONE_HINTS: Record<ToothZone, string> = {
@@ -34,6 +35,9 @@ const ZONE_HINTS: Record<ToothZone, string> = {
 
 export default function SessionScreen() {
   const { child } = useActiveChild();
+  // Slot chosen on the Brushing tab; the length is fixed for this session when it opens.
+  const { slotId } = useLocalSearchParams<{ slotId?: string }>();
+  const [total] = useState<number>(() => useSettingsStore.getState().brushingDurationSec);
   const setLastResult = useSessionStore((s) => s.setLastResult);
   const saveLastResult = useSessionStore((s) => s.saveLastResult);
 
@@ -46,18 +50,15 @@ export default function SessionScreen() {
 
   const [phase, setPhase] = useState<'countdown' | 'active'>('countdown');
   const [count, setCount] = useState(COUNTDOWN_SECONDS);
-  const [remaining, setRemaining] = useState(BRUSHING_DURATION_SECONDS);
-  const remainingRef = useRef(BRUSHING_DURATION_SECONDS);
+  const [remaining, setRemaining] = useState(total);
+  const remainingRef = useRef(total);
   const startedAtRef = useRef<Date | null>(null);
   const finishedRef = useRef(false);
   const childName = child?.name ?? 'friend';
 
   // Zone progress is derived from the clock: one source of truth, no drift.
-  const elapsed = BRUSHING_DURATION_SECONDS - remaining;
-  const zonesReached = Math.min(
-    ALL_TOOTH_ZONES.length,
-    Math.floor((elapsed / BRUSHING_DURATION_SECONDS) * ALL_TOOTH_ZONES.length),
-  );
+  const elapsed = total - remaining;
+  const zonesReached = Math.min(ALL_TOOTH_ZONES.length, Math.floor((elapsed / total) * ALL_TOOTH_ZONES.length));
 
   const zoneStates = useMemo(() => {
     const ns: Partial<Record<ToothZone, ZoneState>> = {};
@@ -87,7 +88,6 @@ export default function SessionScreen() {
     if (finishedRef.current) return;
     finishedRef.current = true;
 
-    const total = BRUSHING_DURATION_SECONDS;
     const elapsedAtFinish = Math.min(total, Math.max(0, total - remainingRef.current));
     const reached = Math.min(
       ALL_TOOTH_ZONES.length,
@@ -116,6 +116,7 @@ export default function SessionScreen() {
 
     setLastResult({
       childId: child.id,
+      slotId: slotId ?? null,
       startedAt: startedAtRef.current ?? new Date(Date.now() - elapsedAtFinish * 1000),
       completed: elapsedAtFinish >= total,
       score,
@@ -130,7 +131,7 @@ export default function SessionScreen() {
     void saveLastResult();
 
     setTimeout(() => router.replace('/results'), 350);
-  }, [child, setLastResult, saveLastResult]);
+  }, [child, slotId, total, setLastResult, saveLastResult]);
 
   // Active session — a 2-minute guided walk through every zone. Side effects
   // live in the interval callback so the state updaters stay pure.
@@ -207,7 +208,7 @@ export default function SessionScreen() {
             </Text>
 
             <View style={{ marginVertical: 18 }}>
-              <BrushTimer remaining={remaining} total={BRUSHING_DURATION_SECONDS} size={150} />
+              <BrushTimer remaining={remaining} total={total} size={150} />
             </View>
 
             <Button label="I'm done" variant="outline" size="sm" fullWidth={false} onPress={finish} />

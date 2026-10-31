@@ -8,16 +8,23 @@ import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 
 import { useChildDataSync } from '@/hooks/useChildDataSync';
+import { cleanupBackupFiles } from '@/lib/account';
 import { checkConsent } from '@/lib/consent';
 import { auth } from '@/lib/firebase';
 import { flushOutbox } from '@/lib/sync';
 import { tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
 import { clearSnapshot } from '@/stores/childStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 export default function RootLayout() {
   const setUser = useAuthStore((state) => state.setUser);
   const setConsent = useAuthStore((state) => state.setConsent);
+  const loadSettings = useSettingsStore((state) => state.load);
+  useEffect(() => {
+    void loadSettings();
+    cleanupBackupFiles();
+  }, [loadSettings]);
   const uid = useAuthStore((state) => state.user?.uid ?? null);
   useChildDataSync(uid);
   const lastUid = useRef<string | null>(null);
@@ -73,11 +80,11 @@ export default function RootLayout() {
       >
         <Stack.Screen
           name="child-picker"
-          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.5, 1], sheetGrabberVisible: true }}
+          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.5, 1], sheetGrabberVisible: true, contentStyle: { backgroundColor: 'transparent' } }}
         />
         <Stack.Screen
           name="tooth-sheet"
-          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true }}
+          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true, contentStyle: { backgroundColor: 'transparent' } }}
         />
       </Stack>
     </>

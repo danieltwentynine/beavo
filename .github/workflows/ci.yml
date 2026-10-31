@@ -30,7 +30,7 @@ jobs:
       - name: Self-checks
         run: |
           for f in lib/*.check.mjs; do node "$f"; done
-          TZ=America/New_York node lib/streak.check.mjs
+          TZ=America/New_York npm test   # DST boundaries (progress/streak day math)
           TZ=America/Sao_Paulo npm test
       - name: Firestore rules + repository tests (emulator)
         run: npm run test:emulator

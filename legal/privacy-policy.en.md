@@ -34,7 +34,7 @@ This Policy explains how the Zing app ("Zing", "we") processes personal data und
 Brushing and dental records are **health-related data** and therefore **sensitive personal data** (LGPD, art. 5, II).
 
 ### 2.4 Data kept only on your device
-So the app works offline, your device keeps: your sign-in session, a copy of the children's profiles and brushing times, which child is selected, brushing sessions not yet uploaded, and a local record of your consent. The profile copy is deleted when you log out. Pending sessions are uploaded to your account once you're online.
+So the app works offline, your device keeps: your sign-in session, a copy of the children's profiles and brushing times, which child is selected, brushing sessions not yet uploaded, a local record of your consent, and app settings (such as brushing time). The profile copy is deleted when you log out. The backup file created by an export is temporary: it is removed from the app as soon as the share sheet closes (or at the next launch if the app was closed first); the temporary copy of an imported backup is also deleted right after it is read; any copy you save or send is under your control. Pending sessions are uploaded to your account once you're online.
 
 ### 2.5 What we do NOT collect
 - **No** analytics, crash reporting, advertising or tracking of any kind.
@@ -83,7 +83,8 @@ Google acts as our **processor**, following our instructions and the Google Clou
 Under the LGPD (art. 18) you may request: confirmation that we process your data, access, correction, anonymization, blocking or deletion of unnecessary data, portability, information about who we share data with, information about the option not to consent, and withdrawal of consent.
 
 In the app:
-- **Access and take your data (portability):** *More → Export my data* (asks for a grown-ups-only check). Creates JSON-formatted text with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
+- **Access and take your data (portability):** *More → Export backup* (asks for a grown-ups-only check). Creates a `.json` file with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
+- **Restore a backup:** *More → Import backup* (asks for a grown-ups-only check). You pick a Zing backup file; its data is checked and merged into your account (items with the same ID are replaced; nothing is deleted).
 - **Correct:** for the profile, tap the child switcher at the top right, then *Edit*. For a dental record, tap the tooth on *Overview*, delete the record and add it again.
 - **Delete a child:** *Edit profile → Delete profile* (asks for a grown-ups-only check).
 - **Delete your account and all data:** *More → Delete account* (asks for a grown-ups-only check and for you to sign in again).

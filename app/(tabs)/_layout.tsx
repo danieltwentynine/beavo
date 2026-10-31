@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
+import { useActiveChild } from '@/hooks/useActiveChild';
 import { t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
@@ -15,6 +16,9 @@ export default function TabsLayout() {
   const user = useAuthStore((s) => s.user);
   const consent = useAuthStore((s) => s.consent);
   const needsFirstChild = useChildStore((s) => s.loaded && s.children.length === 0 && !s.activeChildId);
+  // Kid mode hides the parent area (More). Turning it off is gated on the Brushing tab.
+  // Fails closed: until the active child is known, treat it as kid mode.
+  const kidMode = useActiveChild().child?.kidMode ?? true;
 
   if (!user) return <Redirect href="/onboarding/welcome" />;
   if (consent === 'unknown') return null;
@@ -35,7 +39,7 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>{t('tabs.progress')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} md="bar_chart" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="more">
+      <NativeTabs.Trigger name="more" hidden={kidMode}>
         <NativeTabs.Trigger.Label>{t('tabs.more')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'ellipsis.circle', selected: 'ellipsis.circle.fill' }} md="more_horiz" />
       </NativeTabs.Trigger>

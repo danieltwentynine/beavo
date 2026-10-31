@@ -1,23 +1,64 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import {
+  DownloadSimple,
+  FileText,
+  Gear,
+  ShieldCheck,
+  SignOut,
+  Star,
+  Tag,
+  Trash,
+  UploadSimple,
+  UsersThree,
+} from 'phosphor-react-native';
+import { useState, type ReactNode } from 'react';
 import { Alert, Linking, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
-import { ParentalGate } from '@/components/ui/ParentalGate';
+import { Card } from '@/components/ui/Card';
+import { ListRow } from '@/components/ui/ListRow';
+import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
-import { deleteParentAccount, reauthMethod, shareDataExport, signOutParent, type DeleteAccountResult } from '@/lib/account';
+import {
+  deleteParentAccount,
+  pickBackup,
+  reauthMethod,
+  restoreBackup,
+  shareDataExport,
+  signOutParent,
+  type DeleteAccountResult,
+} from '@/lib/account';
 import { t } from '@/lib/i18n';
-import { LEGAL_URLS } from '@/lib/legal';
+import { LEGAL_URLS, REVIEW_URL } from '@/lib/legal';
 import { tokens } from '@/lib/tokens';
 
-/** Parent-facing settings: children, account rights (export, delete), legal. */
+async function openExternal(url: string) {
+  try {
+    await Linking.openURL(url);
+  } catch {
+    Alert.alert(t('more.openFail'));
+  }
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View>
+      <SectionTitle>{title}</SectionTitle>
+      <Card padding={0}>{children}</Card>
+    </View>
+  );
+}
+
+/**
+ * Parent area (hidden in kid mode). Apple Kids Category: every external link,
+ * purchase, backup and destructive action goes through the parental gate.
+ */
 export default function MoreTab() {
-  const [busy, setBusy] = useState<'export' | 'delete' | null>(null);
-  // Export (children's health data) and delete both sit behind the grown-ups check.
-  const [gateFor, setGateFor] = useState<'export' | 'delete' | null>(null);
+  const [busy, setBusy] = useState<'export' | 'import' | 'delete' | null>(null);
+  const { gate, requireParent } = useParentalGate();
 
   const confirmSignOut = () =>
     Alert.alert(t('more.signOutTitle'), t('more.signOutBody'), [
@@ -37,6 +78,31 @@ export default function MoreTab() {
     const ok = await shareDataExport();
     setBusy(null);
     if (!ok) Alert.alert(t('more.exportFail'));
+  };
+
+  const onImport = async () => {
+    setBusy('import');
+    const picked = await pickBackup();
+    setBusy(null);
+    if (picked.status === 'cancelled') return;
+    if (picked.status === 'invalid') {
+      Alert.alert(t('more.importInvalid'));
+      return;
+    }
+    const { backup } = picked;
+    const records = backup.children.reduce((n, c) => n + c.brushingSlots.length + c.brushingSessions.length + c.toothEvents.length, 0);
+    Alert.alert(t('more.importTitle'), t('more.importBody', { children: backup.children.length, records }), [
+      { text: t('more.importCancel'), style: 'cancel' },
+      {
+        text: t('more.importConfirm'),
+        onPress: async () => {
+          setBusy('import');
+          const count = await restoreBackup(backup);
+          setBusy(null);
+          Alert.alert(count === null ? t('more.importFail') : t('more.importDone', { count }));
+        },
+      },
+    ]);
   };
 
   const runDelete = async (password?: string) => {
@@ -78,39 +144,63 @@ export default function MoreTab() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 24 }}>
         <TabHeader title={t('more.title')} showProfile={false} />
 
-        <View style={{ rowGap: 12 }}>
-          <SectionTitle>{t('more.children')}</SectionTitle>
-          <Button label={t('more.manageChildren')} variant="outline" onPress={() => router.push('/child-picker')} />
-        </View>
+        <Card tone="cobalt" padding={20} style={{ rowGap: 10 }}>
+          <Text className="font-display" style={{ fontSize: 24, color: tokens.textOnBrand }}>
+            {t('more.premiumTitle')}
+          </Text>
+          <Text className="font-body" style={{ fontSize: 16, color: tokens.textOnBrand }}>
+            {t('more.premiumBody')}
+          </Text>
+          <Button label={t('more.premiumCta')} variant="outline" onPress={() => requireParent(() => router.push('/premium'))} />
+        </Card>
 
-        <View style={{ rowGap: 12 }}>
-          <SectionTitle>{t('more.account')}</SectionTitle>
-          <Button label={t('more.export')} variant="outline" loading={busy === 'export'} onPress={() => setGateFor('export')} />
-          <Button label={t('more.signOut')} variant="outline" onPress={confirmSignOut} />
-          <Button label={t('more.delete')} variant="ghost" loading={busy === 'delete'} onPress={() => setGateFor('delete')} />
-        </View>
+        <Section title={t('more.children')}>
+          <ListRow Icon={UsersThree} label={t('more.profiles')} onPress={() => router.push('/child-picker')} last />
+        </Section>
 
-        <View style={{ rowGap: 12 }}>
-          <SectionTitle>{t('more.legal')}</SectionTitle>
-          <Button label={t('consent.terms')} variant="ghost" onPress={() => void Linking.openURL(LEGAL_URLS.terms)} />
-          <Button label={t('consent.privacy')} variant="ghost" onPress={() => void Linking.openURL(LEGAL_URLS.privacy)} />
-        </View>
+        <Section title={t('more.data')}>
+          <ListRow Icon={Tag} label={t('more.categories')} onPress={() => requireParent(() => router.push('/categories'))} />
+          <ListRow
+            Icon={UploadSimple}
+            label={t('more.exportBackup')}
+            hint={busy === 'export' ? '…' : undefined}
+            onPress={() => requireParent(() => void onExport())}
+          />
+          <ListRow
+            Icon={DownloadSimple}
+            label={t('more.importBackup')}
+            hint={busy === 'import' ? '…' : undefined}
+            onPress={() => requireParent(() => void onImport())}
+            last
+          />
+        </Section>
+
+        <Section title={t('more.app')}>
+          <ListRow Icon={Gear} label={t('more.settings')} onPress={() => requireParent(() => router.push('/settings'))} />
+          <ListRow Icon={Star} label={t('more.review')} external onPress={() => requireParent(() => void openExternal(REVIEW_URL))} last />
+        </Section>
+
+        <Section title={t('more.legal')}>
+          <ListRow Icon={FileText} label={t('more.termsAndConditions')} external onPress={() => requireParent(() => void openExternal(LEGAL_URLS.terms))} />
+          <ListRow Icon={ShieldCheck} label={t('consent.privacy')} external onPress={() => requireParent(() => void openExternal(LEGAL_URLS.privacy))} last />
+        </Section>
+
+        <Section title={t('more.account')}>
+          <ListRow Icon={SignOut} label={t('more.signOut')} onPress={() => requireParent(confirmSignOut)} />
+          <ListRow
+            Icon={Trash}
+            label={t('more.delete')}
+            hint={busy === 'delete' ? '…' : undefined}
+            onPress={() => requireParent(confirmDelete)}
+            last
+          />
+        </Section>
 
         <Text className="font-body" style={{ fontSize: 14, color: tokens.textTertiary, textAlign: 'center' }}>
           {t('more.version', { version: Constants.expoConfig?.version ?? '' })}
         </Text>
       </ScrollView>
-
-      <ParentalGate
-        visible={gateFor !== null}
-        onPass={() => {
-          const action = gateFor;
-          setGateFor(null);
-          if (action === 'export') void onExport();
-          else confirmDelete();
-        }}
-        onCancel={() => setGateFor(null)}
-      />
+      {gate}
     </SafeAreaView>
   );
 }

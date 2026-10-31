@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Input } from '@/components/ui/Input';
+import { GlassSurface } from '@/components/ui/GlassSurface';
 import { ParentalGate } from '@/components/ui/ParentalGate';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useCategories } from '@/hooks/useCategories';
@@ -30,10 +31,7 @@ import type { ToothEventType } from '@/types';
  */
 export default function ToothSheet() {
   const { teeth: teethParam } = useLocalSearchParams<{ teeth?: string }>();
-  const teeth = useMemo(
-    () => (teethParam ?? '').split(',').map(Number).filter(isPrimaryTooth),
-    [teethParam],
-  );
+  const teeth = useMemo(() => (teethParam ?? '').split(',').map(Number).filter(isPrimaryTooth), [teethParam]);
   const single = teeth.length === 1;
 
   const uid = useAuthStore((s) => s.user?.uid ?? null);
@@ -49,7 +47,9 @@ export default function ToothSheet() {
   const [error, setError] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   // What to do once the grown-ups check passes. Batch logging opens straight into the form, so it starts gated.
-  const [pending, setPending] = useState<{ add: ToothEventType } | { deleteId: string } | null>(single ? null : { add: 'symptom' });
+  const [pending, setPending] = useState<{ add: ToothEventType } | { deleteId: string } | null>(
+    single ? null : { add: 'symptom' },
+  );
 
   if (!uid || !child || teeth.length === 0) return null;
   const childId = child.id;
@@ -96,113 +96,134 @@ export default function ToothSheet() {
   const deleteEvent = (eventId: string) =>
     Alert.alert(t('event.deleteTitle'), undefined, [
       { text: t('event.keep'), style: 'cancel' },
-      { text: t('event.deleteConfirm'), style: 'destructive', onPress: () => background(deleteToothEvent(db, uid, childId, eventId)) },
+      {
+        text: t('event.deleteConfirm'),
+        style: 'destructive',
+        onPress: () => background(deleteToothEvent(db, uid, childId, eventId)),
+      },
     ]);
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: tokens.surfacePage }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ padding: 20, rowGap: 14 }} keyboardShouldPersistTaps="handled">
-        <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary }}>
-          {single ? toothName(teeth[0]) : t('event.logForTeeth', { count: teeth.length })}
-        </Text>
+    <GlassSurface fallbackColor={tokens.surfacePage} style={{ flex: 1 }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={{ padding: 20, rowGap: 14 }} keyboardShouldPersistTaps="handled">
+          <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary }}>
+            {single ? toothName(teeth[0]) : t('event.logForTeeth', { count: teeth.length })}
+          </Text>
 
-        {!single && !unlocked ? null : single && !formType ? (
-          <>
-            <Text className="font-display-semi" style={{ fontSize: 17, color: tokens.textPrimary }}>
-              {t('event.records')}
-            </Text>
-            {toothEvents.length === 0 ? (
-              <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
-                {t('event.none')}
+          {!single && !unlocked ? null : single && !formType ? (
+            <>
+              <Text className="font-display-semi" style={{ fontSize: 17, color: tokens.textPrimary }}>
+                {t('event.records')}
               </Text>
-            ) : (
-              toothEvents.map((e) => (
-                <Card key={e.id} padding={14} style={{ flexDirection: 'row', alignItems: 'center', columnGap: 10 }}>
-                  <View style={{ flex: 1, rowGap: 4 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-                      <Badge label={t(e.type === 'symptom' ? 'event.symptom' : 'event.treatment')} tone={e.type === 'symptom' ? 'warning' : 'cobalt'} />
-                      <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
-                        {formatEventDate(e.date)}
+              {toothEvents.length === 0 ? (
+                <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
+                  {t('event.none')}
+                </Text>
+              ) : (
+                toothEvents.map((e) => (
+                  <Card key={e.id} padding={14} style={{ flexDirection: 'row', alignItems: 'center', columnGap: 10 }}>
+                    <View style={{ flex: 1, rowGap: 4 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
+                        <Badge
+                          label={t(e.type === 'symptom' ? 'event.symptom' : 'event.treatment')}
+                          tone={e.type === 'symptom' ? 'warning' : 'cobalt'}
+                        />
+                        <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
+                          {formatEventDate(e.date)}
+                        </Text>
+                      </View>
+                      <Text className="font-body-semi" style={{ fontSize: 16, color: tokens.textPrimary }}>
+                        {categoryName(e.categoryId)}
                       </Text>
+                      {e.note ? (
+                        <Text className="font-body" style={{ fontSize: 15, color: tokens.textSecondary }}>
+                          {e.note}
+                        </Text>
+                      ) : null}
                     </View>
-                    <Text className="font-body-semi" style={{ fontSize: 16, color: tokens.textPrimary }}>
-                      {categoryName(e.categoryId)}
-                    </Text>
-                    {e.note ? (
-                      <Text className="font-body" style={{ fontSize: 15, color: tokens.textSecondary }}>
-                        {e.note}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('event.delete', { date: formatEventDate(e.date) })}
-                    onPress={() => (unlocked ? deleteEvent(e.id) : setPending({ deleteId: e.id }))}
-                    style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
-                  >
-                    <Trash size={22} color={tokens.textSecondary} weight="bold" />
-                  </Pressable>
-                </Card>
-              ))
-            )}
-            <Button label={t('event.addSymptom')} onPress={() => startForm('symptom')} />
-            <Button label={t('event.addTreatment')} variant="outline" onPress={() => startForm('treatment')} />
-          </>
-        ) : (
-          <>
-            <View style={{ flexDirection: 'row', columnGap: 10 }}>
-              <Chip label={t('event.symptom')} selected={formType === 'symptom'} onPress={() => startForm('symptom')} style={{ flex: 1 }} />
-              <Chip label={t('event.treatment')} selected={formType === 'treatment'} onPress={() => startForm('treatment')} style={{ flex: 1 }} />
-            </View>
-
-            <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textPrimary }}>
-              {t('event.category')}
-            </Text>
-            {typeCategories.length === 0 ? (
-              <Text className="font-body" style={{ fontSize: 15, color: tokens.textSecondary }}>
-                {t('event.noCategories')}
-              </Text>
-            ) : (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {typeCategories.map((c) => (
-                  <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
-                ))}
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('event.delete', { date: formatEventDate(e.date) })}
+                      onPress={() => (unlocked ? deleteEvent(e.id) : setPending({ deleteId: e.id }))}
+                      style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Trash size={22} color={tokens.textSecondary} weight="bold" />
+                    </Pressable>
+                  </Card>
+                ))
+              )}
+              <Button label={t('event.addSymptom')} onPress={() => startForm('symptom')} />
+              <Button label={t('event.addTreatment')} variant="outline" onPress={() => startForm('treatment')} />
+            </>
+          ) : (
+            <>
+              <View style={{ flexDirection: 'row', columnGap: 10 }}>
+                <Chip
+                  label={t('event.symptom')}
+                  selected={formType === 'symptom'}
+                  onPress={() => startForm('symptom')}
+                  style={{ flex: 1 }}
+                />
+                <Chip
+                  label={t('event.treatment')}
+                  selected={formType === 'treatment'}
+                  onPress={() => startForm('treatment')}
+                  style={{ flex: 1 }}
+                />
               </View>
-            )}
 
-            <Input label={t('event.note')} value={note} onChangeText={setNote} maxLength={500} multiline />
-            <Input label={t('event.date')} value={date} onChangeText={setDate} maxLength={10} keyboardType="numbers-and-punctuation" />
-
-            {error ? (
               <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textPrimary }}>
-                {error}
+                {t('event.category')}
               </Text>
-            ) : null}
+              {typeCategories.length === 0 ? (
+                <Text className="font-body" style={{ fontSize: 15, color: tokens.textSecondary }}>
+                  {t('event.noCategories')}
+                </Text>
+              ) : (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {typeCategories.map((c) => (
+                    <Chip key={c.id} label={c.name} selected={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
+                  ))}
+                </View>
+              )}
 
-            <Button label={t('event.save')} size="lg" onPress={save} />
-            <Button
-              label={t('event.back')}
-              variant="ghost"
-              onPress={() => (single ? setFormType(null) : router.back())}
-            />
-          </>
-        )}
-      </ScrollView>
+              <Input label={t('event.note')} value={note} onChangeText={setNote} maxLength={500} multiline />
+              <Input
+                label={t('event.date')}
+                value={date}
+                onChangeText={setDate}
+                maxLength={10}
+                keyboardType="numbers-and-punctuation"
+              />
 
-      <ParentalGate
-        visible={pending !== null}
-        onPass={() => {
-          const action = pending;
-          setPending(null);
-          setUnlocked(true);
-          if (action && 'add' in action) openForm(action.add);
-          else if (action) deleteEvent(action.deleteId);
-        }}
-        onCancel={() => {
-          setPending(null);
-          if (!single) router.back();
-        }}
-      />
-    </KeyboardAvoidingView>
+              {error ? (
+                <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textPrimary }}>
+                  {error}
+                </Text>
+              ) : null}
+
+              <Button label={t('event.save')} size="lg" onPress={save} />
+              <Button label={t('event.back')} variant="ghost" onPress={() => (single ? setFormType(null) : router.back())} />
+            </>
+          )}
+        </ScrollView>
+
+        <ParentalGate
+          visible={pending !== null}
+          onPass={() => {
+            const action = pending;
+            setPending(null);
+            setUnlocked(true);
+            if (action && 'add' in action) openForm(action.add);
+            else if (action) deleteEvent(action.deleteId);
+          }}
+          onCancel={() => {
+            setPending(null);
+            if (!single) router.back();
+          }}
+        />
+      </KeyboardAvoidingView>
+    </GlassSurface>
   );
 }

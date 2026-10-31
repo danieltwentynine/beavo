@@ -27,5 +27,15 @@ Zing is a children's health-adjacent app. Anything that reads as dental or medic
 - Status colors: symptom = warm orange, treatment = light sky blue (no red).
 - Health wording in `lib/i18n.ts` (pt-BR + en): `overview.symptoms`/`overview.treatments`, `arch.status*`, `arch.legend*`, `arch.chartLabel` ("Mapa dos dentes de leite"), all `event.*` (e.g. "Registrar sintoma"), `history.*`, and the tab title `tabs.overview` ("Visão geral").
 
+## Needs clinical review (2026-10-31, foundation step 3)
+- `settings.durationHint`: "Dentistas recomendam 2 minutos." / "Dentists recommend 2 minutes." — a clinical claim; confirm wording. Duration choices: 1, 1.5, 2, 2.5, 3 min.
+- Badge names (`badge.*`): Primeira escovação / Pegando fogo / Estrela da semana.
+- Brushing History statuses: "Completa" / "Parou antes" (Completed / Stopped early).
+- Streak rule shown to parents: a day counts only when every brushing time was completed.
+- `badge.perfect` ("Escovação perfeita" / "Perfect Brush") — defined but not awarded (no scores).
+- `categories.symptoms`/`categories.treatments`, `categories.deleteBody`.
+- **Decision needed:** with the 1 or 1.5 min setting, a run that reaches the chosen length is saved as `completed` and counts for the streak, while the hint says dentists recommend 2 min. Should sub-2-minute runs count as complete?
+- Not clinical: `more.premiumBody` / `premium.body` are placeholders and must be replaced before release.
+
 ## Approved wording
 _None recorded yet. The advisor should add approved coach templates here (EN and PT-BR)._

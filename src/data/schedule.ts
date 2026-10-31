@@ -85,6 +85,12 @@ export function pickSlotForTime(slots: readonly BrushingSlot[], at: Date): Brush
   return best;
 }
 
+/** The slot whose window contains `at` (windows are inclusive), or null. */
+export function slotAt(slots: readonly BrushingSlot[], at: Date): BrushingSlot | null {
+  const now = at.getHours() * 60 + at.getMinutes();
+  return [...slots].sort(bySortOrder).find((s) => minutes(s.windowStart) <= now && now <= minutes(s.windowEnd)) ?? null;
+}
+
 /**
  * A slot with sessions is archived, never hard-deleted. `hasSessions` is null
  * when we couldn't ask the server (offline) — archive then too, since the

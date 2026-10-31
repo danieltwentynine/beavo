@@ -38,20 +38,19 @@ export function writeSession(db: Firestore, uid: string, childId: string, sessio
   return setDoc(doc(sessionsRef(db, uid, childId), id), { ...rest, startedAt: Timestamp.fromDate(startedAt) });
 }
 
-/** Live sessions of one local day (YYYY-MM-DD). */
-export function watchSessionsOn(
+/**
+ * Every session of a child, live.
+ * ponytail: loads the full history (~1,100 docs/year at 3 a day) for streaks;
+ * switch to a date-bounded query plus stored best-streak if that grows slow.
+ */
+export function watchAllSessions(
   db: Firestore,
   uid: string,
   childId: string,
-  day: string,
   onChange: (sessions: BrushingSession[]) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
-  return onSnapshot(
-    query(sessionsRef(db, uid, childId), where('date', '==', day)),
-    (snap) => onChange(parseDocs(snap, sessionSchema)),
-    onError,
-  );
+  return onSnapshot(sessionsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, sessionSchema)), onError);
 }
 
 /** Whether any session uses the slot — asked of the server. Null when it can't be reached. */

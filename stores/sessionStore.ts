@@ -11,8 +11,10 @@ import type { ToothZone } from '@/types';
 /** The result of a completed brushing session, passed from session → results. */
 export interface SessionResult {
   childId: string;
+  /** Slot picked on the Brushing tab; null → resolved from the start time. */
+  slotId: string | null;
   startedAt: Date;
-  /** The full 2 minutes ran (vs. "I'm done" early). */
+  /** The full configured length ran (vs. "I'm done" early). */
   completed: boolean;
   score: number;
   zoneStates: Partial<Record<ToothZone, 'empty' | 'active' | 'done' | 'missed'>>;
@@ -50,7 +52,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     const slots = useChildStore.getState().slotsByChild[lastResult.childId] ?? [];
     // The slot is resolved against the slots active on the day brushing started.
     const day = localDate(lastResult.startedAt);
-    const slot = pickSlotForTime(slotsActiveOn(slots, day), lastResult.startedAt);
+    const activeThatDay = slotsActiveOn(slots, day);
+    const slot = activeThatDay.find((s) => s.id === lastResult.slotId) ?? pickSlotForTime(activeThatDay, lastResult.startedAt);
     if (!user || !slot) {
       // Signed out, or slots not loaded yet. Keep the result so "Try again" can save it.
       set({ saveStatus: 'failed' });

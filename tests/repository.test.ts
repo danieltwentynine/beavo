@@ -6,7 +6,8 @@ import { after, before, beforeEach, test } from 'node:test';
 import type { RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import { collection, getDocs, type Firestore } from 'firebase/firestore';
 
-import { deleteAllUserData, exportAllData, fetchUserProfile, saveConsent } from '../src/data/account.ts';
+import { deleteAllUserData, exportAllData, fetchUserProfile, importBackup, saveConsent } from '../src/data/account.ts';
+import { parseBackup } from '../src/data/backup.ts';
 import { childrenRef, createChild, deleteChild, updateChild, watchChildren } from '../src/data/children.ts';
 import { localDate, slotsActiveOn } from '../src/data/schedule.ts';
 import { hasSessionsForSlot, writeSession } from '../src/data/sessions.ts';
@@ -60,7 +61,7 @@ test('createChild writes the child and its three default meal slots', async () =
   const children = await nextValue<Child[]>((cb) => watchChildren(db, UID, cb), (c) => c.length > 0);
   assert.equal(children[0].name, 'Leo');
   assert.equal(children[0].birthYear, undefined);
-  assert.equal(children[0].kidMode, true);
+  assert.equal(children[0].kidMode, false);
 
   const slots = await slotsOf(id);
   assert.deepEqual(
@@ -196,4 +197,23 @@ test('addToothEvents logs one event per selected tooth in one batch', async () =
   await addToothEvents(db, UID, id, [52, 74].map((fdi) => ({ fdi, type: 'treatment' as const, categoryId: 'sealant', note: '', date: '2026-10-31' })));
   const fdis = (await getDocs(toothEventsRef(db, UID, id))).docs.map((d) => d.get('fdi') as number).sort();
   assert.deepEqual(fdis, [52, 74]);
+});
+
+test('export → delete everything → import restores the same data', async () => {
+  await seedDefaultCategories(db, UID, { pain: 'Dor' });
+  const id = await newChild();
+  await writeSession(db, UID, id, { id: 's1', slotId: 'x', date: '2026-10-31', startedAt: new Date('2026-10-31T10:00:00Z'), durationSec: 120, completed: true });
+  await addToothEvent(db, UID, id, { fdi: 55, type: 'symptom', categoryId: 'pain', note: 'molar', date: '2026-10-31' }).written;
+  const before = await exportAllData(db, UID);
+
+  await deleteAllUserData(db, UID);
+  await saveConsent(db, UID, { displayName: 'Ana', locale: 'pt-BR', termsVersion: 't1', privacyVersion: 'p1' });
+  const backup = parseBackup(JSON.stringify(before));
+  assert.ok(backup);
+  const written = await importBackup(db, UID, backup);
+  assert.equal(written, 7 + 1 + 3 + 1 + 1);
+
+  const after = await exportAllData(db, UID);
+  const strip = (d: typeof before) => ({ categories: d.categories, children: d.children });
+  assert.deepEqual(strip(after), strip(before));
 });

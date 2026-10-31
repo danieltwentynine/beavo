@@ -23,7 +23,7 @@ Estes Termos regem o uso do aplicativo Zing, oferecido por [RAZÃO SOCIAL], CNPJ
 
 - Mantenha seus dados de acesso em segurança. Você responde pelo que for feito na sua conta.
 - As informações que você registra (perfis, horários, registros dentários) são de sua responsabilidade; mantenha-as corretas.
-- Você pode exportar seus dados e excluir sua conta a qualquer momento pelo app (*Mais → Exportar meus dados* e *Mais → Excluir conta*).
+- Você pode exportar seus dados e excluir sua conta a qualquer momento pelo app (*Mais → Exportar backup* e *Mais → Excluir conta*).
 
 ## 4. A câmera
 

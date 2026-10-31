@@ -6,13 +6,16 @@ import {
   getDocFromServer,
   getDocsFromServer,
   setDoc,
+  writeBatch,
+  type DocumentReference,
   type Firestore,
 } from 'firebase/firestore';
 import { z } from 'zod';
 
 import type { Locale, UserProfile } from '@/types';
 
-import { CHILD_SUBCOLLECTIONS, childrenRef, deleteChild } from './children.ts';
+import { BACKUP_FORMAT, BACKUP_VERSION, type Backup } from './backup.ts';
+import { CHILD_SUBCOLLECTIONS, childRef, childrenRef, deleteChild } from './children.ts';
 import { date, deleteCollection, toPlain } from './firestore.ts';
 import { categoriesRef } from './toothEvents.ts';
 
@@ -65,6 +68,8 @@ export function saveConsent(db: Firestore, uid: string, input: ConsentInput): Pr
 type Plain = Record<string, unknown>;
 
 export interface DataExport {
+  format: typeof BACKUP_FORMAT;
+  version: typeof BACKUP_VERSION;
   exportedAt: string;
   user: Plain | null;
   categories: Plain[];
@@ -90,6 +95,8 @@ export async function exportAllData(db: Firestore, uid: string): Promise<DataExp
     }),
   );
   return {
+    format: BACKUP_FORMAT,
+    version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     user: userSnap.exists() ? (toPlain(userSnap.data()) as Plain) : null,
     categories: await plainDocs(categoriesRef(db, uid)),
@@ -108,4 +115,43 @@ export async function deleteAllUserData(db: Firestore, uid: string): Promise<voi
   const children = await getDocsFromServer(childrenRef(db, uid));
   for (const c of children.docs) await deleteChild(db, uid, c.id);
   await deleteCollection(db, categoriesRef(db, uid));
+}
+
+const BATCH_LIMIT = 450;
+
+/**
+ * Restore a parsed backup (see backup.ts) into this account, merging by id:
+ * existing docs with the same id are overwritten, nothing is deleted. Children
+ * are written before their subcollections (the rules require a live child).
+ * Needs a connection. Returns how many documents were written.
+ */
+export async function importBackup(db: Firestore, uid: string, backup: Backup): Promise<number> {
+  // Fail fast offline: batched writes would otherwise wait forever for a connection.
+  await getDocFromServer(userRef(db, uid));
+  const writes: [DocumentReference, Record<string, unknown>][] = [];
+  const commit = async () => {
+    for (let i = 0; i < writes.length; i += BATCH_LIMIT) {
+      const batch = writeBatch(db);
+      for (const [ref, data] of writes.slice(i, i + BATCH_LIMIT)) batch.set(ref, data);
+      await batch.commit();
+    }
+    const count = writes.length;
+    writes.length = 0;
+    return count;
+  };
+
+  for (const { id, ...category } of backup.categories) writes.push([doc(categoriesRef(db, uid), id), category]);
+  for (const { id, brushingSlots: _s, brushingSessions: _x, toothEvents: _e, ...child } of backup.children) {
+    writes.push([childRef(db, uid, id), child]);
+  }
+  let written = await commit();
+
+  for (const child of backup.children) {
+    const ref = childRef(db, uid, child.id);
+    for (const { id, ...slot } of child.brushingSlots) writes.push([doc(collection(ref, 'brushingSlots'), id), slot]);
+    for (const { id, ...session } of child.brushingSessions) writes.push([doc(collection(ref, 'brushingSessions'), id), session]);
+    for (const { id, ...event } of child.toothEvents) writes.push([doc(collection(ref, 'toothEvents'), id), event]);
+  }
+  written += await commit();
+  return written;
 }

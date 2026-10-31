@@ -4,6 +4,7 @@ import {
   doc,
   onSnapshot,
   setDoc,
+  updateDoc,
   writeBatch,
   type Firestore,
   type Unsubscribe,
@@ -96,6 +97,18 @@ export function seedDefaultCategories(db: Firestore, uid: string, names: Record<
   }
   return batch.commit();
 }
+
+export function addCategory(db: Firestore, uid: string, category: Omit<Category, 'id' | 'isDefault'>): { id: string; written: Promise<void> } {
+  const ref = doc(categoriesRef(db, uid));
+  return { id: ref.id, written: setDoc(ref, { ...category, isDefault: false }) };
+}
+
+export const updateCategory = (db: Firestore, uid: string, categoryId: string, patch: Partial<Pick<Category, 'name' | 'color'>>): Promise<void> =>
+  updateDoc(doc(categoriesRef(db, uid), categoryId), patch);
+
+/** Events that used it keep their categoryId and show without a category name. */
+export const deleteCategory = (db: Firestore, uid: string, categoryId: string): Promise<void> =>
+  deleteDoc(doc(categoriesRef(db, uid), categoryId));
 
 /** `fromCache`: the list may be incomplete (offline) — don't treat empty as "none exist". */
 export function watchCategories(

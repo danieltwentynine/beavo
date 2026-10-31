@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
+import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { signOutParent } from '@/lib/account';
 import { acceptConsent } from '@/lib/consent';
@@ -23,6 +24,8 @@ export default function ConsentScreen() {
   const setConsent = useAuthStore((s) => s.setConsent);
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Apple Kids Category: external links sit behind the grown-ups check, even here.
+  const { gate, requireParent } = useParentalGate();
 
   const onAccept = async () => {
     if (!user || !checked) return;
@@ -37,7 +40,7 @@ export default function ConsentScreen() {
   };
 
   const link = (label: string, url: string) => (
-    <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(url)} hitSlop={6} style={{ minHeight: 48, justifyContent: 'center' }}>
+    <Pressable accessibilityRole="link" onPress={() => requireParent(() => void Linking.openURL(url).catch(() => undefined))} hitSlop={6} style={{ minHeight: 48, justifyContent: 'center' }}>
       <Text className="font-display-semi" style={{ fontSize: 17, color: tokens.textLink, textDecorationLine: 'underline' }}>
         {label}
       </Text>
@@ -87,6 +90,7 @@ export default function ConsentScreen() {
           <Button label={t('consent.signOut')} variant="ghost" onPress={onSignOut} />
         </View>
       </ScrollView>
+      {gate}
     </SafeScreen>
   );
 }

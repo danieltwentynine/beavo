@@ -55,6 +55,8 @@ app/                              # Expo Router screens
 ├── slots.tsx                     # Edit the active child's brushing slots
 ├── tooth-sheet.tsx               # Form sheet: one tooth's records + add, or log for several teeth
 ├── dental-history.tsx            # All tooth events, newest first
+├── brushing-history.tsx          # All brushing sessions, newest first
+├── categories.tsx, settings.tsx, premium.tsx   # Parent-only (reached through the gate in More)
 ├── session.tsx                   # Brushing session
 └── results.tsx                   # Score, local message, save status
 components/
@@ -62,13 +64,15 @@ components/
 ├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
 ├── kids/ Avatar, BadgeCard, StreakDisplay, Sticker, ProfilePill
 ├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
-└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate, TabHeader
-hooks/ useActiveChild.ts, useChildDataSync.ts, useToothEvents.ts, useCategories.ts
+└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate (+ useParentalGate), TabHeader, ListRow, GlassSurface
+hooks/ useActiveChild.ts, useChildDataSync.ts, useToothEvents.ts, useCategories.ts, useSessions.ts
 src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
 ├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
 ├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
 ├── schedule.ts                   # Pure slot logic: defaults, slotsActiveOn(date), pickSlotForTime, archive-vs-delete
 ├── teeth.ts                      # Pure tooth logic: primary FDI teeth, arch geometry/shapes, nearestTooth, stats
+├── progress.ts                   # Pure: week dots, streak (all slots completed), 30-day completion rate, derived badges
+├── backup.ts                     # Pure: backup file format + validation (import)
 ├── outbox.ts                     # Pure outbox codec for unsynced sessions
 └── *.test.ts                     # node --test unit tests
 lib/
@@ -77,9 +81,9 @@ lib/
 ├── consent.ts, legal.ts          # Consent check/accept; LEGAL_VERSIONS + hosted URLs
 ├── sync.ts                       # AsyncStorage outbox: sessions survive app kill offline, retried on launch/foreground
 ├── i18n.ts                       # t(), pt-BR + en strings
-├── streak.ts, badges.ts, coach.ts, gemini.ts (not called), constants.ts, tokens.ts
+├── coach.ts, gemini.ts (not called), constants.ts, tokens.ts
 └── *.check.mjs                   # Plain-node self-checks
-stores/ authStore.ts (user + consent), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts
+stores/ authStore.ts (user + consent), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length)
 tests/ rules.test.ts, repository.test.ts   # Firestore emulator tests
 legal/                            # Terms + Privacy Policy drafts (pt-BR, en) → public/legal/*.html on Firebase Hosting
 types/ index.ts                   # All shared types; firebase-auth.d.ts augments RN persistence
@@ -118,6 +122,12 @@ users/{uid}                         displayName, locale ('pt-BR'|'en'), createdA
 - **Deleting** a child or the account deletes subcollections explicitly (Firestore doesn't cascade).
 - **Rules** (`firestore.rules`): owner-only under `users/{uid}`, exact keys + types on every write, `createdAt` immutable; children/categories need `users/{uid}.consent`; child subcollection writes need a live (existing, non-archived) child, so nothing can be orphaned under a deleted child; everything else denied. Tests: `npm run test:emulator`.
 - **Delete order:** `deleteChild` archives the child, deletes subcollections, then the doc; `deleteAllUserData` deletes the profile first. Keep this order — the rules rely on it.
+
+---
+
+## Liquid Glass
+
+NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/GlassSurface.tsx` is the only user of `expo-glass-effect`, and only for floating chrome: ProfilePill, Overview's corner buttons, the child-picker and tooth sheets. Never on content cards. It falls back to solid token surfaces when `isLiquidGlassAvailable()` is false or Reduce Transparency is on. Chrome keeps the Toy box ink outline + hard shadow either way.
 
 ---
 
@@ -231,7 +241,8 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 - No analytics that track individual children by name
 - All data lives under `users/{uid}` — the security rules enforce owner-only access
 - Camera frames are never processed, stored or uploaded (mirror only)
-- Adding/deleting a child, adding/deleting tooth events, exporting data and deleting the account sit behind `ParentalGate` (viewing the chart and records is open); first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
+- **Parental gate (Apple Kids Category):** every external link (legal, review), purchase/Premium, backup export/import, settings, categories, kid-mode change, routine editing, adding/deleting a child or tooth event, sign-out and account deletion goes through `ParentalGate` / `useParentalGate` (viewing the chart and records is open). The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal).
+- **Kid mode** (`children.kidMode`, off for new children, toggled behind the gate on Brushing): hides the More tab, makes the Overview chart view-only (no tooth sheet, no Dental History) and hides edit/add in the child picker. first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
 - Legal docs (`legal/`) must describe what the code actually does — change them (and `LEGAL_VERSIONS`) whenever data handling changes
 - The Gemini prompt must never include the child's last name, school, or location
 
@@ -243,11 +254,11 @@ Progress lives in `docs/ROADMAP.md`, decisions in `docs/decisions/`, copy rules 
 
 ---
 
-## Current Phase: Foundation rebuild — steps 1–2 of 3 done (data, profiles, privacy, legal, nav shell; Overview + tooth chart)
+## Current Phase: Foundation rebuild — steps 1–3 done (data, privacy, legal, nav; Overview + tooth chart; Brushing, Progress, More)
 
 Step 1 shipped the nested Firestore model + repository layer, multiple children with a switcher, meal-based brushing slots, consent + legal drafts, account export/delete, the camera guardrail and the NativeTabs shell (Overview, Brushing, Progress, More — Brushing/Progress are placeholders). See `docs/ROADMAP.md`.
 
-**Next (step 3):** redesign of Brushing / Progress / More, progress/streaks/badges on `brushingSessions`, legal review of `legal/`, then the simulator pass.
+**Next:** deploy the rules, rebuild the dev client (native modules added in steps 1–3), simulator/device pass, legal review of `legal/`.
 
 **What NOT to build yet:**
 - Zone detection AI / any frame processing (ruled out by the Camera guardrail)
@@ -297,7 +308,7 @@ npm run build:legal     # legal/*.md → public/legal/*.html (also Hosting prede
 npm run check           # tsc + lint + unit tests + self-checks + guardrail
 ```
 
-Self-checks (plain node + assert): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/gemini.check.mjs`. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
+Self-check: `node lib/gemini.check.mjs`. Run the unit tests under a DST zone too: `TZ=America/New_York npm test`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
 
 Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://zing-dental-app.web.app/legal/…`.
 

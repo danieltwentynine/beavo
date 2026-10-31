@@ -52,7 +52,8 @@
         }
       ],
       "./plugins/withSceneLifecycle",
-      "expo-localization"
+      "expo-localization",
+      "expo-sharing"
     ],
     "extra": {
       "router": {},

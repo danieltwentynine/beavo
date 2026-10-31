@@ -1,14 +1,17 @@
 import { FirebaseError } from 'firebase/app';
 import { EmailAuthProvider, deleteUser, reauthenticateWithCredential, signOut } from 'firebase/auth';
-import { Share } from 'react-native';
+import { getDocumentAsync } from 'expo-document-picker';
+import { File, Paths } from 'expo-file-system';
+import { shareAsync } from 'expo-sharing';
 
 import { auth, db } from '@/lib/firebase';
-import { t } from '@/lib/i18n';
 import { reauthenticateWithGoogle, signOutGoogle } from '@/lib/socialAuth';
 import { dropOutboxForChild, dropOutboxForUser } from '@/lib/sync';
 import { clearConsentRecord } from '@/lib/consent';
 import { clearSnapshot, useChildStore } from '@/stores/childStore';
-import { deleteAllUserData, exportAllData } from '@/src/data/account';
+import { deleteAllUserData, exportAllData, importBackup } from '@/src/data/account';
+import { MAX_BACKUP_BYTES, parseBackup, type Backup } from '@/src/data/backup';
+import { localDate } from '@/src/data/schedule';
 import { deleteChild } from '@/src/data/children';
 
 /**
@@ -35,20 +38,81 @@ export function reauthMethod(): 'google' | 'password' | null {
   return null;
 }
 
-/** Export all of the parent's data as JSON through the share sheet. Needs a connection. */
+/**
+ * Export all of the parent's data as a .json backup file through the share
+ * sheet. Needs a connection. The temporary file is deleted once the sheet closes.
+ */
 export async function shareDataExport(): Promise<boolean> {
-  const uid = auth.currentUser?.uid;
-  if (!uid) return false;
+  const user = auth.currentUser;
+  if (!user) return false;
+  const file = new File(Paths.cache, `zing-backup-${localDate(new Date())}.json`);
   try {
-    const user = auth.currentUser;
     // Sign-in data lives in Firebase Auth, not Firestore — include it so the export is complete.
-    const account = { email: user?.email ?? null, displayName: user?.displayName ?? null, providers: user?.providerData.map((p) => p.providerId) ?? [] };
-    const data = { account, ...(await exportAllData(db, uid)) };
-    // ponytail: shared as text; switch to a .json file via expo-sharing if parents ask for an attachment.
-    await Share.share({ title: t('more.exportTitle'), message: JSON.stringify(data, null, 2) });
+    const account = { email: user.email ?? null, displayName: user.displayName ?? null, providers: user.providerData.map((p) => p.providerId) };
+    const data = { ...(await exportAllData(db, user.uid)), account };
+    if (file.exists) file.delete();
+    file.create();
+    file.write(JSON.stringify(data, null, 2));
+    await shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' });
     return true;
   } catch {
     return false;
+  } finally {
+    try {
+      if (file.exists) file.delete();
+    } catch {
+      // The cache directory is cleared by the system anyway.
+    }
+  }
+}
+
+export type PickedBackup = { status: 'picked'; backup: Backup } | { status: 'cancelled' } | { status: 'invalid' };
+
+/** Let the parent pick a backup .json in Files and validate it (nothing is written yet). */
+export async function pickBackup(): Promise<PickedBackup> {
+  try {
+    const result = await getDocumentAsync({ type: ['application/json', 'public.json', 'text/plain'], copyToCacheDirectory: true });
+    if (result.canceled) return { status: 'cancelled' };
+    const file = new File(result.assets[0].uri);
+    try {
+      if (file.size > MAX_BACKUP_BYTES) return { status: 'invalid' };
+      const backup = parseBackup(await file.text());
+      return backup ? { status: 'picked', backup } : { status: 'invalid' };
+    } finally {
+      // The picker's copy holds children's data: never leave it in the cache.
+      try {
+        if (file.exists) file.delete();
+      } catch {
+        // Cleared by cleanupBackupFiles on the next launch.
+      }
+    }
+  } catch {
+    return { status: 'invalid' };
+  }
+}
+
+/**
+ * Remove backup copies a killed app left in the cache (an export whose share
+ * sheet never closed). Called once at launch.
+ */
+export function cleanupBackupFiles(): void {
+  try {
+    for (const item of Paths.cache.list()) {
+      if (item instanceof File && item.name.startsWith('zing-backup-')) item.delete();
+    }
+  } catch {
+    // Best effort; the system clears the cache too.
+  }
+}
+
+/** Merge a validated backup into this account. Needs a connection. Returns docs written, or null on failure. */
+export async function restoreBackup(backup: Backup): Promise<number | null> {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return null;
+  try {
+    return await importBackup(db, uid, backup);
+  } catch {
+    return null;
   }
 }
 

@@ -14,3 +14,7 @@ export const LEGAL_URLS = {
   terms: `${LEGAL_BASE_URL}/terms.${locale}.html`,
   privacy: `${LEGAL_BASE_URL}/privacy-policy.${locale}.html`,
 } as const;
+
+/** App Store id — fill in once the app exists in App Store Connect (until then the review link fails gracefully). */
+const APP_STORE_ID = '[APP_STORE_ID]';
+export const REVIEW_URL = `https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`;
