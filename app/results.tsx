@@ -25,7 +25,7 @@ export default function ResultsScreen() {
   const retrySave = useSessionStore((s) => s.saveLastResult);
 
   if (!result) {
-    return <Redirect href="/(tabs)/home" />;
+    return <Redirect href="/(tabs)/overview" />;
   }
 
   const title = result.score >= 80 ? 'Great brushing!' : 'Good effort!';

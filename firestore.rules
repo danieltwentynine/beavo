@@ -1,37 +1,168 @@
 rules_version = '2';
 
-// Zing Firestore rules — COPPA-critical: all child/session data is scoped to the
-// authenticated parent via parentUid (CLAUDE.md > Privacy). Anything not matched
-// below is denied by default.
+// Zing Firestore rules. COPPA/LGPD-critical: every document lives under
+// users/{uid} and only that signed-in parent can read or write it. Children
+// never authenticate. Every write is type-checked; anything not matched below
+// (including the legacy top-level /children and /sessions) is denied.
+// Tests: npm run test:rules (Firestore emulator).
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isSignedIn() {
-      return request.auth != null;
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
     }
 
-    function ownsExisting() {
-      return isSignedIn() && resource.data.parentUid == request.auth.uid;
+    function data() {
+      return request.resource.data;
     }
 
-    function ownsIncoming() {
-      return isSignedIn() && request.resource.data.parentUid == request.auth.uid;
+    // Children and categories can only be created once the parent has consented
+    // (users/{uid}.consent, written by app/consent.tsx). getAfter: the consent
+    // write may be in the same batch or queued just before (offline).
+    function hasConsented(uid) {
+      let user = /databases/$(database)/documents/users/$(uid);
+      return existsAfter(user) && 'consent' in getAfter(user).data;
+    }
+
+    // Child subcollection writes need the child to exist and not be mid-deletion
+    // (deleteChild archives first). Stops a late or offline-queued write from
+    // recreating data under a deleted child, where delete/export can't find it.
+    function childIsLive(uid, childId) {
+      let child = /databases/$(database)/documents/users/$(uid)/children/$(childId);
+      return existsAfter(child) && getAfter(child).data.archivedAt == null;
+    }
+
+    function shape(required, optional) {
+      return data().keys().hasAll(required) && data().keys().hasOnly(required.concat(optional));
+    }
+
+    function str(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    function nonEmpty(v, max) {
+      return str(v, max) && v.size() > 0;
+    }
+
+    function nullableTimestamp(v) {
+      return v == null || v is timestamp;
+    }
+
+    function hhmm(v) {
+      return v is string && v.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+    }
+
+    function ymd(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function hexColor(v) {
+      return v is string && v.matches('^#[0-9A-Fa-f]{6}$');
+    }
+
+    // FDI tooth numbers: permanent 11–48 (quadrants 1–4, teeth 1–8),
+    // primary 51–85 (quadrants 5–8, teeth 1–5).
+    function fdi(v) {
+      return v is int
+        && ((v >= 11 && v <= 48 && v % 10 >= 1 && v % 10 <= 8)
+          || (v >= 51 && v <= 85 && v % 10 >= 1 && v % 10 <= 5));
+    }
+
+    function validUser() {
+      return shape(['displayName', 'locale', 'createdAt'], ['consent'])
+        && str(data().displayName, 100)
+        && data().locale in ['pt-BR', 'en']
+        && data().createdAt is timestamp
+        && (!('consent' in data()) || (
+          data().consent is map
+          && data().consent.keys().hasOnly(['termsVersion', 'privacyVersion', 'acceptedAt'])
+          && nonEmpty(data().consent.termsVersion, 40)
+          && nonEmpty(data().consent.privacyVersion, 40)
+          && data().consent.acceptedAt is timestamp));
+    }
+
+    function validChild() {
+      return shape(['name', 'avatarColor', 'avatarIcon', 'kidMode', 'createdAt', 'archivedAt'], ['birthYear'])
+        && nonEmpty(data().name, 40)
+        && hexColor(data().avatarColor)
+        && nonEmpty(data().avatarIcon, 30)
+        && (!('birthYear' in data()) || data().birthYear == null
+          || (data().birthYear is int && data().birthYear >= 1990 && data().birthYear <= 2100))
+        && data().kidMode is bool
+        && data().createdAt is timestamp
+        && nullableTimestamp(data().archivedAt);
+    }
+
+    function validSlot() {
+      return shape(['label', 'icon', 'mealType', 'windowStart', 'windowEnd', 'sortOrder', 'createdAt', 'archivedAt'], [])
+        && nonEmpty(data().label, 40)
+        && nonEmpty(data().icon, 30)
+        && data().mealType in ['breakfast', 'lunch', 'dinner', 'custom']
+        && hhmm(data().windowStart)
+        && hhmm(data().windowEnd)
+        && data().windowStart < data().windowEnd
+        && data().sortOrder is int && data().sortOrder >= 0
+        && data().createdAt is timestamp
+        && nullableTimestamp(data().archivedAt);
+    }
+
+    function validSession() {
+      return shape(['slotId', 'date', 'startedAt', 'durationSec', 'completed'], [])
+        && nonEmpty(data().slotId, 128)
+        && ymd(data().date)
+        && data().startedAt is timestamp
+        && data().durationSec is int && data().durationSec >= 0 && data().durationSec <= 3600
+        && data().completed is bool;
+    }
+
+    function validToothEvent() {
+      return shape(['fdi', 'type', 'categoryId', 'note', 'date'], [])
+        && fdi(data().fdi)
+        && data().type in ['symptom', 'treatment']
+        && nonEmpty(data().categoryId, 128)
+        && str(data().note, 500)
+        && ymd(data().date);
+    }
+
+    function validCategory() {
+      return shape(['name', 'type', 'color', 'isDefault'], [])
+        && nonEmpty(data().name, 40)
+        && data().type in ['symptom', 'treatment']
+        && hexColor(data().color)
+        && data().isDefault is bool;
     }
 
     match /users/{uid} {
-      allow read, write: if isSignedIn() && request.auth.uid == uid;
-    }
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validUser();
 
-    match /children/{childId} {
-      allow read, delete: if ownsExisting();
-      allow create: if ownsIncoming();
-      // Both checks so an update can never reassign parentUid to another account.
-      allow update: if ownsExisting() && ownsIncoming();
-    }
+      match /children/{childId} {
+        allow read, delete: if isOwner(uid);
+        // createdAt is set once and never moved (slot/day history depends on it).
+        allow create: if isOwner(uid) && validChild() && hasConsented(uid);
+        allow update: if isOwner(uid) && validChild() && data().createdAt == resource.data.createdAt;
 
-    match /sessions/{sessionId} {
-      allow read, delete: if ownsExisting();
-      allow create: if ownsIncoming();
-      allow update: if ownsExisting() && ownsIncoming();
+        match /brushingSlots/{slotId} {
+          allow read, delete: if isOwner(uid);
+          allow create: if isOwner(uid) && validSlot() && childIsLive(uid, childId);
+          allow update: if isOwner(uid) && validSlot() && data().createdAt == resource.data.createdAt && childIsLive(uid, childId);
+        }
+
+        match /brushingSessions/{sessionId} {
+          allow read, delete: if isOwner(uid);
+          // Create and update: a retried save overwrites the same id.
+          allow create, update: if isOwner(uid) && validSession() && childIsLive(uid, childId);
+        }
+
+        match /toothEvents/{eventId} {
+          allow read, delete: if isOwner(uid);
+          allow create, update: if isOwner(uid) && validToothEvent() && childIsLive(uid, childId);
+        }
+      }
+
+      match /categories/{categoryId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && validCategory() && hasConsented(uid);
+      }
     }
   }
 }

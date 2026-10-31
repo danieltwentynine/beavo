@@ -12,12 +12,10 @@ import { BrushTimer } from '@/components/brushing/BrushTimer';
 import { MouthMap, type ZoneState } from '@/components/brushing/MouthMap';
 import { Sticker } from '@/components/kids/Sticker';
 import { Button } from '@/components/ui/Button';
+import { useActiveChild } from '@/hooks/useActiveChild';
 import { buildCoachMessage } from '@/lib/coach';
-import { generateCoachMessage } from '@/lib/gemini';
-import { nextStreak } from '@/lib/streak';
 import { ALL_TOOTH_ZONES, BRUSHING_DURATION_SECONDS, COUNTDOWN_SECONDS } from '@/lib/constants';
 import { outline, palette, tokens } from '@/lib/tokens';
-import { useChildStore } from '@/stores/childStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import type { ToothZone } from '@/types';
 
@@ -35,7 +33,7 @@ const ZONE_HINTS: Record<ToothZone, string> = {
 };
 
 export default function SessionScreen() {
-  const child = useChildStore((s) => s.activeChild);
+  const { child } = useActiveChild();
   const setLastResult = useSessionStore((s) => s.setLastResult);
   const saveLastResult = useSessionStore((s) => s.saveLastResult);
 
@@ -50,6 +48,7 @@ export default function SessionScreen() {
   const [count, setCount] = useState(COUNTDOWN_SECONDS);
   const [remaining, setRemaining] = useState(BRUSHING_DURATION_SECONDS);
   const remainingRef = useRef(BRUSHING_DURATION_SECONDS);
+  const startedAtRef = useRef<Date | null>(null);
   const finishedRef = useRef(false);
   const childName = child?.name ?? 'friend';
 
@@ -72,15 +71,19 @@ export default function SessionScreen() {
   // Countdown 3 → 2 → 1 → Go!
   useEffect(() => {
     if (phase !== 'countdown' || askingForCamera) return;
-    if (count < 0) {
+    const t = setTimeout(() => {
+      if (count > 0) {
+        setCount((c) => c - 1);
+        return;
+      }
+      // "Go!" has been on screen for a beat: brushing starts now.
+      startedAtRef.current = new Date();
       setPhase('active');
-      return;
-    }
-    const t = setTimeout(() => setCount((c) => c - 1), 800);
+    }, 800);
     return () => clearTimeout(t);
   }, [phase, count, askingForCamera]);
 
-  const finish = useCallback(async () => {
+  const finish = useCallback(() => {
     if (finishedRef.current) return;
     finishedRef.current = true;
 
@@ -103,19 +106,18 @@ export default function SessionScreen() {
     });
 
     const score = Math.round((reached / ALL_TOOTH_ZONES.length) * 100);
-    const name = child?.name ?? 'friend';
-    // Gemini has its own short timeout; any failure keeps the local message.
-    const coachMessage =
-      (child &&
-        (await generateCoachMessage(name, {
-          age: child.age,
-          missedZones: missed,
-          score,
-          streakDays: nextStreak(child, new Date()),
-        }))) ||
-      buildCoachMessage(name, missed, score);
+    if (!child) {
+      router.back();
+      return;
+    }
+    // Local, reviewed templates only. AI tips (lib/gemini.ts) are off: re-enabling
+    // them needs a privacy-policy update first (CLAUDE.md > Gemini).
+    const coachMessage = buildCoachMessage(child.name, missed, score);
 
     setLastResult({
+      childId: child.id,
+      startedAt: startedAtRef.current ?? new Date(Date.now() - elapsedAtFinish * 1000),
+      completed: elapsedAtFinish >= total,
       score,
       zoneStates: final,
       missed,
@@ -140,7 +142,7 @@ export default function SessionScreen() {
       setRemaining(Math.max(0, next));
       if (next <= 0) {
         clearInterval(interval);
-        void finish();
+        finish();
       }
     }, 1000);
     return () => clearInterval(interval);
@@ -208,7 +210,7 @@ export default function SessionScreen() {
               <BrushTimer remaining={remaining} total={BRUSHING_DURATION_SECONDS} size={150} />
             </View>
 
-            <Button label="I'm done" variant="outline" size="sm" fullWidth={false} onPress={() => void finish()} />
+            <Button label="I'm done" variant="outline" size="sm" fullWidth={false} onPress={finish} />
           </View>
         )}
       </SafeAreaView>

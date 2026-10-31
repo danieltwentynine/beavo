@@ -1,41 +1,14 @@
-import { router } from 'expo-router';
-import { useEffect } from 'react';
-
-import { fetchActiveChild } from '@/lib/children';
-import { useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
+import type { BrushingSlot } from '@/types';
 
-/**
- * Resolves the parent's active child: prefers the in-memory store (just created
- * during onboarding), otherwise fetches the first child from Firestore. If the
- * parent has no child yet, sends them to child setup.
- */
+const NO_SLOTS: BrushingSlot[] = [];
+
+/** The child currently using the app (persisted per parent), their slots, and the switcher. */
 export function useActiveChild() {
-  const user = useAuthStore((s) => s.user);
-  const activeChild = useChildStore((s) => s.activeChild);
-  const setActiveChild = useChildStore((s) => s.setActiveChild);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (activeChild || !user) return;
-    (async () => {
-      try {
-        const child = await fetchActiveChild(user.uid);
-        if (cancelled) return;
-        if (child) {
-          setActiveChild(child);
-        } else {
-          router.replace('/onboarding/child-setup');
-        }
-      } catch {
-        // Couldn't load (offline, rules, …) — stay put instead of sending the
-        // parent to child setup, which would create a duplicate profile.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user, activeChild, setActiveChild]);
-
-  return { child: activeChild };
+  const children = useChildStore((s) => s.children);
+  const activeChildId = useChildStore((s) => s.activeChildId);
+  const slots = useChildStore((s) => (s.activeChildId ? s.slotsByChild[s.activeChildId] : undefined)) ?? NO_SLOTS;
+  const setActiveChild = useChildStore((s) => s.setActiveChildId);
+  const child = children.find((c) => c.id === activeChildId) ?? null;
+  return { child, children, slots, setActiveChild };
 }

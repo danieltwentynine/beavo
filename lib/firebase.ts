@@ -6,8 +6,7 @@ import {
   initializeAuth,
   type Auth,
 } from 'firebase/auth';
-import { Timestamp, getFirestore } from 'firebase/firestore';
-import { z } from 'zod';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -37,8 +36,3 @@ try {
 
 export { auth };
 export const db = getFirestore(app);
-
-/** Zod field for Firestore Timestamp → Date, shared by all doc read schemas. */
-export const timestampToDate = z
-  .custom<Timestamp>((v) => v instanceof Timestamp)
-  .transform((t) => t.toDate());

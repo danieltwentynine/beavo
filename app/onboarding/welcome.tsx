@@ -83,7 +83,7 @@ export default function WelcomeScreen() {
         setSignInError(result.message);
         return;
       }
-      router.replace(result.isNewUser ? '/onboarding/child-setup' : '/');
+      router.replace('/');
     } finally {
       setGooglePending(false);
     }

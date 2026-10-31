@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { FirebaseError } from 'firebase/app';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { ArrowLeft, EnvelopeSimple, LockSimple, User } from 'phosphor-react-native';
 import { useState } from 'react';
 import { Controller, useForm, type Control, type FieldPath } from 'react-hook-form';
@@ -20,7 +19,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { tokens } from '@/lib/tokens';
 
 const registerSchema = z
@@ -96,19 +95,15 @@ export default function RegisterScreen() {
     try {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       // The account exists and is signed in from here on — a failed profile
-      // write must not strand the user behind a "couldn't create account"
-      // error (retrying would then hit email-already-in-use).
+      // update must not strand the user behind a "couldn't create account"
+      // error (retrying would then hit email-already-in-use). users/{uid} is
+      // written at consent, which the root redirect sends them to next.
       try {
         await updateProfile(credential.user, { displayName });
-        await setDoc(doc(db, 'users', credential.user.uid), {
-          email,
-          displayName,
-          createdAt: serverTimestamp(),
-        });
       } catch {
-        // Best-effort: displayName/profile doc can be filled in later.
+        // Best-effort: the display name can be filled in later.
       }
-      router.replace('/onboarding/child-setup');
+      router.replace('/');
     } catch (error) {
       setSubmitError(registrationErrorMessage(error));
     }

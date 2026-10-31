@@ -34,13 +34,21 @@ const AVATARS: Record<string, AvatarConfig> = {
 
 export const AVATAR_IDS = Object.keys(AVATARS);
 
+/** Avatar background choices (children.avatarColor); all clear 3:1 against the white icon. */
+export const AVATAR_COLORS = [...new Set(Object.values(AVATARS).map((a) => a.bg))];
+
+/** The color an icon comes with, used until the parent picks another. */
+export const defaultAvatarColor = (avatarId: string): string => (AVATARS[avatarId] ?? AVATARS.dog).bg;
+
 interface AvatarProps {
   avatarId?: string;
+  /** Background override (children.avatarColor); defaults to the icon's own color. */
+  color?: string;
   size?: number;
   ring?: boolean;
 }
 
-export function Avatar({ avatarId = 'dog', size = 56, ring = false }: AvatarProps) {
+export function Avatar({ avatarId = 'dog', color, size = 56, ring = false }: AvatarProps) {
   const a = AVATARS[avatarId] ?? AVATARS.dog;
   const circle = (
     <View
@@ -49,7 +57,7 @@ export function Avatar({ avatarId = 'dog', size = 56, ring = false }: AvatarProp
           width: size,
           height: size,
           borderRadius: radius.pill,
-          backgroundColor: a.bg,
+          backgroundColor: color ?? a.bg,
           alignItems: 'center',
           justifyContent: 'center',
         },
@@ -79,11 +87,13 @@ export function Avatar({ avatarId = 'dog', size = 56, ring = false }: AvatarProp
 
 interface AvatarPickerProps {
   value?: string;
+  /** Show every character in this color (the child's chosen avatarColor). */
+  color?: string;
   onChange?: (id: string) => void;
 }
 
 /** AvatarPicker — the child chooses their character during onboarding. */
-export function AvatarPicker({ value = 'dog', onChange }: AvatarPickerProps) {
+export function AvatarPicker({ value = 'dog', color, onChange }: AvatarPickerProps) {
   // Pressed state lives in React state because NativeWind's runtime drops
   // Pressable's function-form style prop (nativewind/nativewind#1105).
   const [pressedId, setPressedId] = useState<string | null>(null);
@@ -117,7 +127,7 @@ export function AvatarPicker({ value = 'dog', onChange }: AvatarPickerProps) {
                 transform: [{ scale: pressedId === id ? motion.pressScale : 1 }],
               }}
             >
-              <Avatar avatarId={id} size={56} ring={selected} />
+              <Avatar avatarId={id} color={color} size={56} ring={selected} />
             </View>
           </Pressable>
         );

@@ -70,3 +70,6 @@ ds-bundle/
 
 # Design exports (source zips from Claude Design; adopted content lives in the repo)
 zing-design-system*.zip
+
+# Legal pages built from /legal by scripts/build-legal.mjs (Hosting predeploy)
+/public/legal/

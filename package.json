@@ -13,6 +13,7 @@
     "expo-dev-client": "~57.0.20",
     "expo-font": "~57.0.1",
     "expo-linking": "~57.0.13",
+    "expo-localization": "~57.0.2",
     "expo-router": "~57.0.29",
     "expo-splash-screen": "~57.0.10",
     "expo-status-bar": "~57.0.1",
@@ -35,7 +36,13 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@types/node": "^26.6.6",
     "@types/react": "~19.2.18",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.2",
+    "firebase-tools": "^15.34.2",
+    "marked": "^18.1.2",
     "react-dom": "19.2.3",
     "react-native-web": "^0.21.4",
     "typescript": "~6.0.3"
@@ -44,7 +51,12 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "expo lint",
+    "test": "node --test 'src/data/*.test.ts'",
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-zing \"node --test --test-concurrency=1 'tests/*.test.ts'\"",
+    "build:legal": "node scripts/build-legal.mjs",
+    "check": "tsc --noEmit && expo lint && npm test && for f in lib/*.check.mjs; do node \"$f\" || exit 1; done && node scripts/check-camera-guardrail.mjs"
   },
   "private": true,
   "allowScripts": {

@@ -11,7 +11,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.zingdentalai.zing",
       "infoPlist": {
-        "NSCameraUsageDescription": "Zing uses the front camera to see your child's mouth while they brush. Video stays on this phone and is never saved or sent anywhere."
+        "NSCameraUsageDescription": "Zing uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
       }
     },
     "android": {
@@ -51,7 +51,8 @@
           "backgroundColor": "#2D5BFF"
         }
       ],
-      "./plugins/withSceneLifecycle"
+      "./plugins/withSceneLifecycle",
+      "expo-localization"
     ],
     "extra": {
       "router": {},
@@ -59,6 +60,10 @@
         "projectId": "d9d41921-b061-4b1d-9bc8-813ad94f21ed"
       }
     },
-    "owner": "zing-dental-ai"
+    "owner": "zing-dental-ai",
+    "locales": {
+      "en": "./locales/en.json",
+      "pt-BR": "./locales/pt-BR.json"
+    }
   }
 }

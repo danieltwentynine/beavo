@@ -1,0 +1,5 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Zing uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "O Zing usa a câmera frontal apenas como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado."
+  }
+}

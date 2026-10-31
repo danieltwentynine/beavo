@@ -1,112 +1,44 @@
-import { Tabs, router } from 'expo-router';
-import { ChartLineUp, House, Tooth } from 'phosphor-react-native';
-import { Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Redirect } from 'expo-router';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
-import { hardShadow, tokens } from '@/lib/tokens';
+import { t } from '@/lib/i18n';
+import { tokens } from '@/lib/tokens';
+import { useAuthStore } from '@/stores/authStore';
+import { useChildStore } from '@/stores/childStore';
 
-function TabItem({
-  label,
-  active,
-  icon,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  icon: (color: string, weight: 'bold' | 'fill') => React.ReactNode;
-  onPress: () => void;
-}) {
-  const color = active ? tokens.textLink : tokens.textTertiary;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-      style={{ flex: 1, minHeight: 48, alignItems: 'center', rowGap: 4 }}
-    >
-      {icon(color, active ? 'fill' : 'bold')}
-      <Text className="font-display-semi" style={{ fontSize: 13, color }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-interface TabBarProps {
-  state: { index: number; routes: { key: string; name: string }[] };
-  navigation: { navigate: (name: string) => void };
-}
-
-function ZingTabBar({ state, navigation }: TabBarProps) {
-  const insets = useSafeAreaInsets();
-  const activeRoute = state.routes[state.index]?.name;
-
-  return (
-    <View
-      style={[
-        {
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          paddingTop: 12,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 12,
-          height: 76 + (insets.bottom > 0 ? insets.bottom : 12),
-          backgroundColor: tokens.surfaceCard,
-          borderTopWidth: 3,
-          borderTopColor: tokens.borderStrong,
-        },
-      ]}
-    >
-      <TabItem
-        label="Home"
-        active={activeRoute === 'home'}
-        icon={(c, w) => <House size={25} color={c} weight={w} />}
-        onPress={() => navigation.navigate('home')}
-      />
-
-      <View style={{ flex: 1, alignItems: 'center' }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Start brushing"
-          onPress={() => router.push('/session')}
-          style={[
-            {
-              position: 'absolute',
-              top: -26,
-              width: 66,
-              height: 66,
-              borderRadius: 33,
-              backgroundColor: tokens.brandPrimary,
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-            hardShadow(5),
-          ]}
-        >
-          <Tooth size={30} color="#fff" weight="fill" />
-        </Pressable>
-        <Text
-          className="font-display-semi"
-          style={{ position: 'absolute', top: 46, fontSize: 13, color: tokens.textLink }}
-        >
-          Brush
-        </Text>
-      </View>
-
-      <TabItem
-        label="Progress"
-        active={activeRoute === 'progress'}
-        icon={(c, w) => <ChartLineUp size={25} color={c} weight={w} />}
-        onPress={() => navigation.navigate('progress')}
-      />
-    </View>
-  );
-}
-
+/**
+ * The signed-in shell. Order of the first-run gates: signed in → current
+ * consent → at least one child. Children never reach these gates alone: the
+ * parent signs in once and the session persists.
+ */
 export default function TabsLayout() {
+  const user = useAuthStore((s) => s.user);
+  const consent = useAuthStore((s) => s.consent);
+  const needsFirstChild = useChildStore((s) => s.loaded && s.children.length === 0 && !s.activeChildId);
+
+  if (!user) return <Redirect href="/onboarding/welcome" />;
+  if (consent === 'unknown') return null;
+  if (consent !== 'ok') return <Redirect href="/consent" />;
+  if (needsFirstChild) return <Redirect href="/child-form" />;
+
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <ZingTabBar {...props} />}>
-      <Tabs.Screen name="home" />
-      <Tabs.Screen name="progress" />
-    </Tabs>
+    <NativeTabs tintColor={tokens.brandPrimary}>
+      <NativeTabs.Trigger name="overview">
+        <NativeTabs.Trigger.Label>{t('tabs.overview')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="brushing">
+        <NativeTabs.Trigger.Label>{t('tabs.brushing')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'mouth', selected: 'mouth.fill' }} md="brush" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="progress">
+        <NativeTabs.Trigger.Label>{t('tabs.progress')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} md="bar_chart" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="more">
+        <NativeTabs.Trigger.Label>{t('tabs.more')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'ellipsis.circle', selected: 'ellipsis.circle.fill' }} md="more_horiz" />
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

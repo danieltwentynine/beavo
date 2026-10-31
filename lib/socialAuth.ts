@@ -14,12 +14,12 @@ import {
 import { FirebaseError } from 'firebase/app';
 import {
   GoogleAuthProvider,
-  getAdditionalUserInfo,
+  reauthenticateWithCredential,
   signInWithCredential,
+  type User,
 } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 
 GoogleSignin.configure({
   // Web client ID is what Firebase verifies the ID token against — required
@@ -29,7 +29,7 @@ GoogleSignin.configure({
 });
 
 export type SocialSignInResult =
-  | { status: 'success'; isNewUser: boolean }
+  | { status: 'success' }
   | { status: 'cancelled' }
   | { status: 'error'; message: string };
 
@@ -61,31 +61,16 @@ export async function signInWithGoogle(): Promise<SocialSignInResult> {
       return { status: 'cancelled' };
     }
 
-    const { idToken, user } = response.data;
+    const { idToken } = response.data;
     if (!idToken) {
       return { status: 'error', message: socialErrorMessage(null) };
     }
 
-    const result = await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
-    const isNewUser = getAdditionalUserInfo(result)?.isNewUser ?? false;
+    await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
 
-    if (isNewUser) {
-      try {
-        await setDoc(
-          doc(db, 'users', result.user.uid),
-          {
-            email: result.user.email ?? '',
-            displayName: user.name ?? result.user.displayName ?? '',
-            createdAt: serverTimestamp(),
-          },
-          { merge: true },
-        );
-      } catch {
-        // Best-effort, mirrors register.tsx: the profile doc can be filled in later.
-      }
-    }
-
-    return { status: 'success', isNewUser };
+    // users/{uid} is written at consent (lib/consent.ts), not here: the
+    // profile only exists once the parent has accepted the documents.
+    return { status: 'success' };
   } catch (error) {
     // v16 signals cancellation via the response type above, but the Android
     // legacy SDK path can still throw it.
@@ -94,6 +79,19 @@ export async function signInWithGoogle(): Promise<SocialSignInResult> {
     }
     return { status: 'error', message: socialErrorMessage(error) };
   }
+}
+
+/**
+ * Fresh Google sign-in for the current user, required by Firebase before
+ * deleting the account. Resolves 'cancelled' when the parent backs out.
+ */
+export async function reauthenticateWithGoogle(user: User): Promise<'ok' | 'cancelled'> {
+  const response = await GoogleSignin.signIn();
+  if (!isSuccessResponse(response)) return 'cancelled';
+  const { idToken } = response.data;
+  if (!idToken) throw new Error('Google returned no ID token');
+  await reauthenticateWithCredential(user, GoogleAuthProvider.credential(idToken));
+  return 'ok';
 }
 
 /** Google keeps its own native session — clear it alongside the Firebase one. */

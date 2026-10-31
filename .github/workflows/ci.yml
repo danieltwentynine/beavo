@@ -12,12 +12,27 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24 # native TypeScript stripping for node --test
           cache: npm
+      - uses: actions/setup-java@v4 # Firestore emulator
+        with:
+          distribution: temurin
+          java-version: 21
       - run: npm ci
       - name: Typecheck
         run: npx tsc --noEmit
+      - name: Lint (includes the camera guardrail rules)
+        run: npx expo lint
+      - name: Camera guardrail
+        run: node scripts/check-camera-guardrail.mjs
+      - name: Unit tests
+        run: npm test
       - name: Self-checks
         run: |
           for f in lib/*.check.mjs; do node "$f"; done
           TZ=America/New_York node lib/streak.check.mjs
+          TZ=America/Sao_Paulo npm test
+      - name: Firestore rules + repository tests (emulator)
+        run: npm run test:emulator
+      - name: Legal pages build (checks document versions)
+        run: npm run build:legal
