@@ -21,5 +21,11 @@ Zing is a children's health-adjacent app. Anything that reads as dental or medic
 - Terms of Service §2 "Zing is not medical advice" (`legal/terms.*.md`).
 - Camera mirror explainer (`camera.*` in `lib/i18n.ts`, `locales/*.json`).
 
+## Needs clinical review (2026-10-31, foundation step 2)
+- Tooth names (`tooth.*` in `lib/i18n.ts`): "Incisivo central/lateral, Canino, Primeiro/Segundo molar + superior/inferior + direito/esquerdo" and the English equivalents.
+- Chart perspective: dentist view (child's right on the screen's left) — confirm this matches how parents read dentists' reports.
+- Status colors: symptom = warm orange, treatment = light sky blue (no red).
+- Health wording in `lib/i18n.ts` (pt-BR + en): `overview.symptoms`/`overview.treatments`, `arch.status*`, `arch.legend*`, `arch.chartLabel` ("Mapa dos dentes de leite"), all `event.*` (e.g. "Registrar sintoma"), `history.*`, and the tab title `tabs.overview` ("Visão geral").
+
 ## Approved wording
 _None recorded yet. The advisor should add approved coach templates here (EN and PT-BR)._

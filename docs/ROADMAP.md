@@ -28,10 +28,15 @@ Status confirmed by the owner on 2026-10-06 (previously inferred from the repo: 
 - [ ] Wipe legacy top-level `/children` and `/sessions` test data in the console
 - [ ] Rebuild the dev client (expo-localization is a native module) and run the full flow in the simulator
 
-## Foundation rebuild — steps 2–3 (next)
-- [ ] Visual redesign of Overview / Brushing / Progress / More
+## Foundation rebuild — step 2 of 3 (2026-10-31)
+- [x] Overview: DentalArch card (multi-select toggle + log-for-selection corner buttons), This Year stats, Dental History row
+- [x] `DentalArch`: 20 primary teeth on two elliptical arcs, shapes by type, status colors, dentist perspective, 44pt targets, VoiceOver, Reanimated entrance (Reduce Motion aware)
+- [x] Tooth sheet (view/add/delete events; batch log for several teeth) and Dental History list
+- [ ] Verify on device (needs the step 1 rules deployed and a dev-client rebuild)
+
+## Foundation rebuild — step 3 (next)
+- [ ] Visual redesign of Brushing / Progress / More
 - [ ] Streaks, badges and progress derived from `brushingSessions`
-- [ ] Tooth-event UI (FDI chart, categories)
 - [ ] Translate remaining legacy screens (welcome, auth, session, results) to pt-BR
 
 ## Before Phase 2

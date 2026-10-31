@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User } from 'firebase/auth';
 
 import { db } from '@/lib/firebase';
-import { locale, t } from '@/lib/i18n';
+import { locale, t, type StringKey } from '@/lib/i18n';
 import { LEGAL_VERSIONS } from '@/lib/legal';
 import type { ConsentStatus } from '@/stores/authStore';
 import { fetchUserProfile, saveConsent } from '@/src/data/account';
@@ -46,6 +46,12 @@ export async function clearConsentRecord(uid: string): Promise<void> {
   }
 }
 
+/** Write the default categories with names in the app language. */
+export function seedCategories(uid: string): void {
+  const names = Object.fromEntries(DEFAULT_CATEGORIES.map((c) => [c.id, t(`category.${c.id}` as StringKey)]));
+  background(seedDefaultCategories(db, uid, names));
+}
+
 /** Has this parent accepted the current Terms and Privacy Policy? */
 export async function checkConsent(uid: string): Promise<Exclude<ConsentStatus, 'unknown'>> {
   const local = await readLocal(uid);
@@ -83,11 +89,6 @@ export async function acceptConsent(user: User): Promise<void> {
   );
   // Only a confirmed-new account gets the default categories, so re-consenting
   // never overwrites categories the parent edited.
-  if (existing === null) {
-    const names = Object.fromEntries(
-      DEFAULT_CATEGORIES.map((c) => [c.id, t(`category.${c.id}` as Parameters<typeof t>[0])]),
-    );
-    background(seedDefaultCategories(db, user.uid, names));
-  }
+  if (existing === null) seedCategories(user.uid);
   await writeLocal(user.uid);
 }

@@ -13,6 +13,7 @@ import { z } from 'zod';
 import type { Category, ToothEvent, ToothEventType } from '@/types';
 
 import { parseDocs } from './firestore.ts';
+import { isPrimaryTooth } from './teeth.ts';
 
 // ---- Tooth events (health data: symptoms and treatments per FDI tooth) ----
 
@@ -20,7 +21,8 @@ export const toothEventsRef = (db: Firestore, uid: string, childId: string) =>
   collection(db, 'users', uid, 'children', childId, 'toothEvents');
 
 const toothEventSchema = z.object({
-  fdi: z.number().int(),
+  // Kids-only chart: a permanent-tooth number would have no name or place on it.
+  fdi: z.number().int().refine(isPrimaryTooth),
   type: z.enum(['symptom', 'treatment']),
   categoryId: z.string(),
   note: z.string(),
@@ -45,6 +47,13 @@ export function watchToothEvents(
   onError?: (error: Error) => void,
 ): Unsubscribe {
   return onSnapshot(toothEventsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, toothEventSchema)), onError);
+}
+
+/** One event per tooth in a single atomic batch (multi-select logging). */
+export function addToothEvents(db: Firestore, uid: string, childId: string, events: readonly Omit<ToothEvent, 'id'>[]): Promise<void> {
+  const batch = writeBatch(db);
+  for (const event of events) batch.set(doc(toothEventsRef(db, uid, childId)), event);
+  return batch.commit();
 }
 
 export const deleteToothEvent = (db: Firestore, uid: string, childId: string, eventId: string): Promise<void> =>
@@ -88,11 +97,12 @@ export function seedDefaultCategories(db: Firestore, uid: string, names: Record<
   return batch.commit();
 }
 
+/** `fromCache`: the list may be incomplete (offline) — don't treat empty as "none exist". */
 export function watchCategories(
   db: Firestore,
   uid: string,
-  onChange: (categories: Category[]) => void,
+  onChange: (categories: Category[], fromCache: boolean) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
-  return onSnapshot(categoriesRef(db, uid), (snap) => onChange(parseDocs(snap, categorySchema)), onError);
+  return onSnapshot(categoriesRef(db, uid), (snap) => onChange(parseDocs(snap, categorySchema), snap.metadata.fromCache), onError);
 }

@@ -11,7 +11,7 @@ import { childrenRef, createChild, deleteChild, updateChild, watchChildren } fro
 import { localDate, slotsActiveOn } from '../src/data/schedule.ts';
 import { hasSessionsForSlot, writeSession } from '../src/data/sessions.ts';
 import { addSlot, removeSlot, slotsRef, watchSlots } from '../src/data/slots.ts';
-import { addToothEvent, categoriesRef, seedDefaultCategories } from '../src/data/toothEvents.ts';
+import { addToothEvent, addToothEvents, categoriesRef, seedDefaultCategories, toothEventsRef } from '../src/data/toothEvents.ts';
 import type { BrushingSlot, Child } from '../types/index.ts';
 
 import { dbAs, startEmulator } from './emulator.ts';
@@ -189,4 +189,11 @@ test('a late session write after deleteChild is refused, so nothing is orphaned'
     writeSession(db, UID, id, { id: 'late', slotId: 'x', date: '2026-10-31', startedAt: new Date(), durationSec: 120, completed: true }),
   );
   assert.equal((await getDocs(collection(childrenRef(db, UID), id, 'brushingSessions'))).size, 0);
+});
+
+test('addToothEvents logs one event per selected tooth in one batch', async () => {
+  const id = await newChild();
+  await addToothEvents(db, UID, id, [52, 74].map((fdi) => ({ fdi, type: 'treatment' as const, categoryId: 'sealant', note: '', date: '2026-10-31' })));
+  const fdis = (await getDocs(toothEventsRef(db, UID, id))).docs.map((d) => d.get('fdi') as number).sort();
+  assert.deepEqual(fdis, [52, 74]);
 });

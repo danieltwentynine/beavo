@@ -75,6 +75,10 @@ export default function RootLayout() {
           name="child-picker"
           options={{ presentation: 'formSheet', sheetAllowedDetents: [0.5, 1], sheetGrabberVisible: true }}
         />
+        <Stack.Screen
+          name="tooth-sheet"
+          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true }}
+        />
       </Stack>
     </>
   );

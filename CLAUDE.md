@@ -53,18 +53,22 @@ app/                              # Expo Router screens
 ├── child-form.tsx                # Add (gated) / edit / delete (gated) a child
 ├── child-picker.tsx              # Form sheet opened by ProfilePill
 ├── slots.tsx                     # Edit the active child's brushing slots
+├── tooth-sheet.tsx               # Form sheet: one tooth's records + add, or log for several teeth
+├── dental-history.tsx            # All tooth events, newest first
 ├── session.tsx                   # Brushing session
 └── results.tsx                   # Score, local message, save status
 components/
 ├── brand/ZingBrand.tsx
 ├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
 ├── kids/ Avatar, BadgeCard, StreakDisplay, Sticker, ProfilePill
+├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
 └── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate, TabHeader
-hooks/ useActiveChild.ts, useChildDataSync.ts
+hooks/ useActiveChild.ts, useChildDataSync.ts, useToothEvents.ts, useCategories.ts
 src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
 ├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
 ├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
 ├── schedule.ts                   # Pure slot logic: defaults, slotsActiveOn(date), pickSlotForTime, archive-vs-delete
+├── teeth.ts                      # Pure tooth logic: primary FDI teeth, arch geometry/shapes, nearestTooth, stats
 ├── outbox.ts                     # Pure outbox codec for unsynced sessions
 └── *.test.ts                     # node --test unit tests
 lib/
@@ -81,7 +85,9 @@ legal/                            # Terms + Privacy Policy drafts (pt-BR, en) �
 types/ index.ts                   # All shared types; firebase-auth.d.ts augments RN persistence
 ```
 
-Not built yet: `useBrushingSession`, `ZoneAlert`, tooth-event UI, `assets/characters|sounds`.
+Not built yet: `useBrushingSession`, `ZoneAlert`, `assets/characters|sounds`.
+
+**DentalArch (`components/teeth/DentalArch.tsx`):** primary teeth only (FDI 51–85), drawn in react-native-svg from the pure geometry in `src/data/teeth.ts`. The chart uses the **dentist perspective** (`CHART_PERSPECTIVE`: the child's right is on the screen's left) — change it only there. Touches resolve to the nearest tooth within a 44pt circle; VoiceOver gets one labelled 44pt element per tooth. Glow is a translucent halo, not a blur (Toy box).
 
 ---
 
@@ -225,7 +231,7 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 - No analytics that track individual children by name
 - All data lives under `users/{uid}` — the security rules enforce owner-only access
 - Camera frames are never processed, stored or uploaded (mirror only)
-- Adding/deleting a child, exporting data and deleting the account sit behind `ParentalGate`; first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
+- Adding/deleting a child, adding/deleting tooth events, exporting data and deleting the account sit behind `ParentalGate` (viewing the chart and records is open); first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
 - Legal docs (`legal/`) must describe what the code actually does — change them (and `LEGAL_VERSIONS`) whenever data handling changes
 - The Gemini prompt must never include the child's last name, school, or location
 
@@ -237,11 +243,11 @@ Progress lives in `docs/ROADMAP.md`, decisions in `docs/decisions/`, copy rules 
 
 ---
 
-## Current Phase: Foundation rebuild — step 1 of 3 done (data, profiles, privacy, legal, nav shell)
+## Current Phase: Foundation rebuild — steps 1–2 of 3 done (data, profiles, privacy, legal, nav shell; Overview + tooth chart)
 
 Step 1 shipped the nested Firestore model + repository layer, multiple children with a switcher, meal-based brushing slots, consent + legal drafts, account export/delete, the camera guardrail and the NativeTabs shell (Overview, Brushing, Progress, More — Brushing/Progress are placeholders). See `docs/ROADMAP.md`.
 
-**Next (steps 2–3):** visual redesign of the screens, progress/streaks/badges on `brushingSessions`, tooth-event UI, legal review of `legal/`, then the simulator pass.
+**Next (step 3):** redesign of Brushing / Progress / More, progress/streaks/badges on `brushingSessions`, legal review of `legal/`, then the simulator pass.
 
 **What NOT to build yet:**
 - Zone detection AI / any frame processing (ruled out by the Camera guardrail)

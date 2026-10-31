@@ -28,7 +28,7 @@ Esta Política explica como o aplicativo Zing ("Zing", "nós") trata dados pesso
 ### 2.3 Dados de escovação e de saúde bucal (dados sensíveis)
 - **Horários de escovação** que você configurar (por exemplo, "depois do almoço", 11:00–15:00).
 - **Sessões de escovação:** data, horário de início, duração e se os 2 minutos foram completados.
-- **Registros dentários** que você fizer, quando esse recurso estiver disponível: o dente (numeração FDI), se é um sintoma ou um tratamento, a categoria (por exemplo, "dor" ou "restauração"), uma anotação opcional e a data.
+- **Registros dentários** que você fizer: o dente (numeração FDI), se é um sintoma ou um tratamento, a categoria (por exemplo, "dor" ou "restauração"), uma anotação opcional e a data.
 - **Categorias** desses registros (as padrão e as que você criar).
 
 Os registros de escovação e os registros dentários são **dados referentes à saúde** e, por isso, **dados pessoais sensíveis** (LGPD, art. 5º, II).
@@ -84,7 +84,7 @@ Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados,
 
 No próprio app:
 - **Acessar e levar seus dados (portabilidade):** *Mais → Exportar meus dados* (pede uma confirmação para adultos). Gera um texto em formato JSON com todos os dados da sua conta (incluindo nome e e-mail de login) e das crianças, que você pode salvar ou compartilhar pela folha de compartilhamento do aparelho.
-- **Corrigir:** toque no seletor de criança, no canto superior direito, e depois em *Editar*.
+- **Corrigir:** para o perfil, toque no seletor de criança, no canto superior direito, e depois em *Editar*. Para um registro dentário, toque no dente em *Visão geral*, apague o registro e registre de novo.
 - **Excluir uma criança:** *Editar perfil → Excluir perfil* (pede uma confirmação para adultos).
 - **Excluir sua conta e todos os dados:** *Mais → Excluir conta* (pede uma confirmação para adultos e uma nova confirmação de login).
 
@@ -92,7 +92,7 @@ Para os outros direitos, escreva para [E-MAIL DO ENCARREGADO]. Respondemos em at
 
 ## 8. Segurança
 
-Os dados viajam criptografados (HTTPS/TLS). As regras de segurança do banco de dados só deixam cada conta ler e alterar os próprios dados. Ações sensíveis no app (adicionar ou excluir criança, exportar dados, excluir conta) ficam atrás de uma verificação para adultos. Nenhum sistema é 100% seguro; se ocorrer um incidente de segurança relevante, avisaremos você e a ANPD conforme a LGPD.
+Os dados viajam criptografados (HTTPS/TLS). As regras de segurança do banco de dados só deixam cada conta ler e alterar os próprios dados. Ações sensíveis no app (adicionar ou excluir criança, adicionar ou apagar registros dentários, exportar dados, excluir conta) ficam atrás de uma verificação para adultos. Nenhum sistema é 100% seguro; se ocorrer um incidente de segurança relevante, avisaremos você e a ANPD conforme a LGPD.
 
 ## 9. Crianças
 

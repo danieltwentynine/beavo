@@ -28,7 +28,7 @@ This Policy explains how the Zing app ("Zing", "we") processes personal data und
 ### 2.3 Brushing and dental health data (sensitive data)
 - **Brushing times** you set up (for example "after lunch", 11:00–15:00).
 - **Brushing sessions:** date, start time, duration, and whether the full 2 minutes were completed.
-- **Dental records** you add, once that feature is available: the tooth (FDI number), whether it is a symptom or a treatment, the category (for example "pain" or "filling"), an optional note, and the date.
+- **Dental records** you add: the tooth (FDI number), whether it is a symptom or a treatment, the category (for example "pain" or "filling"), an optional note, and the date.
 - **Categories** for those records (the defaults and any you create).
 
 Brushing and dental records are **health-related data** and therefore **sensitive personal data** (LGPD, art. 5, II).
@@ -84,7 +84,7 @@ Under the LGPD (art. 18) you may request: confirmation that we process your data
 
 In the app:
 - **Access and take your data (portability):** *More → Export my data* (asks for a grown-ups-only check). Creates JSON-formatted text with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
-- **Correct:** tap the child switcher at the top right, then *Edit*.
+- **Correct:** for the profile, tap the child switcher at the top right, then *Edit*. For a dental record, tap the tooth on *Overview*, delete the record and add it again.
 - **Delete a child:** *Edit profile → Delete profile* (asks for a grown-ups-only check).
 - **Delete your account and all data:** *More → Delete account* (asks for a grown-ups-only check and for you to sign in again).
 
@@ -92,7 +92,7 @@ For other requests, email [DPO EMAIL]. We reply within [DEADLINE] days. You may 
 
 ## 8. Security
 
-Data travels encrypted (HTTPS/TLS). Database security rules let each account read and change only its own data. Sensitive actions in the app (adding or deleting a child, exporting data, deleting the account) sit behind a grown-ups-only check. No system is 100% secure; if a relevant security incident happens, we will notify you and the ANPD as the LGPD requires.
+Data travels encrypted (HTTPS/TLS). Database security rules let each account read and change only its own data. Sensitive actions in the app (adding or deleting a child, adding or deleting dental records, exporting data, deleting the account) sit behind a grown-ups-only check. No system is 100% secure; if a relevant security incident happens, we will notify you and the ANPD as the LGPD requires.
 
 ## 9. Children
 
