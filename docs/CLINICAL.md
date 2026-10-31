@@ -15,5 +15,11 @@ Zing is a children's health-adjacent app. Anything that reads as dental or medic
 2. Clinical advisor approves or edits.
 3. Approved wording is recorded below.
 
+## Needs clinical review (2026-10-31, foundation step 1)
+- Default tooth-event categories (`src/data/toothEvents.ts`, names in `lib/i18n.ts` `category.*`): Dor/Pain, Sensibilidade/Sensitivity, Sangramento/Bleeding, Restauração/Filling, Selante/Sealant, Limpeza/Cleaning, Extração/Extraction.
+- Default brushing slots: "Depois do café da manhã / do almoço / do jantar" (After breakfast / lunch / dinner), windows 06–10, 11–15, 18–22.
+- Terms of Service §2 "Zing is not medical advice" (`legal/terms.*.md`).
+- Camera mirror explainer (`camera.*` in `lib/i18n.ts`, `locales/*.json`).
+
 ## Approved wording
 _None recorded yet. The advisor should add approved coach templates here (EN and PT-BR)._

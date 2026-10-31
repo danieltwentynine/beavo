@@ -5,15 +5,15 @@
 
 ## What is Zing?
 
-Zing is an iOS-first mobile app that uses the phone camera to coach children through proper teeth brushing in real time. The AI watches the brushing session via camera, maps which zones of the mouth were brushed, and delivers a personalized, kid-friendly coaching message at the end. The app is built by a dentist mother and her developer son.
+Zing is an iOS-first mobile app (Brazil first, pt-BR default) that coaches children through a 2-minute guided brushing session. The front camera can act as a **mirror** so the child sees themselves — it never captures or analyzes anything (see Camera guardrail). The app is built by a dentist mother and her developer son.
 
 **Core loop:**
 
-1. Parent sets up child profile (age, name, avatar)
-2. Child opens the app, positions phone so camera sees their mouth
-3. 2-minute brushing session with live zone detection overlay
-4. AI coaching message generated after session ("You missed your back teeth!")
-5. Streaks, badges, and rewards to build the habit
+1. Parent signs in (Google or email), accepts Terms + Privacy Policy, adds one or more child profiles (name, avatar, optional birth year)
+2. Each child has brushing slots tied to meals (after breakfast / lunch / dinner by default, editable)
+3. Child starts a 2-minute guided session (timer + mouth-zone guide), optionally with the camera mirror
+4. Session is saved against the slot active at that time; a local, reviewed message closes it (no AI tips)
+5. Streaks, badges, and rewards to build the habit (being rebuilt on the new data model in step 2)
 
 **Target user:** Children ages 4–12. Parents manage accounts. UI must be playful, simple, and work without reading skills for younger children.
 
@@ -27,9 +27,9 @@ Zing is an iOS-first mobile app that uses the phone camera to coach children thr
 | Language | TypeScript (strict mode) | Required everywhere, no `any` |
 | Navigation | Expo Router (file-based) | App directory structure |
 | Backend | Firebase JS SDK v12 (Firestore + Auth + Storage) | Free tier sufficient for MVP |
-| Camera | react-native-vision-camera v5 (per ADR 0002; needs a development build) | Per-frame processing for live detection |
-| AI Model (camera) | TBD — Phase 2 spike decides (ADR 0002). `react-native-mediapipe` is unproven here | Brush zone detection, on-device |
-| AI Coach (text) | Google Gemini Flash API (verify current model name before Phase 2 — the 1.5 series is being retired) | Free tier |
+| Camera | react-native-vision-camera v5, **preview only** (ADR 0003; needs a development build) | Live mirror; no capture, no frame processing |
+| AI Coach (text) | Gemini client kept in `lib/gemini.ts` but **not called** (ADR 0003) | Re-enable only with a privacy-policy update |
+| i18n | `lib/i18n.ts` (`t()`, pt-BR default, English if the device is English) + `expo-localization` | No i18n library needed |
 | Subscriptions | RevenueCat | Free until $2,500 MRR |
 | Styling | NativeWind (Tailwind for RN) | Consistent design system |
 | State | Zustand | Lightweight, no boilerplate |
@@ -44,113 +44,93 @@ Actual layout (the repo root is the project; ignore any older `fable/` naming):
 
 ```
 app/                              # Expo Router screens
-├── _layout.tsx                   # Fonts, auth subscription, outbox flush
-├── index.tsx                     # Redirect: signed in → (tabs)/home, else onboarding/welcome
+├── _layout.tsx                   # Fonts, auth → consent check, child data sync, outbox flush, child-picker sheet
+├── index.tsx                     # Redirect: signed in → (tabs)/overview, else onboarding/welcome
 ├── (auth)/ login.tsx, register.tsx
-├── (tabs)/ home.tsx, progress.tsx
-├── onboarding/ welcome.tsx, child-setup.tsx
-├── session.tsx                   # Brushing session (replaces the planned (tabs)/brush.tsx)
-└── results.tsx                   # Score, coach message, save status
+├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more
+├── onboarding/ welcome.tsx
+├── consent.tsx                   # Terms + Privacy acceptance (unchecked box, re-prompt on version change)
+├── child-form.tsx                # Add (gated) / edit / delete (gated) a child
+├── child-picker.tsx              # Form sheet opened by ProfilePill
+├── slots.tsx                     # Edit the active child's brushing slots
+├── session.tsx                   # Brushing session
+└── results.tsx                   # Score, local message, save status
 components/
 ├── brand/ZingBrand.tsx
-├── brushing/ MouthMap.tsx, BrushTimer.tsx, CoachCard.tsx
-├── kids/ Avatar.tsx, BadgeCard.tsx, StreakDisplay.tsx, Sticker.tsx
-└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle
-hooks/useActiveChild.ts
+├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
+├── kids/ Avatar, BadgeCard, StreakDisplay, Sticker, ProfilePill
+└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate, TabHeader
+hooks/ useActiveChild.ts, useChildDataSync.ts
+src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
+├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
+├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
+├── schedule.ts                   # Pure slot logic: defaults, slotsActiveOn(date), pickSlotForTime, archive-vs-delete
+├── outbox.ts                     # Pure outbox codec for unsynced sessions
+└── *.test.ts                     # node --test unit tests
 lib/
-├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In
-├── children.ts, sessions.ts      # Firestore reads/writes
-├── outbox.ts                     # Offline queue so finished sessions are never lost
-├── streak.ts, badges.ts
-├── coach.ts                      # Local coach message — fallback when Gemini fails
-├── gemini.ts                     # Gemini Flash client + prompt/sanitizer
-├── constants.ts, tokens.ts       # Zone map, timing; design tokens
-└── *.check.mjs                   # Plain-node self-checks (see Commands)
-stores/ authStore.ts, childStore.ts, sessionStore.ts   # Zustand
+├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In (+ reauth for account deletion)
+├── account.ts                    # Sign out, data export, delete child / account (app glue over src/data)
+├── consent.ts, legal.ts          # Consent check/accept; LEGAL_VERSIONS + hosted URLs
+├── sync.ts                       # AsyncStorage outbox: sessions survive app kill offline, retried on launch/foreground
+├── i18n.ts                       # t(), pt-BR + en strings
+├── streak.ts, badges.ts, coach.ts, gemini.ts (not called), constants.ts, tokens.ts
+└── *.check.mjs                   # Plain-node self-checks
+stores/ authStore.ts (user + consent), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts
+tests/ rules.test.ts, repository.test.ts   # Firestore emulator tests
+legal/                            # Terms + Privacy Policy drafts (pt-BR, en) → public/legal/*.html on Firebase Hosting
 types/ index.ts                   # All shared types; firebase-auth.d.ts augments RN persistence
 ```
 
-Not built yet: `useBrushingSession`, `useZoneDetection`, `useCoachMessage`, `ZoneAlert`, `assets/characters|sounds` (Phase 2+).
+Not built yet: `useBrushingSession`, `ZoneAlert`, tooth-event UI, `assets/characters|sounds`.
 
 ---
 
 ## Core Types
 
-```typescript
-// Always use these types. Do not create parallel type definitions.
-
-type ToothZone =
-  | 'top-front' | 'top-left' | 'top-right' | 'top-back-left' | 'top-back-right'
-  | 'bottom-front' | 'bottom-left' | 'bottom-right' | 'bottom-back-left' | 'bottom-back-right';
-
-interface ChildProfile {
-  id: string;
-  parentUid: string;
-  name: string;
-  age: number;
-  avatarId: string;
-  streakCurrent: number;
-  streakBest: number;
-  totalSessions: number;
-  badges: Badge[];
-  createdAt: Date;
-}
-
-interface Badge {
-  id: string;
-  name: string;
-  earnedAt: Date;
-  type: 'streak' | 'perfect' | 'firstSession' | 'weeklyGoal';
-}
-```
+All shared types live in `types/index.ts` — `Child`, `BrushingSlot`, `BrushingSession`, `ToothEvent`, `Category`, `UserProfile`, `Consent`, `ToothZone`, `Badge`. Use them; do not create parallel definitions. Zod schemas for reads live next to each repository in `src/data/`.
 
 ---
 
 ## Firebase Schema
 
+Everything lives under the parent's uid (ADR 0004). Firestore region: southamerica-east1.
+
 ```
-/users/{uid}/
-  - email: string
-  - displayName: string
-  - createdAt: Timestamp
-
-/children/{childId}/
-  - parentUid: string
-  - name: string
-  - age: number
-  - avatarId: string
-  - streakCurrent: number
-  - streakBest: number
-  - totalSessions: number
-  - badges: Badge[]
-
-/sessions/{sessionId}/
-  - childId: string
-  - parentUid: string
-  - startedAt: Timestamp
-  - completedAt: Timestamp
-  - durationSeconds: number
-  - zonesDetected: string[]
-  - zonesCoverage: Record<string, number>
-  - score: number
-  - coachMessage: string
+users/{uid}                         displayName, locale ('pt-BR'|'en'), createdAt,
+                                    consent { termsVersion, privacyVersion, acceptedAt }
+  children/{childId}                name, avatarColor (#hex), avatarIcon, birthYear?, kidMode, createdAt, archivedAt
+    brushingSlots/{slotId}          label, icon, mealType (breakfast|lunch|dinner|custom),
+                                    windowStart, windowEnd ("HH:mm"), sortOrder, createdAt, archivedAt
+    brushingSessions/{sessionId}    slotId, date (local YYYY-MM-DD), startedAt, durationSec, completed
+    toothEvents/{eventId}           fdi, type (symptom|treatment), categoryId, note, date
+  categories/{categoryId}           name, type, color, isDefault
 ```
 
-**Firestore rules:** A parent can only read/write their own children and sessions. Children never authenticate directly — only parents do.
+- **Repository rule:** screens never import `firebase/firestore`; they call `src/data/*` (functions take `db` first so the emulator tests can pass their own).
+- **Offline:** the JS SDK can't persist its cache on React Native. Writes are fired without awaiting (they show instantly via `watch*` listeners and sync on reconnect); sessions also go through `lib/sync.ts` (AsyncStorage outbox) so an app kill offline loses nothing; `stores/childStore.ts` snapshots children + slots to the device so the app starts offline. Deletes and exports need a connection (they list from the server).
+- **Slots:** never hard-delete a slot with sessions — `removeSlot` archives it. Past days are evaluated with `slotsActiveOn(slots, day)` (a slot counts on every day from its creation day to its archive day, inclusive). Minimum one slot per child (client-enforced).
+- **Deleting** a child or the account deletes subcollections explicitly (Firestore doesn't cascade).
+- **Rules** (`firestore.rules`): owner-only under `users/{uid}`, exact keys + types on every write, `createdAt` immutable; children/categories need `users/{uid}.consent`; child subcollection writes need a live (existing, non-archived) child, so nothing can be orphaned under a deleted child; everything else denied. Tests: `npm run test:emulator`.
+- **Delete order:** `deleteChild` archives the child, deletes subcollections, then the doc; `deleteAllUserData` deletes the profile first. Keep this order — the rules rely on it.
 
 ---
 
-## Gemini Coach Integration (implemented in `lib/gemini.ts`)
+## Gemini Coach (disabled — ADR 0003)
 
-- Model `gemini-3.5-flash-lite` (constant `GEMINI_MODEL` — re-check https://ai.google.dev/gemini-api/docs/deprecations before each release).
-- `generateCoachMessage(childName, { age, missedZones, score, streakDays, locale })` returns a sanitized message or `null`. It is the only place Gemini is called.
-- **The child's name never leaves the device**: the prompt uses the token `{NAME}`, substituted locally after the reply. Only age, up to 2 missed zones, score and streak are sent.
-- Replies are rejected (→ fallback) if empty, over 300 chars, or containing clinical/brand wording (`BANNED` regex — clinical advisor owns this list). Capped at 2 sentences.
-- `app/session.tsx` awaits it (4 s timeout) in `finish()`; on `null` it uses `lib/coach.ts`. Never show an error to the child.
-- Self-check: `node lib/gemini.check.mjs`.
-- Known gap: `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle. Before App Store, proxy via a Firebase Function + App Check.
+`lib/gemini.ts` (+ `node lib/gemini.check.mjs`) is kept for later use but **nothing calls it**; `app/session.tsx` uses the local, clinically reviewed messages in `lib/coach.ts`. The Privacy Policy says Zing sends no data to AI services. **Before re-enabling:** update the Privacy Policy (bump `LEGAL_VERSIONS.privacy` so parents re-consent), use a paid tier or a Firebase Function proxy + App Check (the free tier may use prompts for product improvement, and `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle), and keep the existing rules: the child's name never leaves the device (`{NAME}` token), only age/missed zones/score/streak are sent.
 
-**Fallback:** If Gemini API fails or is rate-limited, use the local message bank in `lib/constants.ts`. Never show an error to the child.
+---
+
+## Camera guardrail (non-negotiable — ADR 0003)
+
+The camera is a **live mirror only**. It must never capture, record, save, upload, or analyze frames, and never use the microphone.
+
+- Only `components/brushing/CameraBackdrop.tsx` renders `<Camera>` (react-native-vision-camera), with **no outputs** — no photo, video, frame, depth or object output, no frame processors, no `takePhoto`/`startRecording`/`capturePhoto*`.
+- The camera runs only while the session screen is focused and the app is in the foreground (`isActive` is false otherwise).
+- No microphone permission: VisionCamera v5 has no Expo config plugin, and only `NSCameraUsageDescription` is set (app.json + `locales/*.json`, pt-BR and English: "only a mirror; nothing is recorded, saved or sent").
+- Enforced by `eslint.config.js` (`no-restricted-imports` / `no-restricted-properties`, "Camera guardrail" message) and `scripts/check-camera-guardrail.mjs` (no mic permission in config; no `expo-media-library`, `expo-image-picker`, `expo-camera`, frame-processor or MediaPipe packages). Never disable these inline.
+- The parent sees `CameraGate` (what the camera does) before the system prompt; brushing works without the camera.
+- Changing any of this needs the owner, the clinical advisor, and a Privacy Policy update first.
 
 ---
 
@@ -224,7 +204,9 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 - Use TypeScript strict mode. No `any`, no `@ts-ignore`
 - Use `async/await` over `.then()` chains
 - Handle all Firebase errors with try/catch and user-friendly fallback messages
-- Use Zod schemas to validate all Firestore reads — data can be malformed
+- Use Zod schemas to validate all Firestore reads — data can be malformed (in `src/data/`)
+- Go through the repository layer in `src/data/` — never call Firestore from screens
+- Put user-facing strings in `lib/i18n.ts` (pt-BR first, English second)
 - Use `expo-constants` for environment variables, never hardcode API keys
 - Write self-documenting code — prefer clear names over comments
 - Use NativeWind classes, never raw StyleSheet unless performance demands it
@@ -232,8 +214,8 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 ### Never:
 - Show error stack traces or technical messages to the child user
 - Request camera permissions without explaining why first (parent sees the prompt)
-- Store session video or images — only derived zone data
-- Call Gemini with the child's real name in a way that could be logged externally
+- Store, capture, record, upload or analyze camera frames, video, images or audio (Camera guardrail)
+- Call Gemini at all without the steps in "Gemini Coach (disabled)"; never with the child's real name
 - Use `console.log` with sensitive data (auth tokens, child names)
 - Create new TypeScript types that duplicate the ones in `types/index.ts`
 - Use `useEffect` with missing dependencies — fix the dep array properly
@@ -241,29 +223,31 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 ### Privacy (critical — this is a children's app):
 - COPPA compliance: parents authenticate, children never do
 - No analytics that track individual children by name
-- Session data in Firestore is keyed by `parentUid` — always enforce this in security rules
-- Camera frames are processed on-device and never uploaded
+- All data lives under `users/{uid}` — the security rules enforce owner-only access
+- Camera frames are never processed, stored or uploaded (mirror only)
+- Adding/deleting a child, exporting data and deleting the account sit behind `ParentalGate`; first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
+- Legal docs (`legal/`) must describe what the code actually does — change them (and `LEGAL_VERSIONS`) whenever data handling changes
 - The Gemini prompt must never include the child's last name, school, or location
 
 ---
 
 ## Project knowledge (read before changing an area)
 
-Progress lives in `docs/ROADMAP.md`, decisions in `docs/decisions/`, copy rules in `docs/CLINICAL.md`, checks and releases in `docs/RUNBOOK.md`. Skills in `.claude/skills/`; the `privacy-reviewer` agent in `.claude/agents/` should review diffs touching Firestore, auth, logging, camera, or Gemini. If these docs and the code disagree, fix or flag the stale one.
+Progress lives in `docs/ROADMAP.md`, decisions in `docs/decisions/`, copy rules in `docs/CLINICAL.md`, checks and releases in `docs/RUNBOOK.md`, Terms/Privacy drafts in `legal/`. Skills in `.claude/skills/`; the `privacy-reviewer` agent in `.claude/agents/` should review diffs touching Firestore, auth, logging, camera, or Gemini. If these docs and the code disagree, fix or flag the stale one.
 
 ---
 
-## Current Phase: Phase 1 — Foundation (code complete, pending end-to-end simulator pass)
+## Current Phase: Foundation rebuild — step 1 of 3 done (data, profiles, privacy, legal, nav shell)
 
-All seven Phase 1 items have code in the repo (register, login incl. Google Sign-In, child-setup, home, BrushTimer, session + results with Firestore save and offline outbox, progress). Streaks and badges are implemented. Item 6 landed as `app/session.tsx` + `app/results.tsx` rather than `(tabs)/brush.tsx`.
+Step 1 shipped the nested Firestore model + repository layer, multiple children with a switcher, meal-based brushing slots, consent + legal drafts, account export/delete, the camera guardrail and the NativeTabs shell (Overview, Brushing, Progress, More — Brushing/Progress are placeholders). See `docs/ROADMAP.md`.
 
-**Next:** run the full flow in the simulator (register → child setup → session → results → progress), fix what breaks, then start Phase 2.
+**Next (steps 2–3):** visual redesign of the screens, progress/streaks/badges on `brushingSessions`, tooth-event UI, legal review of `legal/`, then the simulator pass.
 
 **What NOT to build yet:**
-- Camera integration (Phase 2)
-- Zone detection AI (Phase 2)
+- Zone detection AI / any frame processing (ruled out by the Camera guardrail)
 - Subscriptions/RevenueCat (Phase 3)
 - Android-specific code (Phase 4)
+- Apple Sign-In (not now — note App Store guideline 4.8 before release)
 
 ---
 
@@ -278,7 +262,9 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 EXPO_PUBLIC_FIREBASE_APP_ID=
-EXPO_PUBLIC_GEMINI_API_KEY=
+EXPO_PUBLIC_GEMINI_API_KEY=        # unused while Gemini is disabled
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
 ```
 
 All accessed via `process.env.EXPO_PUBLIC_*` — the `EXPO_PUBLIC_` prefix makes them available client-side in Expo.
@@ -296,9 +282,18 @@ npx expo export --platform ios --output-dir dist-check   # Full bundle check (de
 npx expo install <pkg>  # Always use this (not npm install) for Expo/RN native packages — it picks SDK-compatible versions
 ```
 
-Self-checks (plain node + assert, no framework): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/outbox.check.mjs`, `node lib/gemini.check.mjs`. Add one next to any new non-trivial pure logic. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`.
+```bash
+npm test                # node --test src/data/*.test.ts (pure repository logic; Node ≥ 23.6)
+npm run test:emulator   # Firestore rules + repository against the emulator (needs Java)
+npx expo lint           # ESLint incl. the camera guardrail rules
+node scripts/check-camera-guardrail.mjs
+npm run build:legal     # legal/*.md → public/legal/*.html (also Hosting predeploy; checks versions)
+npm run check           # tsc + lint + unit tests + self-checks + guardrail
+```
 
-There is no linter configured. `tsc --noEmit` plus the self-checks are the gates.
+Self-checks (plain node + assert): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/gemini.check.mjs`. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
+
+Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://zing-dental-app.web.app/legal/…`.
 
 **Simulator:** this is a dev-client project — use `npx expo run:ios`, never `expo start --ios` or `--go` (Expo Go can't load the native modules).
 
@@ -311,10 +306,11 @@ There is no linter configured. `tsc --noEmit` plus the self-checks are the gates
 - NativeWind v4 is wired through `babel.config.js` (`jsxImportSource: 'nativewind'` + `nativewind/babel`), `metro.config.js` (`withNativeWind` with `global.css`), and `tailwind.config.js` (`presets: [nativewind/preset, ./tailwind.preset]` supplies the design-system colors, fonts, radii and `shadow-toy*`/`border-toy`; app-only aliases `ink`, `muted`, `danger` live in the config).
 - Firebase Auth uses `initializeAuth` + `getReactNativePersistence(AsyncStorage)` in `lib/firebase.ts`. The firebase v12 wrapper's web typings omit `getReactNativePersistence` (it exists in the RN runtime build) — `types/firebase-auth.d.ts` augments the module; do not work around it with `@ts-ignore`.
 - Fonts are bundled TTFs in `assets/fonts/` loaded once in `app/_layout.tsx` via `expo-font` `useFonts`, referenced by family name: `font-display` → `Fredoka-Bold`, `font-display-semi` → `Fredoka-SemiBold`, `font-body` → `Lexend-Regular`, `font-body-semi` → `Lexend-SemiBold`, `font-numeric` → `Fredoka-Bold` (inline styles: `font.*` in `lib/tokens.ts`).
-- Auth state flows: `onAuthStateChanged` subscription in `app/_layout.tsx` → `stores/authStore.ts` (Zustand) → `app/index.tsx` redirects to `(tabs)/home` when signed in, else `onboarding/welcome`.
+- Auth state flows: `onAuthStateChanged` in `app/_layout.tsx` → `stores/authStore.ts` (user + consent status from `lib/consent.ts`) → `app/(tabs)/_layout.tsx` gates: signed in → current consent → at least one child, else redirects to welcome / consent / child-form.
 - NativeWind 4.2.5 drops function-form `Pressable` styles (upstream #1105); `Button`, `Chip`, `Card` and `AvatarPicker` keep pressed state in React state instead — don't revert it.
 - Fabric: don't make style *keys* conditional on focus (it recreates the native view and drops `TextInput` focus). Keep the keys, change the values.
-- Finished sessions go through `lib/outbox.ts` so an offline write is retried, not lost. Session docs are idempotent via a stable id; `totalSessions` is an increment, guarded by `inFlight` in `sessionStore`.
+- Finished sessions go through `lib/sync.ts` (outbox codec in `src/data/outbox.ts`) so an offline write is retried, not lost. Session docs are idempotent via a stable id reserved before the first attempt.
+- TypeScript 6 defaults `types` to `[]`: test files add `/// <reference types="node" />`.
 
 ---
 
