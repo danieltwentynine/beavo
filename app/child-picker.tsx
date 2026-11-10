@@ -23,7 +23,7 @@ export default function ChildPickerScreen() {
   };
 
   return (
-    <GlassSurface fallbackColor={tokens.surfacePage} style={{ flex: 1 }}>
+    <GlassSurface style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 20, rowGap: 12 }}>
         <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary, marginBottom: 4 }}>
           {t('picker.title')}

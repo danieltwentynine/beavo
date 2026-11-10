@@ -2,11 +2,13 @@ import '../global.css';
 
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
+import { LogoScreen } from '@/components/brand/LogoScreen';
 import { useChildDataSync } from '@/hooks/useChildDataSync';
 import { cleanupBackupFiles } from '@/lib/account';
 import { checkConsent } from '@/lib/consent';
@@ -17,7 +19,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { clearSnapshot } from '@/stores/childStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 
+// The native splash stays up until the logo screen has drawn the same image in the same spot.
+void SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+  const [logoDone, setLogoDone] = useState(false);
+  const hideLogo = useCallback(() => setLogoDone(true), []);
   const setUser = useAuthStore((state) => state.setUser);
   const setConsent = useAuthStore((state) => state.setConsent);
   const loadSettings = useSettingsStore((state) => state.load);
@@ -86,6 +93,7 @@ export default function RootLayout() {
           options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true, contentStyle: { backgroundColor: 'transparent' } }}
         />
       </Stack>
+      {logoDone ? null : <LogoScreen onDone={hideLogo} />}
     </>
   );
 }

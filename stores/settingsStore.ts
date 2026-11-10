@@ -10,6 +10,11 @@ const KEY = 'beavo.settings.v1';
 
 interface SettingsState {
   brushingDurationSec: BrushingDuration;
+  /** The first-launch intro has been shown on this device. */
+  introSeen: boolean;
+  /** False until the saved settings have been read. */
+  loaded: boolean;
+  markIntroSeen: () => void;
   setBrushingDuration: (sec: BrushingDuration) => void;
   load: () => Promise<void>;
 }
@@ -20,20 +25,34 @@ const isDuration = (v: unknown): v is BrushingDuration => BRUSHING_DURATIONS.som
  * App settings for this device (not synced: they describe how this phone is
  * used, and hold no personal data). Loaded once in app/_layout.tsx.
  */
-export const useSettingsStore = create<SettingsState>((set) => ({
-  brushingDurationSec: DEFAULT_BRUSHING_DURATION,
-  setBrushingDuration: (brushingDurationSec) => {
-    set({ brushingDurationSec });
-    void AsyncStorage.setItem(KEY, JSON.stringify({ brushingDurationSec })).catch(() => undefined);
-  },
-  load: async () => {
-    try {
-      const raw = await AsyncStorage.getItem(KEY);
-      const parsed: unknown = raw ? JSON.parse(raw) : null;
-      const sec = parsed && typeof parsed === 'object' ? (parsed as { brushingDurationSec?: unknown }).brushingDurationSec : undefined;
-      if (isDuration(sec)) set({ brushingDurationSec: sec });
-    } catch {
-      // Defaults stay.
-    }
-  },
-}));
+export const useSettingsStore = create<SettingsState>((set, get) => {
+  const save = () => {
+    const { brushingDurationSec, introSeen } = get();
+    void AsyncStorage.setItem(KEY, JSON.stringify({ brushingDurationSec, introSeen })).catch(() => undefined);
+  };
+  return {
+    brushingDurationSec: DEFAULT_BRUSHING_DURATION,
+    introSeen: false,
+    loaded: false,
+    setBrushingDuration: (brushingDurationSec) => {
+      set({ brushingDurationSec });
+      save();
+    },
+    markIntroSeen: () => {
+      set({ introSeen: true });
+      save();
+    },
+    load: async () => {
+      try {
+        const raw = await AsyncStorage.getItem(KEY);
+        const parsed: unknown = raw ? JSON.parse(raw) : null;
+        const saved = parsed && typeof parsed === 'object' ? (parsed as { brushingDurationSec?: unknown; introSeen?: unknown }) : {};
+        if (isDuration(saved.brushingDurationSec)) set({ brushingDurationSec: saved.brushingDurationSec });
+        if (saved.introSeen === true) set({ introSeen: true });
+      } catch {
+        // Defaults stay.
+      }
+      set({ loaded: true });
+    },
+  };
+});

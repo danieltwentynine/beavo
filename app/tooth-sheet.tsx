@@ -104,7 +104,7 @@ export default function ToothSheet() {
     ]);
 
   return (
-    <GlassSurface fallbackColor={tokens.surfacePage} style={{ flex: 1 }}>
+    <GlassSurface style={{ flex: 1 }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 20, rowGap: 14 }} keyboardShouldPersistTaps="handled">
           <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary }}>

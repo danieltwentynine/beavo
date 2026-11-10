@@ -19,14 +19,20 @@ function useGlass(): boolean {
   return !reduceTransparency && isLiquidGlassAvailable();
 }
 
+// [glass tint, solid fallback when glass is unavailable or Reduce Transparency is on]
+const GLASS = {
+  chrome: [tokens.glassChrome, tokens.glassChromeSolid],
+  session: [tokens.glassSession, tokens.glassSessionSolid],
+} as const;
+
 interface GlassSurfaceProps {
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
-  /** Solid color used when glass is unavailable. */
-  fallbackColor?: string;
+  /** Parent screens (default) or the brushing session. */
+  ground?: keyof typeof GLASS;
   /** Glass reacts to touch (buttons, pills). */
   interactive?: boolean;
-  /** Colored chrome (e.g. an active button): tints the glass, and is the solid fallback. */
+  /** Colored chrome (e.g. an active button): replaces the ground tint and the solid fallback. */
   tint?: string;
 }
 
@@ -37,11 +43,12 @@ interface GlassSurfaceProps {
  * The solid fallback keeps the chrome looking like
  * Beavo with or without glass.
  */
-export function GlassSurface({ children, style, fallbackColor = tokens.glassChromeSolid, interactive = false, tint }: GlassSurfaceProps) {
+export function GlassSurface({ children, style, ground = 'chrome', interactive = false, tint }: GlassSurfaceProps) {
   const glass = useGlass();
-  if (!glass) return <View style={[{ backgroundColor: tint ?? fallbackColor }, style]}>{children}</View>;
+  const [glassTint, solid] = GLASS[ground];
+  if (!glass) return <View style={[{ backgroundColor: tint ?? solid }, style]}>{children}</View>;
   return (
-    <GlassView glassEffectStyle="regular" isInteractive={interactive} tintColor={tint} colorScheme="light" style={[{ overflow: 'hidden' }, style]}>
+    <GlassView glassEffectStyle="regular" isInteractive={interactive} tintColor={tint ?? glassTint} colorScheme="light" style={[{ overflow: 'hidden' }, style]}>
       {children}
     </GlassView>
   );

@@ -12,6 +12,7 @@ import { BrushTimer } from '@/components/brushing/BrushTimer';
 import { MouthMap, type ZoneState } from '@/components/brushing/MouthMap';
 import { Sticker } from '@/components/kids/Sticker';
 import { Button } from '@/components/ui/Button';
+import { GlassSurface } from '@/components/ui/GlassSurface';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { buildCoachMessage } from '@/lib/coach';
 import { ALL_TOOTH_ZONES, COUNTDOWN_SECONDS } from '@/lib/constants';
@@ -169,13 +170,12 @@ export default function SessionScreen() {
             width: 48,
             height: 48,
             borderRadius: 24,
-            backgroundColor: tokens.surfaceCard,
-            alignItems: 'center',
-            justifyContent: 'center',
             ...cardShadow,
           }}
         >
-          <X size={22} color={tokens.textPrimary} weight="bold" />
+          <GlassSurface interactive ground="session" style={{ flex: 1, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}>
+            <X size={22} color={tokens.textPrimary} weight="bold" />
+          </GlassSurface>
         </Pressable>
 
         {askingForCamera ? (

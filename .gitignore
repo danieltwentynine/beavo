@@ -61,12 +61,6 @@ GoogleService-Info.plist
 # Claude Code (machine-specific)
 .claude/settings.local.json
 
-# design-sync (machine state; the durable set under .design-sync/ is committed)
-.ds-sync/
-ds-bundle/
-.design-sync/.cache/
-.design-sync/learnings/
-.design-sync/node_modules
 
 # Design exports (source zips from Claude Design; adopted content lives in the repo)
 zing-design-system*.zip

@@ -12,7 +12,7 @@ const CAMERA_GUARDRAIL = 'Camera guardrail: the camera is a live mirror only —
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', 'dist-check/*', 'ios/*', 'android/*', '.design-sync/*', '.ds-sync/*', 'ds-bundle/*', 'public/*'],
+    ignores: ['dist/*', 'dist-check/*', 'ios/*', 'android/*', 'public/*'],
   },
   {
     rules: {

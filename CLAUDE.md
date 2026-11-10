@@ -45,10 +45,10 @@ Actual layout (the repo root is the project; ignore any older `fable/` naming):
 ```
 app/                              # Expo Router screens
 ├── _layout.tsx                   # Fonts, auth → consent check, child data sync, outbox flush, child-picker sheet
-├── index.tsx                     # Redirect: signed in → (tabs)/overview, else onboarding/welcome
+├── index.tsx                     # Redirect: signed in → (tabs)/overview, else onboarding/intro (first launch) or onboarding/welcome
 ├── (auth)/ login.tsx, register.tsx
 ├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more
-├── onboarding/ welcome.tsx
+├── onboarding/ intro.tsx (first launch only), welcome.tsx
 ├── consent.tsx                   # Terms + Privacy acceptance (unchecked box, re-prompt on version change)
 ├── child-form.tsx                # Add (gated) / edit / delete (gated) a child
 ├── child-picker.tsx              # Form sheet opened by ProfilePill
@@ -60,7 +60,7 @@ app/                              # Expo Router screens
 ├── session.tsx                   # Brushing session
 └── results.tsx                   # Score, local message, save status
 components/
-├── brand/BeavoBrand.tsx
+├── brand/ BeavoBrand.tsx (generated), LogoScreen.tsx
 ├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
 ├── kids/ Avatar, BadgeCard, StreakDisplay, Sticker, ProfilePill
 ├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
@@ -83,7 +83,7 @@ lib/
 ├── i18n.ts                       # t(), pt-BR + en strings
 ├── coach.ts, gemini.ts (not called), constants.ts, tokens.ts
 └── *.check.mjs                   # Plain-node self-checks
-stores/ authStore.ts (user + consent), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length)
+stores/ authStore.ts (user + consent), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length, intro seen)
 tests/ rules.test.ts, repository.test.ts   # Firestore emulator tests
 legal/                            # Terms + Privacy Policy drafts (pt-BR, en) → public/legal/*.html on Firebase Hosting
 types/ index.ts                   # All shared types; firebase-auth.d.ts augments RN persistence
@@ -127,7 +127,7 @@ users/{uid}                         displayName, locale ('pt-BR'|'en'), createdA
 
 ## Liquid Glass
 
-NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/GlassSurface.tsx` is the only user of `expo-glass-effect`, and only for floating chrome: ProfilePill, Overview's corner buttons, the child-picker and tooth sheets. Never on content cards. It falls back to solid token surfaces when `isLiquidGlassAvailable()` is false or Reduce Transparency is on. Chrome keeps its soft `cardShadow` either way.
+NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/GlassSurface.tsx` is the only user of `expo-glass-effect`, and only for floating chrome: ProfilePill, Overview's corner buttons, the child-picker and tooth sheets. Never on content cards. It tints the glass per ground (`chrome` / `session`) and falls back to solid token surfaces when `isLiquidGlassAvailable()` is false or Reduce Transparency is on. Chrome keeps its soft `cardShadow` either way.
 
 ---
 
@@ -207,7 +207,7 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 
 **Logo and mascot:** Beavo the beaver is both. The mark is his head (`BeavoMark`); the wordmark is outlined lettering (`BeavoWordmark`, never retyped in a font); `BeavoLockup` is the default; `BeavoWave` is the waving pose. Never redraw or recolour them: `components/brand/BeavoBrand.tsx` is generated from `assets/brand/*.svg` by `node scripts/build-brand.mjs`. His teeth are always bright white.
 
-**Not built yet from the design system:** the 1-second logo screen after the native splash, the four-screen first-launch intro, and Liquid Glass tints (`glass-chrome`, `glass-session`).
+**Launch and intro:** the native splash hands off to `components/brand/LogoScreen.tsx` (same image, same spot; 1 second, then a 250 ms cross-fade), drawn as an overlay in `app/_layout.tsx`. `app/onboarding/intro.tsx` is the four-screen intro, shown until `settingsStore.introSeen` is set on this device. Glass chrome takes its tint and solid fallback from `GlassSurface`'s `ground` prop (`chrome` on parent screens, `session` in the brushing session).
 
 **Tone (copy):**
 - For children: enthusiastic, uses "!" sparingly, never clinical

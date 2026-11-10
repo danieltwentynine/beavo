@@ -39,7 +39,9 @@ export const tokens = {
   zoneDone: '#0A746E',
   zoneMissed: '#F6C447',
 
-  // Liquid Glass fallbacks (Reduce Transparency / no glass)
+  // Liquid Glass tints for floating chrome, and their solid fallbacks
+  glassChrome: 'rgba(255,255,255,0.62)',
+  glassSession: 'rgba(255,255,255,0.55)',
   glassChromeSolid: '#FBF7F0',
   glassSessionSolid: '#FFFFFF',
 } as const;
