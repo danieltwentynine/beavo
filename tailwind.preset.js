@@ -1,4 +1,4 @@
-// Zing NativeWind/Tailwind preset — Toy box. Generated from tokens.json.
+// Beavo NativeWind/Tailwind preset — Toy box. Generated from tokens.json.
 // Use: module.exports = { presets: [require('nativewind/preset'), require('./tailwind.preset')], ... }
 // Outlined card: className="bg-surface-card border-toy border-ink-900 rounded-xl shadow-toy-card"
 module.exports = {

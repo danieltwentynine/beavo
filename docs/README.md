@@ -1,4 +1,4 @@
-# Zing docs
+# Beavo docs
 
 Long-lived project knowledge. `CLAUDE.md` (repo root) is the always-loaded summary; these files hold the detail so it doesn't bloat that one.
 

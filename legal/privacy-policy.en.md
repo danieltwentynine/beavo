@@ -1,10 +1,10 @@
 > **RASCUNHO — requer revisão jurídica / DRAFT — requires legal review**
 
-# Zing Privacy Policy
+# Beavo Privacy Policy
 
-**Version:** 2026-10-31 · **Effective:** [PUBLICATION DATE]
+**Version:** 2026-11-10 · **Effective:** [PUBLICATION DATE]
 
-This Policy explains how the Zing app ("Zing", "we") processes personal data under Brazil's General Data Protection Law (Law No. 13,709/2018, "LGPD"). Zing helps children aged 4 to 12 build a tooth-brushing habit. **The account always belongs to an adult (a parent or legal guardian). Children never create an account or sign in.** The Portuguese version prevails if the two versions differ.
+This Policy explains how the Beavo app ("Beavo", "we") processes personal data under Brazil's General Data Protection Law (Law No. 13,709/2018, "LGPD"). Beavo helps children aged 4 to 12 build a tooth-brushing habit. **The account always belongs to an adult (a parent or legal guardian). Children never create an account or sign in.** The Portuguese version prevails if the two versions differ.
 
 ## 1. Data controller
 
@@ -43,7 +43,7 @@ So the app works offline, your device keeps: your sign-in session, a copy of the
 
 ## 3. The camera is only a mirror
 
-During brushing, Zing can show the front camera image so the child can see themselves, like a mirror. **Nothing is recorded, saved, sent or analyzed.** No photo, video or image frame is captured or processed, on the device or on any server. The app **does not request microphone access**. The camera is on only while the brushing screen is open, and turns off when you leave it or the app goes to the background. The camera is optional: children can brush without it.
+During brushing, Beavo can show the front camera image so the child can see themselves, like a mirror. **Nothing is recorded, saved, sent or analyzed.** No photo, video or image frame is captured or processed, on the device or on any server. The app **does not request microphone access**. The camera is on only while the brushing screen is open, and turns off when you leave it or the app goes to the background. The camera is optional: children can brush without it.
 
 ## 4. Why we use data, and the legal basis
 
@@ -84,7 +84,7 @@ Under the LGPD (art. 18) you may request: confirmation that we process your data
 
 In the app:
 - **Access and take your data (portability):** *More → Export backup* (asks for a grown-ups-only check). Creates a `.json` file with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
-- **Restore a backup:** *More → Import backup* (asks for a grown-ups-only check). You pick a Zing backup file; its data is checked and merged into your account (items with the same ID are replaced; nothing is deleted).
+- **Restore a backup:** *More → Import backup* (asks for a grown-ups-only check). You pick a Beavo backup file; its data is checked and merged into your account (items with the same ID are replaced; nothing is deleted).
 - **Correct:** for the profile, tap the child switcher at the top right, then *Edit*. For a dental record, tap the tooth on *Overview*, delete the record and add it again.
 - **Delete a child:** *Edit profile → Delete profile* (asks for a grown-ups-only check).
 - **Delete your account and all data:** *More → Delete account* (asks for a grown-ups-only check and for you to sign in again).
@@ -97,7 +97,7 @@ Data travels encrypted (HTTPS/TLS). Database security rules let each account rea
 
 ## 9. Children
 
-Children use Zing **under an adult's responsibility**. Only the adult creates the account, accepts these documents and adds children. We ask children for no personal data. If you believe a child's data was added without a guardian's authorization, email [DPO EMAIL] and we will delete it.
+Children use Beavo **under an adult's responsibility**. Only the adult creates the account, accepts these documents and adds children. We ask children for no personal data. If you believe a child's data was added without a guardian's authorization, email [DPO EMAIL] and we will delete it.
 
 ## 10. Changes to this Policy
 

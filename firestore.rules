@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Zing Firestore rules. COPPA/LGPD-critical: every document lives under
+// Beavo Firestore rules. COPPA/LGPD-critical: every document lives under
 // users/{uid} and only that signed-in parent can read or write it. Children
 // never authenticate. Every write is type-checked; anything not matched below
 // (including the legacy top-level /children and /sessions) is denied.

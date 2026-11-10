@@ -8,7 +8,7 @@ import type { Firestore } from 'firebase/firestore';
 
 export function startEmulator(): Promise<RulesTestEnvironment> {
   return initializeTestEnvironment({
-    projectId: 'demo-zing',
+    projectId: 'demo-beavo',
     firestore: { rules: readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8') },
   });
 }

@@ -13,7 +13,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
-import { SparkyWave, ZingLockup } from '@/components/brand/ZingBrand';
+import { SparkyWave, BeavoLockup } from '@/components/brand/BeavoBrand';
 import { Button } from '@/components/ui/Button';
 import { signInWithGoogle } from '@/lib/socialAuth';
 import { tokens } from '@/lib/tokens';
@@ -95,7 +95,7 @@ export default function WelcomeScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 6 }}>
           <FloatingMascot width={200} />
           <View style={{ marginTop: 12 }}>
-            <ZingLockup height={56} />
+            <BeavoLockup height={56} />
           </View>
           <Text
             className="font-body"

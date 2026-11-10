@@ -1,6 +1,6 @@
 # Clinical and copy guidelines
 
-Zing is a children's health-adjacent app. Anything that reads as dental or medical advice needs clinical advisor review before shipping. Agents must **flag, not decide**.
+Beavo is a children's health-adjacent app. Anything that reads as dental or medical advice needs clinical advisor review before shipping. Agents must **flag, not decide**.
 
 ## Hard rules for coach and child-facing copy
 - Warm, short, encouraging. Max 2 sentences for coach messages.
@@ -18,7 +18,7 @@ Zing is a children's health-adjacent app. Anything that reads as dental or medic
 ## Needs clinical review (2026-10-31, foundation step 1)
 - Default tooth-event categories (`src/data/toothEvents.ts`, names in `lib/i18n.ts` `category.*`): Dor/Pain, Sensibilidade/Sensitivity, Sangramento/Bleeding, Restauração/Filling, Selante/Sealant, Limpeza/Cleaning, Extração/Extraction.
 - Default brushing slots: "Depois do café da manhã / do almoço / do jantar" (After breakfast / lunch / dinner), windows 06–10, 11–15, 18–22.
-- Terms of Service §2 "Zing is not medical advice" (`legal/terms.*.md`).
+- Terms of Service §2 "Beavo is not medical advice" (`legal/terms.*.md`).
 - Camera mirror explainer (`camera.*` in `lib/i18n.ts`, `locales/*.json`).
 
 ## Needs clinical review (2026-10-31, foundation step 2)

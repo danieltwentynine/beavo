@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Zing",
+    "name": "Beavo",
     "slug": "zing",
     "version": "1.0.0",
-    "scheme": "zing",
+    "scheme": "beavo",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,7 +11,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.zingdentalai.zing",
       "infoPlist": {
-        "NSCameraUsageDescription": "Zing uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
+        "NSCameraUsageDescription": "Beavo uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
       }
     },
     "android": {

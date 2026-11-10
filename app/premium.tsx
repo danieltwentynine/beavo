@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { Sparky } from '@/components/brand/ZingBrand';
+import { Sparky } from '@/components/brand/BeavoBrand';
 import { Button } from '@/components/ui/Button';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { t } from '@/lib/i18n';

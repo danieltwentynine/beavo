@@ -1,5 +1,5 @@
 {
-  "name": "zing",
+  "name": "beavo",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
@@ -58,7 +58,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "node --test 'src/data/*.test.ts'",
-    "test:emulator": "firebase emulators:exec --only firestore --project demo-zing \"node --test --test-concurrency=1 'tests/*.test.ts'\"",
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-beavo \"node --test --test-concurrency=1 'tests/*.test.ts'\"",
     "build:legal": "node scripts/build-legal.mjs",
     "check": "tsc --noEmit && expo lint && npm test && for f in lib/*.check.mjs; do node \"$f\" || exit 1; done && node scripts/check-camera-guardrail.mjs"
   },

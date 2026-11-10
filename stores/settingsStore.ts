@@ -6,7 +6,7 @@ export const BRUSHING_DURATIONS = [60, 90, 120, 150, 180] as const;
 export type BrushingDuration = (typeof BRUSHING_DURATIONS)[number];
 export const DEFAULT_BRUSHING_DURATION: BrushingDuration = 120;
 
-const KEY = 'zing.settings.v1';
+const KEY = 'beavo.settings.v1';
 
 interface SettingsState {
   brushingDurationSec: BrushingDuration;

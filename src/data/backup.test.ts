@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { parseBackup } from './backup.ts';
 
 const valid = () => ({
-  format: 'zing-backup',
+  format: 'beavo-backup',
   version: 1,
   exportedAt: '2026-10-31T12:00:00.000Z',
   account: { email: 'ana@example.com' },

@@ -41,7 +41,7 @@ const ptBR = {
   'consent.title': 'Antes de começar',
   'consent.updated': 'Atualizamos nossos documentos. Leia e aceite para continuar.',
   'consent.body':
-    'O Zing guarda o nome, o ano de nascimento (opcional) e as escovações de cada criança para mostrar o progresso. Leia os documentos abaixo.',
+    'O Beavo guarda o nome, o ano de nascimento (opcional) e as escovações de cada criança para mostrar o progresso. Leia os documentos abaixo.',
   'consent.terms': 'Termos de Uso',
   'consent.privacy': 'Política de Privacidade',
   'consent.checkbox':
@@ -178,7 +178,7 @@ const ptBR = {
   'brushHistory.stopped': 'Parou antes',
   'brushHistory.unknownSlot': 'Horário removido',
 
-  'more.premiumTitle': 'Zing Premium',
+  'more.premiumTitle': 'Beavo Premium',
   'more.premiumBody': '[TEXTO PROVISÓRIO] Mais personagens, conquistas e relatórios para a família.',
   'more.premiumCta': 'Conhecer o Premium',
   'more.profiles': 'Perfis',
@@ -188,19 +188,19 @@ const ptBR = {
   'more.importBackup': 'Importar backup',
   'more.app': 'App',
   'more.settings': 'Ajustes',
-  'more.review': 'Avaliar o Zing',
+  'more.review': 'Avaliar o Beavo',
   'more.termsAndConditions': 'Termos e Condições',
   'more.importTitle': 'Importar este backup?',
   'more.importBody': '{children} crianças e {records} registros. Itens com o mesmo identificador serão substituídos; nada será apagado.',
   'more.importConfirm': 'Importar',
   'more.importCancel': 'Não importar',
   'more.importDone': '{count} itens importados.',
-  'more.importInvalid': 'Este arquivo não é um backup do Zing válido.',
+  'more.importInvalid': 'Este arquivo não é um backup do Beavo válido.',
   'more.importFail': 'A importação não terminou: parte dos dados pode ter sido salva. Verifique a internet e importe de novo (itens repetidos são substituídos, não duplicados).',
   'more.openFail': 'Não foi possível abrir o link.',
 
-  'premium.title': 'Zing Premium',
-  'premium.body': '[TEXTO PROVISÓRIO] O Zing Premium ainda não está disponível. Em breve contaremos tudo aqui.',
+  'premium.title': 'Beavo Premium',
+  'premium.body': '[TEXTO PROVISÓRIO] O Beavo Premium ainda não está disponível. Em breve contaremos tudo aqui.',
 
   'settings.title': 'Ajustes',
   'settings.duration': 'Tempo de escovação',
@@ -289,7 +289,7 @@ const en: Record<StringKey, string> = {
   'consent.title': 'Before you start',
   'consent.updated': "We've updated our documents. Please read and accept them to continue.",
   'consent.body':
-    "Zing stores each child's name, birth year (optional) and brushing sessions to show their progress. Please read the documents below.",
+    "Beavo stores each child's name, birth year (optional) and brushing sessions to show their progress. Please read the documents below.",
   'consent.terms': 'Terms of Service',
   'consent.privacy': 'Privacy Policy',
   'consent.checkbox':
@@ -425,7 +425,7 @@ const en: Record<StringKey, string> = {
   'brushHistory.stopped': 'Stopped early',
   'brushHistory.unknownSlot': 'Removed time',
 
-  'more.premiumTitle': 'Zing Premium',
+  'more.premiumTitle': 'Beavo Premium',
   'more.premiumBody': '[PLACEHOLDER] More characters, badges and family reports.',
   'more.premiumCta': 'See Premium',
   'more.profiles': 'Profiles',
@@ -442,12 +442,12 @@ const en: Record<StringKey, string> = {
   'more.importConfirm': 'Import',
   'more.importCancel': "Don't import",
   'more.importDone': '{count} items imported.',
-  'more.importInvalid': "This file isn't a valid Zing backup.",
+  'more.importInvalid': "This file isn't a valid Beavo backup.",
   'more.importFail': "The import didn't finish: some data may already be saved. Check your connection and import again (repeated items are replaced, not duplicated).",
   'more.openFail': "We couldn't open the link.",
 
-  'premium.title': 'Zing Premium',
-  'premium.body': "[PLACEHOLDER] Zing Premium isn't available yet. We'll share everything here soon.",
+  'premium.title': 'Beavo Premium',
+  'premium.body': "[PLACEHOLDER] Beavo Premium isn't available yet. We'll share everything here soon.",
 
   'settings.title': 'Settings',
   'settings.duration': 'Brushing time',

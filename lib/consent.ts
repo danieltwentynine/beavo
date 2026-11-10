@@ -11,7 +11,7 @@ import { DEFAULT_CATEGORIES, seedDefaultCategories } from '@/src/data/toothEvent
 import type { UserProfile } from '@/types';
 
 // Local copy of the accepted versions, so an offline launch doesn't re-prompt.
-const localKey = (uid: string) => `zing.consent.v1.${uid}`;
+const localKey = (uid: string) => `beavo.consent.v1.${uid}`;
 
 const isCurrent = (v: { termsVersion?: string; privacyVersion?: string } | undefined) =>
   v?.termsVersion === LEGAL_VERSIONS.terms && v?.privacyVersion === LEGAL_VERSIONS.privacy;

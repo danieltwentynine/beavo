@@ -27,7 +27,7 @@ for (const file of files) {
     throw new Error(`${file}: version ${version} does not match LEGAL_VERSIONS in lib/legal.ts (${expected[doc]})`);
   }
   const lang = file.includes('.pt-BR.') ? 'pt-BR' : 'en';
-  const title = md.match(/^# (.+)$/m)?.[1] ?? 'Zing';
+  const title = md.match(/^# (.+)$/m)?.[1] ?? 'Beavo';
   const html = `<!doctype html>
 <html lang="${lang}">
 <head>

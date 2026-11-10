@@ -5,7 +5,7 @@ import { locale } from '@/lib/i18n';
  * document changes in substance: every parent is asked to accept again.
  * Must match the version line at the top of the matching files in /legal.
  */
-export const LEGAL_VERSIONS = { terms: '2026-10-31', privacy: '2026-10-31' } as const;
+export const LEGAL_VERSIONS = { terms: '2026-11-10', privacy: '2026-11-10' } as const;
 
 /** Firebase Hosting default domain for project `zing-dental-app` (see firebase.json > hosting). */
 const LEGAL_BASE_URL = 'https://zing-dental-app.web.app/legal';

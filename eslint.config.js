@@ -3,7 +3,7 @@ const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 
 // CAMERA GUARDRAIL (CLAUDE.md > Camera guardrail) — non-negotiable.
-// Zing's camera is a live mirror for a child (4–12) brushing their teeth. It must
+// Beavo's camera is a live mirror for a child (4–12) brushing their teeth. It must
 // never capture, record, save, upload or analyze frames, and never use the mic.
 // These rules fail lint on every API that would do so. Do not disable them
 // inline; changing them needs the owner, the clinical advisor and a privacy-policy update.

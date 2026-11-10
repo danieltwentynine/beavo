@@ -125,7 +125,7 @@ export default function RegisterScreen() {
             <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
           </Pressable>
 
-          <Text className="font-display text-3xl text-ink">Welcome to Zing</Text>
+          <Text className="font-display text-3xl text-ink">Welcome to Beavo</Text>
           <Text className="mb-6 mt-1.5 font-body text-base text-muted">
             Create your parent account to start your child's brushing adventure.
           </Text>

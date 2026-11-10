@@ -1,11 +1,11 @@
-# Zing — AI Dental Coach for Kids
+# Beavo — AI Dental Coach for Kids
 > Single source of truth for every coding agent in this repo (Claude Code, Codex, etc.). `AGENTS.md` only points here — edit this file, never duplicate its content elsewhere. Read this entire file before making any change.
 
 **Expo has changed.** Before writing Expo code, read the versioned docs at https://docs.expo.dev/versions/v57.0.0/ — don't rely on memory of older SDKs.
 
-## What is Zing?
+## What is Beavo?
 
-Zing is an iOS-first mobile app (Brazil first, pt-BR default) that coaches children through a 2-minute guided brushing session. The front camera can act as a **mirror** so the child sees themselves — it never captures or analyzes anything (see Camera guardrail). The app is built by a dentist mother and her developer son.
+Beavo is an iOS-first mobile app (Brazil first, pt-BR default) that coaches children through a 2-minute guided brushing session. The front camera can act as a **mirror** so the child sees themselves — it never captures or analyzes anything (see Camera guardrail). The app is built by a dentist mother and her developer son.
 
 **Core loop:**
 
@@ -60,7 +60,7 @@ app/                              # Expo Router screens
 ├── session.tsx                   # Brushing session
 └── results.tsx                   # Score, local message, save status
 components/
-├── brand/ZingBrand.tsx
+├── brand/BeavoBrand.tsx
 ├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
 ├── kids/ Avatar, BadgeCard, StreakDisplay, Sticker, ProfilePill
 ├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
@@ -133,7 +133,7 @@ NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/
 
 ## Gemini Coach (disabled — ADR 0003)
 
-`lib/gemini.ts` (+ `node lib/gemini.check.mjs`) is kept for later use but **nothing calls it**; `app/session.tsx` uses the local, clinically reviewed messages in `lib/coach.ts`. The Privacy Policy says Zing sends no data to AI services. **Before re-enabling:** update the Privacy Policy (bump `LEGAL_VERSIONS.privacy` so parents re-consent), use a paid tier or a Firebase Function proxy + App Check (the free tier may use prompts for product improvement, and `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle), and keep the existing rules: the child's name never leaves the device (`{NAME}` token), only age/missed zones/score/streak are sent.
+`lib/gemini.ts` (+ `node lib/gemini.check.mjs`) is kept for later use but **nothing calls it**; `app/session.tsx` uses the local, clinically reviewed messages in `lib/coach.ts`. The Privacy Policy says Beavo sends no data to AI services. **Before re-enabling:** update the Privacy Policy (bump `LEGAL_VERSIONS.privacy` so parents re-consent), use a paid tier or a Firebase Function proxy + App Check (the free tier may use prompts for product improvement, and `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle), and keep the existing rules: the child's name never leaves the device (`{NAME}` token), only age/missed zones/score/streak are sent.
 
 ---
 
@@ -204,7 +204,7 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 - `Fredoka` (Bold / SemiBold / Medium) — headings, numbers/scores, buttons
 - `Lexend` (Regular / SemiBold) — body (min 16px) and labels
 
-**Logo vs mascot:** the logo is the tooth with the lightning bolt (`ZingMark`, `ZingLockup`). Sparky (the foam bubble) is the mascot — splash, empty states, rewards, coaching. Never redraw either; use `components/brand/ZingBrand.tsx`.
+**Logo vs mascot:** the logo is the tooth with the lightning bolt (`BeavoMark`, `BeavoLockup`). Sparky (the foam bubble) is the mascot — splash, empty states, rewards, coaching. Never redraw either; use `components/brand/BeavoBrand.tsx`. Mark and Sparky are still the Zing-era art and `BeavoWordmark` is interim Fredoka text — all three get replaced when the new design system syncs.
 
 **Tone (copy):**
 - For children: enthusiastic, uses "!" sparingly, never clinical

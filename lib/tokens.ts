@@ -1,5 +1,5 @@
 /**
- * Zing design tokens — "Toy box". Values come from the design-system code export
+ * Beavo design tokens — "Toy box". Values come from the design-system code export
  * (zing-design-system/src/theme/tokens.ts); tailwind.preset.js carries the same
  * values as NativeWind classes. Use these where classes can't reach: SVG fills,
  * shadows, inline styles.

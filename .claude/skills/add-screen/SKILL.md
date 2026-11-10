@@ -1,6 +1,6 @@
 ---
 name: add-screen
-description: Add a new Expo Router screen to Zing following project conventions (NativeWind, design tokens, SafeScreen, kid-safe copy). Use when asked to build or add a screen or route.
+description: Add a new Expo Router screen to Beavo following project conventions (NativeWind, design tokens, SafeScreen, kid-safe copy). Use when asked to build or add a screen or route.
 ---
 
 # Add a screen

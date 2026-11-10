@@ -41,7 +41,7 @@ interface MouthMapProps {
 }
 
 /**
- * MouthMap — the signature Zing component. A stylized dental arch of 10 zones
+ * MouthMap — the signature Beavo component. A stylized dental arch of 10 zones
  * that fill as the child brushes (CLAUDE.md > MouthMap.tsx).
  * empty (grey) → active (light cobalt) → done (solid cobalt + ✓). Un-brushed
  * zones end as missed (warm orange + ink !) — never red. Ink outlines (Toy box).

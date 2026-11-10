@@ -7,7 +7,7 @@ import { z } from 'zod';
  * Pure (no firebase, no AsyncStorage) so `node --test` runs it — the storage
  * side lives in lib/sync.ts.
  */
-export const OUTBOX_KEY = 'zing.sessionOutbox.v2';
+export const OUTBOX_KEY = 'beavo.sessionOutbox.v2';
 
 /** Newest wins. A backlog deeper than this means something is badly wrong anyway. */
 const MAX_ENTRIES = 50;

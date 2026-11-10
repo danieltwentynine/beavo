@@ -45,7 +45,7 @@ export function reauthMethod(): 'google' | 'password' | null {
 export async function shareDataExport(): Promise<boolean> {
   const user = auth.currentUser;
   if (!user) return false;
-  const file = new File(Paths.cache, `zing-backup-${localDate(new Date())}.json`);
+  const file = new File(Paths.cache, `beavo-backup-${localDate(new Date())}.json`);
   try {
     // Sign-in data lives in Firebase Auth, not Firestore — include it so the export is complete.
     const account = { email: user.email ?? null, displayName: user.displayName ?? null, providers: user.providerData.map((p) => p.providerId) };
@@ -98,7 +98,7 @@ export async function pickBackup(): Promise<PickedBackup> {
 export function cleanupBackupFiles(): void {
   try {
     for (const item of Paths.cache.list()) {
-      if (item instanceof File && item.name.startsWith('zing-backup-')) item.delete();
+      if (item instanceof File && item.name.startsWith('beavo-backup-')) item.delete();
     }
   } catch {
     // Best effort; the system clears the cache too.

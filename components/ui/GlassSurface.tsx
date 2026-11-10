@@ -35,7 +35,7 @@ interface GlassSurfaceProps {
  * profile pill, Overview's corner buttons, sheets — never content cards.
  * Falls back to a solid token surface below iOS 26 or with Reduce Transparency.
  * Callers keep the Toy box ink outline in `style`, so the chrome looks like
- * Zing with or without glass.
+ * Beavo with or without glass.
  */
 export function GlassSurface({ children, style, fallbackColor = tokens.surfaceCard, interactive = false, tint }: GlassSurfaceProps) {
   const glass = useGlass();

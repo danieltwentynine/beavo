@@ -1,6 +1,6 @@
 ---
 name: add-firestore-collection
-description: Add or change Firestore data (collection, fields, queries) in Zing with Zod validation and parent-scoped security rules. Use whenever data shape or firestore.rules change.
+description: Add or change Firestore data (collection, fields, queries) in Beavo with Zod validation and parent-scoped security rules. Use whenever data shape or firestore.rules change.
 ---
 
 # Add or change Firestore data

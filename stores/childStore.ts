@@ -50,7 +50,7 @@ export const useChildStore = create<ChildState>((set) => ({
 
 // ---- AsyncStorage snapshot (untrusted local input: parse, never crash) ----
 
-const snapshotKey = (uid: string) => `zing.snapshot.v1.${uid}`;
+const snapshotKey = (uid: string) => `beavo.snapshot.v1.${uid}`;
 
 const isoDate = z.coerce.date();
 const snapshotSchema = z.object({

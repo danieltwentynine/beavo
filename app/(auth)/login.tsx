@@ -79,7 +79,7 @@ export default function LoginScreen() {
     } finally {
       setSendingReset(false);
     }
-    setResetNotice(`If ${email} has a Zing account, a reset link is on its way. Check your inbox.`);
+    setResetNotice(`If ${email} has a Beavo account, a reset link is on its way. Check your inbox.`);
   };
 
   return (
@@ -166,7 +166,7 @@ export default function LoginScreen() {
           />
 
           <View className="mt-6 flex-row justify-center">
-            <Text className="font-body text-muted">New to Zing? </Text>
+            <Text className="font-body text-muted">New to Beavo? </Text>
             <Pressable onPress={() => router.replace('/(auth)/register')}>
               <Text className="font-display-semi text-text-link">Create an account</Text>
             </Pressable>

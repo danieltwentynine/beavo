@@ -38,7 +38,7 @@ function socialErrorMessage(error: unknown): string {
     switch (error.code) {
       case 'auth/account-exists-with-different-credential':
       case 'auth/email-already-in-use':
-        return 'You already have a Zing account with this email. Log in the way you signed up first, then you can add this option.';
+        return 'You already have a Beavo account with this email. Log in the way you signed up first, then you can add this option.';
       case 'auth/network-request-failed':
         return 'No connection. Please check your internet and try again.';
       case 'auth/too-many-requests':

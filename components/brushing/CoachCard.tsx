@@ -1,6 +1,6 @@
 import { Text, View, type ViewStyle } from 'react-native';
 
-import { Sparky } from '@/components/brand/ZingBrand';
+import { Sparky } from '@/components/brand/BeavoBrand';
 import { hardShadow, outline, palette, radius, tokens } from '@/lib/tokens';
 
 interface CoachCardProps {

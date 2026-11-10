@@ -1,10 +1,10 @@
 > **RASCUNHO — requer revisão jurídica / DRAFT — requires legal review**
 
-# Política de Privacidade do Zing
+# Política de Privacidade do Beavo
 
-**Versão:** 2026-10-31 · **Vigência:** [DATA DE PUBLICAÇÃO]
+**Versão:** 2026-11-10 · **Vigência:** [DATA DE PUBLICAÇÃO]
 
-Esta Política explica como o aplicativo Zing ("Zing", "nós") trata dados pessoais, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, "LGPD"). O Zing é um app para ajudar crianças de 4 a 12 anos a criar o hábito de escovar os dentes. **A conta é sempre de um adulto (mãe, pai ou responsável legal). Crianças não criam conta nem fazem login.**
+Esta Política explica como o aplicativo Beavo ("Beavo", "nós") trata dados pessoais, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, "LGPD"). O Beavo é um app para ajudar crianças de 4 a 12 anos a criar o hábito de escovar os dentes. **A conta é sempre de um adulto (mãe, pai ou responsável legal). Crianças não criam conta nem fazem login.**
 
 ## 1. Quem é o controlador
 
@@ -43,7 +43,7 @@ Para o app funcionar sem internet, o aparelho guarda: sua sessão de login, uma 
 
 ## 3. A câmera é só um espelho
 
-Durante a escovação, o Zing pode mostrar a imagem da câmera frontal para a criança se ver, como um espelho. **Nada é gravado, salvo, enviado ou analisado.** Nenhuma foto, vídeo ou quadro de imagem é capturado ou processado, nem no aparelho nem em servidores. O app **não pede acesso ao microfone**. A câmera fica ligada apenas enquanto a tela de escovação está aberta e é desligada quando você sai dela ou o app vai para segundo plano. Usar a câmera é opcional: é possível escovar sem ela.
+Durante a escovação, o Beavo pode mostrar a imagem da câmera frontal para a criança se ver, como um espelho. **Nada é gravado, salvo, enviado ou analisado.** Nenhuma foto, vídeo ou quadro de imagem é capturado ou processado, nem no aparelho nem em servidores. O app **não pede acesso ao microfone**. A câmera fica ligada apenas enquanto a tela de escovação está aberta e é desligada quando você sai dela ou o app vai para segundo plano. Usar a câmera é opcional: é possível escovar sem ela.
 
 ## 4. Para que usamos os dados e com qual base legal
 
@@ -84,7 +84,7 @@ Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados,
 
 No próprio app:
 - **Acessar e levar seus dados (portabilidade):** *Mais → Exportar backup* (pede uma confirmação para adultos). Gera um arquivo `.json` com todos os dados da sua conta (incluindo nome e e-mail de login) e das crianças, que você pode salvar ou compartilhar pela folha de compartilhamento do aparelho.
-- **Restaurar um backup:** *Mais → Importar backup* (pede uma confirmação para adultos). Você escolhe um arquivo de backup do Zing; os dados são conferidos e juntados à sua conta (itens com o mesmo identificador são substituídos; nada é apagado).
+- **Restaurar um backup:** *Mais → Importar backup* (pede uma confirmação para adultos). Você escolhe um arquivo de backup do Beavo; os dados são conferidos e juntados à sua conta (itens com o mesmo identificador são substituídos; nada é apagado).
 - **Corrigir:** para o perfil, toque no seletor de criança, no canto superior direito, e depois em *Editar*. Para um registro dentário, toque no dente em *Visão geral*, apague o registro e registre de novo.
 - **Excluir uma criança:** *Editar perfil → Excluir perfil* (pede uma confirmação para adultos).
 - **Excluir sua conta e todos os dados:** *Mais → Excluir conta* (pede uma confirmação para adultos e uma nova confirmação de login).
@@ -97,7 +97,7 @@ Os dados viajam criptografados (HTTPS/TLS). As regras de segurança do banco de 
 
 ## 9. Crianças
 
-O Zing é usado por crianças **sob a responsabilidade de um adulto**. Só o adulto cria conta, aceita estes documentos e cadastra as crianças. Não pedimos à criança nenhum dado pessoal. Se você acredita que cadastramos dados de uma criança sem autorização do responsável, escreva para [E-MAIL DO ENCARREGADO] e vamos apagá-los.
+O Beavo é usado por crianças **sob a responsabilidade de um adulto**. Só o adulto cria conta, aceita estes documentos e cadastra as crianças. Não pedimos à criança nenhum dado pessoal. Se você acredita que cadastramos dados de uma criança sem autorização do responsável, escreva para [E-MAIL DO ENCARREGADO] e vamos apagá-los.
 
 ## 10. Mudanças nesta Política
 

@@ -1,21 +1,21 @@
 > **RASCUNHO — requer revisão jurídica / DRAFT — requires legal review**
 
-# Zing Terms of Service
+# Beavo Terms of Service
 
-**Version:** 2026-10-31 · **Effective:** [PUBLICATION DATE]
+**Version:** 2026-11-10 · **Effective:** [PUBLICATION DATE]
 
-These Terms govern the use of the Zing app, provided by [COMPANY NAME], CNPJ [CNPJ], [ADDRESS] ("we"). By ticking the acceptance box in the app, you agree to these Terms and to the [Privacy Policy](privacy-policy.en.html). The Portuguese version prevails if the two versions differ.
+These Terms govern the use of the Beavo app, provided by [COMPANY NAME], CNPJ [CNPJ], [ADDRESS] ("we"). By ticking the acceptance box in the app, you agree to these Terms and to the [Privacy Policy](privacy-policy.en.html). The Portuguese version prevails if the two versions differ.
 
-## 1. Who can use Zing
+## 1. Who can use Beavo
 
 - Accounts may only be created by a **parent or legal guardian aged 18 or older**.
 - You may only add children you are legally responsible for, or whose guardian has authorized you.
-- Children use Zing **under your supervision**. Children never create an account or sign in.
+- Children use Beavo **under your supervision**. Children never create an account or sign in.
 
-## 2. Zing is not medical advice
+## 2. Beavo is not medical advice
 
-- Zing is a tool to **encourage a brushing habit**. It **does not diagnose, does not recommend treatment and does not replace a visit to a dentist** or other health professional.
-- The app's messages, reminders and records are for information only. Never skip seeing a dentist because of something you saw (or didn't see) in Zing.
+- Beavo is a tool to **encourage a brushing habit**. It **does not diagnose, does not recommend treatment and does not replace a visit to a dentist** or other health professional.
+- The app's messages, reminders and records are for information only. Never skip seeing a dentist because of something you saw (or didn't see) in Beavo.
 - The app **does not assess brushing quality** and does not detect dental problems. The timer and the mouth-area guide are only an aid for the child.
 - **For pain, bleeding, injury or any emergency, see a dentist or health service immediately.**
 
@@ -32,7 +32,7 @@ The front camera works **only as a mirror** during brushing. Nothing is recorded
 ## 5. Acceptable use
 
 You agree not to:
-- use Zing for unlawful purposes or in ways that violate others' rights;
+- use Beavo for unlawful purposes or in ways that violate others' rights;
 - add children's data without proper authorization;
 - try to access other accounts' data or bypass security measures or the grown-ups-only check;
 - copy, modify, decompile or reverse-engineer the app, except where the law allows;
@@ -44,21 +44,21 @@ We may suspend or close accounts that break these Terms, notifying you where pos
 
 The app works offline and sends data to your account when the connection returns. If the app is removed or device data is erased before syncing, sessions not yet uploaded may be lost.
 
-## 7. Zing Premium
+## 7. Beavo Premium
 
 [PLACEHOLDER — no paid features exist yet. Before launch, describe: what the plan includes, price, trial period, auto-renewal, how to cancel (via the App Store), refund policy, and the cooling-off right under the Brazilian Consumer Defense Code.]
 
 ## 8. Intellectual property
 
-The app, the Zing brand, the Sparky mascot, texts and images belong to [COMPANY NAME] or its licensors. We grant you a personal, non-exclusive, non-transferable, revocable license to use the app under these Terms. The data you record remains yours.
+The app, the Beavo brand, the Sparky mascot, texts and images belong to [COMPANY NAME] or its licensors. We grant you a personal, non-exclusive, non-transferable, revocable license to use the app under these Terms. The data you record remains yours.
 
 ## 9. Availability
 
-We work to keep Zing available, but it may be down for maintenance or because of third-party failures (for example Google's services). We may change or discontinue features, giving reasonable notice when a change is significant.
+We work to keep Beavo available, but it may be down for maintenance or because of third-party failures (for example Google's services). We may change or discontinue features, giving reasonable notice when a change is significant.
 
 ## 10. Limitation of liability
 
-[PLACEHOLDER — for counsel to draft, consistent with the Brazilian Consumer Defense Code (Law No. 8,078/1990), which does not allow clauses that prevent, exclude or reduce a supplier's liability in consumer relationships. Points to cover: Zing is not a health service (section 2); third-party service failures; loss of unsynced data (section 6).]
+[PLACEHOLDER — for counsel to draft, consistent with the Brazilian Consumer Defense Code (Law No. 8,078/1990), which does not allow clauses that prevent, exclude or reduce a supplier's liability in consumer relationships. Points to cover: Beavo is not a health service (section 2); third-party service failures; loss of unsynced data (section 6).]
 
 ## 11. Changes to these Terms
 

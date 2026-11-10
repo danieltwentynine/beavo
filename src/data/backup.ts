@@ -7,7 +7,7 @@ import { isPrimaryTooth } from './teeth.ts';
  * Importing reads it back: an untrusted file, so everything is re-validated
  * here and again by the security rules. Pure (no firebase) for `node --test`.
  */
-export const BACKUP_FORMAT = 'zing-backup';
+export const BACKUP_FORMAT = 'beavo-backup';
 export const BACKUP_VERSION = 1;
 
 /** Generous family-scale limits: a file beyond them is not a real backup. */
@@ -106,7 +106,7 @@ export type Backup = z.output<typeof backupSchema>;
 export type BackupChild = Backup['children'][number];
 
 /**
- * Parse a backup file. Returns null for anything that isn't a valid Zing
+ * Parse a backup file. Returns null for anything that isn't a valid Beavo
  * backup (bad JSON, other app, newer version, malformed record) — all or
  * nothing, so a half-valid file never half-imports. Children that were being
  * deleted when exported (archived) are left out.
