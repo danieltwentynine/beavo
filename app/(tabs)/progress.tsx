@@ -10,7 +10,7 @@ import { TabHeader } from '@/components/ui/TabHeader';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessions } from '@/hooks/useSessions';
 import { t } from '@/lib/i18n';
-import { outline, palette, radius, tokens } from '@/lib/tokens';
+import { controlBorder, radius, tokens } from '@/lib/tokens';
 import { localDate } from '@/src/data/schedule';
 import { summarizeProgress } from '@/src/data/progress';
 
@@ -74,8 +74,8 @@ export default function ProgressTab() {
                     rowGap: 6,
                     paddingVertical: 8,
                     width: 40,
-                    borderRadius: radius.lg,
-                    backgroundColor: isToday ? palette.cobalt[100] : 'transparent',
+                    borderRadius: radius.md,
+                    backgroundColor: isToday ? tokens.primarySoft : 'transparent',
                     borderWidth: isToday ? 3 : 0,
                     borderColor: tokens.brandPrimary,
                   }}
@@ -91,8 +91,7 @@ export default function ProgressTab() {
                         height: 14,
                         borderRadius: 7,
                         backgroundColor: s.done ? tokens.brandPrimary : tokens.surfaceCard,
-                        ...outline,
-                        borderWidth: 2,
+                        ...controlBorder,
                       }}
                     />
                   ))}

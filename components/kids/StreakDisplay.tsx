@@ -1,17 +1,14 @@
 import { Text, View, type ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { hardShadow, outline, palette, radius, tokens } from '@/lib/tokens';
+import { cardShadow, radius, tokens } from '@/lib/tokens';
 
 function Flame({ size = 18 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 2c.6 3.2-1.7 4.6-3 6-1.4 1.5-2.5 3.2-2.5 5.5A5.5 5.5 0 0 0 12 19a5.5 5.5 0 0 0 5.5-5.5c0-1.7-.7-3-1.6-4.2-.5 1-1.3 1.6-2.2 1.7.9-2.4.2-5.6-1.7-9Z"
-        fill={tokens.feedbackReward}
-        stroke={tokens.textPrimary}
-        strokeWidth={1.6}
-        strokeLinejoin="round"
+        fill={tokens.reward}
       />
       <Path
         d="M12 19a3 3 0 0 1-3-3c0-1.4 1-2.4 1.8-3.3.4 1 1.2 1.5 2.2 1.6-.5 1.4-.1 3.2 1 4.2A3 3 0 0 1 12 19Z"
@@ -29,7 +26,7 @@ interface StreakDisplayProps {
   style?: ViewStyle;
 }
 
-/** StreakDisplay — the gold flame + day count that drives the daily habit. */
+/** StreakDisplay — the berry flame + day count that drives the daily habit. */
 export function StreakDisplay({ days = 0, best = null, layout = 'card', style }: StreakDisplayProps) {
   if (layout === 'chip') {
     return (
@@ -43,9 +40,8 @@ export function StreakDisplay({ days = 0, best = null, layout = 'card', style }:
             paddingLeft: 10,
             paddingRight: 12,
             borderRadius: radius.pill,
-            backgroundColor: palette.sunny[100],
+            backgroundColor: tokens.primarySoft,
           },
-          outline,
           style,
         ]}
       >
@@ -65,25 +61,22 @@ export function StreakDisplay({ days = 0, best = null, layout = 'card', style }:
           alignItems: 'center',
           columnGap: 14,
           padding: 18,
-          borderRadius: radius.xl,
-          backgroundColor: palette.sunny[100],
+          borderRadius: radius.lg,
+          backgroundColor: tokens.primarySoft,
         },
-        hardShadow(6),
+        cardShadow,
         style,
       ]}
     >
       <View
-        style={[
-          {
+        style={{
             width: 56,
             height: 56,
             borderRadius: radius.pill,
             backgroundColor: tokens.surfaceCard,
             alignItems: 'center',
             justifyContent: 'center',
-          },
-          outline,
-        ]}
+          }}
       >
         <Flame size={30} />
       </View>

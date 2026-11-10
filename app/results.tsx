@@ -5,13 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CoachCard } from '@/components/brushing/CoachCard';
 import { MouthMap } from '@/components/brushing/MouthMap';
 import { Button } from '@/components/ui/Button';
-import { outline, tokens } from '@/lib/tokens';
+import { controlBorder, tokens } from '@/lib/tokens';
 import { useSessionStore } from '@/stores/sessionStore';
 
 function LegendDot({ color, label }: { color: string; label: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 5 }}>
-      <View style={{ width: 16, height: 16, borderRadius: 5, backgroundColor: color, ...outline, borderWidth: 2 }} />
+      <View style={{ width: 16, height: 16, borderRadius: 5, backgroundColor: color, ...controlBorder }} />
       <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
         {label}
       </Text>
@@ -44,7 +44,7 @@ export default function ResultsScreen() {
           <Text className="font-numeric" style={{ fontSize: 88, color: tokens.textPrimary, lineHeight: 92 }}>
             {result.score}
           </Text>
-          <Text className="font-numeric" style={{ fontSize: 34, color: tokens.textTertiary, marginBottom: 10 }}>
+          <Text className="font-numeric" style={{ fontSize: 34, color: tokens.textSecondary, marginBottom: 10 }}>
             /100
           </Text>
         </View>

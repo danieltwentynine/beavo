@@ -22,7 +22,7 @@ import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessions } from '@/hooks/useSessions';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { hardShadow, outline, palette, radius, tokens } from '@/lib/tokens';
+import { pressShadow, radius, tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
 import { updateChild } from '@/src/data/children';
 import { background } from '@/src/data/firestore';
@@ -70,12 +70,12 @@ function SlotCard({
         state: session ? t('today.doneAt', { time }) : t('today.notYet'),
       })}
       padding={12}
-      tone={target ? 'cobalt' : current ? 'soft' : 'plain'}
+      tone={target ? 'primary' : current ? 'soft' : 'plain'}
       style={{ width, alignItems: 'center', rowGap: 6, minHeight: 124 }}
     >
       {current ? (
-        <View style={{ position: 'absolute', top: -12, backgroundColor: palette.sunny[500], borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 2, ...outline }}>
-          <Text className="font-display-semi" style={{ fontSize: 12, color: tokens.textPrimary }}>
+        <View style={{ position: 'absolute', top: -12, backgroundColor: tokens.secondary, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 2 }}>
+          <Text className="font-display-semi" style={{ fontSize: 12, color: tokens.onSecondary }}>
             {t('today.now')}
           </Text>
         </View>
@@ -92,14 +92,14 @@ function SlotCard({
       >
         {slot.label}
       </Text>
-      <Text className="font-numeric" style={{ fontSize: 18, color: target ? tokens.textOnBrand : session ? tokens.textLink : tokens.textTertiary }}>
+      <Text className="font-numeric" style={{ fontSize: 18, color: target ? tokens.textOnBrand : session ? tokens.textLink : tokens.textSecondary }}>
         {time}
       </Text>
     </Card>
   );
 }
 
-/** Big round start button with a soft (unblurred) halo that breathes unless Reduce Motion is on. */
+/** Big round start button with a soft (flat) halo that breathes unless Reduce Motion is on. */
 function StartButton({ label, disabled, onPress }: { label: string; disabled: boolean; onPress: () => void }) {
   const reduceMotion = useReducedMotion();
   const breath = useSharedValue(0);
@@ -116,7 +116,7 @@ function StartButton({ label, disabled, onPress }: { label: string; disabled: bo
     <View style={{ alignItems: 'center', justifyContent: 'center', height: 230 }}>
       <Animated.View
         pointerEvents="none"
-        style={[{ position: 'absolute', width: 212, height: 212, borderRadius: 106, backgroundColor: palette.cobalt[100], opacity: disabled ? 0.4 : 1 }, haloStyle]}
+        style={[{ position: 'absolute', width: 212, height: 212, borderRadius: 106, backgroundColor: tokens.primarySoft, opacity: disabled ? 0.4 : 1 }, haloStyle]}
       />
       <Pressable
         accessibilityRole="button"
@@ -132,9 +132,9 @@ function StartButton({ label, disabled, onPress }: { label: string; disabled: bo
             alignItems: 'center',
             justifyContent: 'center',
             rowGap: 4,
-            backgroundColor: disabled ? palette.cobalt[300] : tokens.brandPrimary,
+            backgroundColor: disabled ? tokens.sessionTrack : tokens.brandPrimary,
           },
-          hardShadow(6),
+          pressShadow(disabled),
         ]}
       >
         <Play size={52} color={tokens.textOnBrand} weight="fill" />
@@ -222,7 +222,7 @@ export default function BrushingTab() {
                 <Switch
                   accessibilityLabel={t('today.kidMode')}
                   value={child.kidMode}
-                  trackColor={{ true: tokens.brandPrimary, false: palette.ink[300] }}
+                  trackColor={{ true: tokens.brandPrimary, false: tokens.zoneLine }}
                   // The switch never flips by itself: the gate decides.
                   onValueChange={(next) =>
                     requireParent(() => background(updateChild(db, uid, child.id, { kidMode: next })))

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 20 212 202" width="212" height="202" role="img"><title>Beavo waving</title>
+    <ellipse cx="152" cy="180" rx="24" ry="38" transform="rotate(40 152 180)" fill="#5E3820"/>
+    <path d="M138 168 L166 192 M146 160 L172 182 M134 180 L156 200" stroke="#8A5634" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+    <ellipse cx="100" cy="166" rx="52" ry="42" fill="#8A5634"/>
+    <ellipse cx="100" cy="174" rx="33" ry="29" fill="#E8C9A2"/>
+    
+    <ellipse cx="78" cy="204" rx="16" ry="8" fill="#5E3820"/><ellipse cx="122" cy="204" rx="16" ry="8" fill="#5E3820"/>
+    <ellipse cx="160" cy="118" rx="12" ry="27" transform="rotate(-38 160 118)" fill="#8A5634"/><circle cx="174" cy="96" r="13" fill="#8A5634"/>
+           <ellipse cx="48" cy="168" rx="11" ry="22" transform="rotate(22 48 168)" fill="#8A5634"/>
+    <circle cx="42" cy="60" r="13" fill="#8A5634"/><circle cx="42" cy="60" r="6.5" fill="#5E3820"/>
+    <circle cx="158" cy="60" r="13" fill="#8A5634"/><circle cx="158" cy="60" r="6.5" fill="#5E3820"/>
+    <ellipse cx="100" cy="90" rx="64" ry="56" fill="#8A5634"/><ellipse cx="60" cy="110" rx="22" ry="20" fill="#8A5634"/><ellipse cx="140" cy="110" rx="22" ry="20" fill="#8A5634"/>
+    
+    <path d="M90 36 q5 -10 10 0 q5 -10 10 0" fill="none" stroke="#5E3820" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="64" cy="108" rx="10" ry="6" fill="#F2A08F" opacity=".55"/><ellipse cx="136" cy="108" rx="10" ry="6" fill="#F2A08F" opacity=".55"/>
+    <ellipse cx="100" cy="113" rx="36" ry="24" fill="#E8C9A2"/><g fill="#5E3820" opacity=".55"><circle cx="76" cy="108" r="1.8"/><circle cx="72" cy="114" r="1.8"/><circle cx="78" cy="116" r="1.8"/><circle cx="124" cy="108" r="1.8"/><circle cx="128" cy="114" r="1.8"/><circle cx="122" cy="116" r="1.8"/></g>
+    <circle cx="76" cy="82" r="9.5" fill="#2A1A12"/><circle cx="79.5" cy="78.5" r="3.2" fill="#fff"/>
+    <circle cx="124" cy="82" r="9.5" fill="#2A1A12"/><circle cx="127.5" cy="78.5" r="3.2" fill="#fff"/>
+    <rect x="88.5" y="116" width="11" height="23" rx="3.5" fill="#FFFDF7" stroke="#2A1A12" stroke-width="2"/>
+    <rect x="100.5" y="116" width="11" height="23" rx="3.5" fill="#FFFDF7" stroke="#2A1A12" stroke-width="2"/>
+    <path d="M82 114 Q100 122 118 114" fill="none" stroke="#2A1A12" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="100" cy="100" rx="13" ry="9" fill="#2A1A12"/><ellipse cx="96" cy="97" rx="4" ry="2.4" fill="#fff" opacity=".7"/></svg>

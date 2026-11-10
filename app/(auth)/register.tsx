@@ -137,7 +137,7 @@ export default function RegisterScreen() {
               label="Your name"
               placeholder="e.g. Maria"
               autoCapitalize="words"
-              icon={<User size={20} color={tokens.textTertiary} weight="bold" />}
+              icon={<User size={20} color={tokens.textSecondary} weight="bold" />}
             />
             <FormField
               control={control}
@@ -146,7 +146,7 @@ export default function RegisterScreen() {
               placeholder="you@example.com"
               autoCapitalize="none"
               keyboardType="email-address"
-              icon={<EnvelopeSimple size={20} color={tokens.textTertiary} weight="bold" />}
+              icon={<EnvelopeSimple size={20} color={tokens.textSecondary} weight="bold" />}
             />
             <FormField
               control={control}
@@ -155,7 +155,7 @@ export default function RegisterScreen() {
               placeholder="At least 8 characters"
               autoCapitalize="none"
               secureTextEntry
-              icon={<LockSimple size={20} color={tokens.textTertiary} weight="bold" />}
+              icon={<LockSimple size={20} color={tokens.textSecondary} weight="bold" />}
             />
             <FormField
               control={control}
@@ -164,7 +164,7 @@ export default function RegisterScreen() {
               placeholder="Type it again"
               autoCapitalize="none"
               secureTextEntry
-              icon={<LockSimple size={20} color={tokens.textTertiary} weight="bold" />}
+              icon={<LockSimple size={20} color={tokens.textSecondary} weight="bold" />}
             />
           </View>
 

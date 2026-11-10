@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { Sparky } from '@/components/brand/BeavoBrand';
+import { BeavoMark } from '@/components/brand/BeavoBrand';
 import { Button } from '@/components/ui/Button';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { t } from '@/lib/i18n';
@@ -12,7 +12,7 @@ export default function PremiumScreen() {
   return (
     <SafeScreen>
       <View style={{ flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center', rowGap: 16 }}>
-        <Sparky width={140} />
+        <BeavoMark width={140} />
         <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary, textAlign: 'center' }}>
           {t('premium.title')}
         </Text>

@@ -6,7 +6,7 @@ import { Avatar } from '@/components/kids/Avatar';
 import { GlassSurface } from '@/components/ui/GlassSurface';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { t } from '@/lib/i18n';
-import { hardShadow, radius, tokens } from '@/lib/tokens';
+import { cardShadow, radius, tokens } from '@/lib/tokens';
 
 /** Top-right switcher (floating chrome → Liquid Glass): shows who is brushing, opens the picker sheet. */
 export function ProfilePill() {
@@ -17,7 +17,7 @@ export function ProfilePill() {
       accessibilityRole="button"
       accessibilityLabel={`${t('picker.title')} ${child.name}`}
       onPress={() => router.push('/child-picker')}
-      style={[{ borderRadius: radius.pill }, hardShadow(3)]}
+      style={[{ borderRadius: radius.pill }, cardShadow]}
     >
       <GlassSurface
         interactive

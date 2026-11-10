@@ -54,7 +54,7 @@ export default function DentalHistoryScreen() {
             style={{ rowGap: 4 }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-              <Badge label={t(e.type === 'symptom' ? 'event.symptom' : 'event.treatment')} tone={e.type === 'symptom' ? 'warning' : 'cobalt'} />
+              <Badge label={t(e.type === 'symptom' ? 'event.symptom' : 'event.treatment')} tone={e.type === 'symptom' ? 'warning' : 'primary'} />
               <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
                 {formatEventDate(e.date)}
               </Text>

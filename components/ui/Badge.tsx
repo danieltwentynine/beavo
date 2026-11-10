@@ -1,8 +1,8 @@
 import { Text, View, type ViewStyle } from 'react-native';
 
-import { outline, palette, radius, tokens } from '@/lib/tokens';
+import { radius, tokens } from '@/lib/tokens';
 
-type BadgeTone = 'cobalt' | 'warning';
+type BadgeTone = 'primary' | 'warning';
 
 interface BadgeProps {
   label: string;
@@ -12,14 +12,14 @@ interface BadgeProps {
 }
 
 // [soft background, solid background, text on solid]. Soft always takes ink text;
-// white only on cobalt.
+// white only on primary.
 const TONES: Record<BadgeTone, [string, string, string]> = {
-  cobalt: [palette.cobalt[100], palette.cobalt[500], tokens.textOnBrand],
-  warning: [palette.warning[100], palette.warning[500], tokens.textPrimary],
+  primary: [tokens.primarySoft, tokens.brandPrimary, tokens.textOnBrand],
+  warning: [tokens.warning, tokens.warning, tokens.textPrimary],
 };
 
 /** Badge — small status / reward pill. */
-export function Badge({ label, tone = 'cobalt', solid = false, style }: BadgeProps) {
+export function Badge({ label, tone = 'primary', solid = false, style }: BadgeProps) {
   const [bg, solidBg, solidFg] = TONES[tone];
   return (
     <View
@@ -33,7 +33,6 @@ export function Badge({ label, tone = 'cobalt', solid = false, style }: BadgePro
           borderRadius: radius.pill,
           backgroundColor: solid ? solidBg : bg,
         },
-        outline,
         style,
       ]}
     >

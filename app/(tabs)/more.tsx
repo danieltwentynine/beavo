@@ -144,7 +144,7 @@ export default function MoreTab() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 24 }}>
         <TabHeader title={t('more.title')} showProfile={false} />
 
-        <Card tone="cobalt" padding={20} style={{ rowGap: 10 }}>
+        <Card tone="primary" padding={20} style={{ rowGap: 10 }}>
           <Text className="font-display" style={{ fontSize: 24, color: tokens.textOnBrand }}>
             {t('more.premiumTitle')}
           </Text>
@@ -196,7 +196,7 @@ export default function MoreTab() {
           />
         </Section>
 
-        <Text className="font-body" style={{ fontSize: 14, color: tokens.textTertiary, textAlign: 'center' }}>
+        <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary, textAlign: 'center' }}>
           {t('more.version', { version: Constants.expoConfig?.version ?? '' })}
         </Text>
       </ScrollView>

@@ -12,24 +12,24 @@ import {
 import { useState, type ComponentType } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { motion, outline, palette, radius, tokens } from '@/lib/tokens';
+import { motion, radius, tokens } from '@/lib/tokens';
 
 type AvatarConfig = { Icon: ComponentType<IconProps>; bg: string };
 
 // Phosphor has no Shark in RN; Fish is the closest friendly substitute.
 // Every bg clears 3:1 against white so the white fill icon stays legible, and
 // no two are within 30 CIELAB dE of each other — a child picks by color name.
-// The Toy box ramps' 500s are too light for a white icon, hence the deep
-// avatar-only shades below.
+// These are avatar-only shades, not design tokens: they are also stored on
+// children.avatarColor, so changing one changes nothing for existing children.
 const AVATARS: Record<string, AvatarConfig> = {
-  shark: { Icon: Fish, bg: palette.sky[600] },
-  robot: { Icon: Robot, bg: palette.ink[900] },
-  rocket: { Icon: Rocket, bg: palette.ink[500] },
+  shark: { Icon: Fish, bg: '#1690d2' },
+  robot: { Icon: Robot, bg: '#14142b' },
+  rocket: { Icon: Rocket, bg: '#55557a' },
   cat: { Icon: Cat, bg: '#c0560c' },
   dog: { Icon: Dog, bg: '#00876f' },
   butterfly: { Icon: Butterfly, bg: '#6d4fd6' },
   star: { Icon: Star, bg: '#a8850f' },
-  heart: { Icon: Heart, bg: palette.bubblegum[600] },
+  heart: { Icon: Heart, bg: '#d6247a' },
 };
 
 export const AVATAR_IDS = Object.keys(AVATARS);
@@ -61,7 +61,6 @@ export function Avatar({ avatarId = 'dog', color, size = 56, ring = false }: Ava
           alignItems: 'center',
           justifyContent: 'center',
         },
-        outline,
       ]}
     >
       <a.Icon size={size * 0.52} color="#fff" weight="fill" />
@@ -69,7 +68,7 @@ export function Avatar({ avatarId = 'dog', color, size = 56, ring = false }: Ava
   );
 
   if (!ring) return circle;
-  // selected: cobalt ring with a white gap around the outlined circle
+  // selected: primary ring with a white gap around the circle
   return (
     <View
       style={{
@@ -120,10 +119,10 @@ export function AvatarPicker({ value = 'dog', color, onChange }: AvatarPickerPro
                 flex: 1,
                 alignSelf: 'stretch',
                 marginHorizontal: 4,
-                borderRadius: radius.xl,
+                borderRadius: radius.lg,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: selected ? tokens.surfaceMint : 'transparent',
+                backgroundColor: selected ? tokens.primarySoft : 'transparent',
                 transform: [{ scale: pressedId === id ? motion.pressScale : 1 }],
               }}
             >

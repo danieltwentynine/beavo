@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, type ViewStyle } from 'react-native';
 
-import { hardShadow, motion, outline, palette, radius, tokens } from '@/lib/tokens';
+import { cardShadow, hairline, motion, pressShadow, radius, tokens } from '@/lib/tokens';
 
 type ButtonVariant = 'primary' | 'soft' | 'ghost' | 'outline';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -25,12 +25,12 @@ const SIZES: Record<ButtonSize, { height: number; paddingHorizontal: number; fon
   lg: { height: 64, paddingHorizontal: 32, font: 22 },
 };
 
-// White text only on cobalt (Toy box contrast rule).
-const VARIANTS: Record<ButtonVariant, { bg: string; fg: string; toy: boolean }> = {
-  primary: { bg: tokens.brandPrimary, fg: tokens.textOnBrand, toy: true },
-  soft: { bg: tokens.surfaceMint, fg: palette.cobalt[700], toy: true },
-  outline: { bg: tokens.surfaceCard, fg: tokens.textPrimary, toy: true },
-  ghost: { bg: 'transparent', fg: palette.cobalt[700], toy: false },
+// White text only on primary. Primary sits on a pressable ledge; outline floats like a card.
+const VARIANTS: Record<ButtonVariant, { bg: string; fg: string; lift: 'press' | 'card' | 'none' }> = {
+  primary: { bg: tokens.brandPrimary, fg: tokens.textOnBrand, lift: 'press' },
+  soft: { bg: tokens.primarySoft, fg: tokens.brandPrimary, lift: 'none' },
+  outline: { bg: tokens.surfaceCard, fg: tokens.textPrimary, lift: 'card' },
+  ghost: { bg: 'transparent', fg: tokens.brandPrimary, lift: 'none' },
 };
 
 export function Button({
@@ -78,7 +78,7 @@ export function Button({
             { translateY: pressed && !isDisabled ? 2 : 0 },
           ],
         },
-        v.toy ? (isDisabled ? outline : hardShadow(pressed ? 3 : 5)) : null,
+        v.lift === 'press' ? pressShadow(pressed || isDisabled) : v.lift === 'card' ? [hairline, cardShadow] : null,
         style,
       ]}
     >

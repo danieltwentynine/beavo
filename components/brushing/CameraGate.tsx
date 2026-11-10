@@ -17,11 +17,11 @@ interface CameraGateProps {
 export function CameraGate({ onAllow, onSkip }: CameraGateProps) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, rowGap: 14 }}>
-      <CameraIcon size={56} color={tokens.feedbackReward} weight="fill" />
-      <Text className="font-display" style={{ fontSize: 28, color: tokens.textOnBrand, textAlign: 'center' }}>
+      <CameraIcon size={56} color={tokens.brandPrimary} weight="fill" />
+      <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary, textAlign: 'center' }}>
         {t('camera.title')}
       </Text>
-      <Text className="font-body" style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', textAlign: 'center' }}>
+      <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary, textAlign: 'center' }}>
         {t('camera.body')}
       </Text>
       <View style={{ rowGap: 10, alignSelf: 'stretch', marginTop: 10 }}>

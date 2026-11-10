@@ -50,7 +50,7 @@ The app works offline and sends data to your account when the connection returns
 
 ## 8. Intellectual property
 
-The app, the Beavo brand, the Sparky mascot, texts and images belong to [COMPANY NAME] or its licensors. We grant you a personal, non-exclusive, non-transferable, revocable license to use the app under these Terms. The data you record remains yours.
+The app, the Beavo brand, the Beavo mascot, texts and images belong to [COMPANY NAME] or its licensors. We grant you a personal, non-exclusive, non-transferable, revocable license to use the app under these Terms. The data you record remains yours.
 
 ## 9. Availability
 

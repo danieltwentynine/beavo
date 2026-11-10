@@ -1,8 +1,8 @@
 import { Fragment } from 'react';
-import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { ToothZone } from '@/types';
-import { font, tokens } from '@/lib/tokens';
+import { tokens } from '@/lib/tokens';
 
 export type ZoneState = 'empty' | 'active' | 'done' | 'missed';
 
@@ -15,11 +15,12 @@ const MOUTH_ZONES: ToothZone[] = [
   'bottom-back-left', 'bottom-left', 'bottom-front', 'bottom-right', 'bottom-back-right',
 ];
 
-const STATE_FILL: Record<ZoneState, string> = {
-  empty: tokens.zoneEmpty,
-  active: tokens.zoneActive,
-  done: tokens.zoneDone,
-  missed: tokens.zoneMissed,
+// [fill, outline, outline width]. Every state also has its own glyph or fill — never colour alone.
+const STATE_STYLE: Record<ZoneState, [string, string, number]> = {
+  empty: [tokens.zoneEmpty, tokens.zoneLine, 3],
+  active: [tokens.zoneActive, tokens.zoneDone, 5],
+  done: [tokens.zoneDone, tokens.zoneDone, 3],
+  missed: [tokens.zoneMissed, tokens.warningLine, 3],
 };
 
 function polar(cx: number, cy: number, r: number, deg: number): [number, number] {
@@ -43,8 +44,8 @@ interface MouthMapProps {
 /**
  * MouthMap — the signature Beavo component. A stylized dental arch of 10 zones
  * that fill as the child brushes (CLAUDE.md > MouthMap.tsx).
- * empty (grey) → active (light cobalt) → done (solid cobalt + ✓). Un-brushed
- * zones end as missed (warm orange + ink !) — never red. Ink outlines (Toy box).
+ * empty (sunken) → active (white, thick teal ring, foam bubbles) → done (teal + check).
+ * Un-brushed zones end as missed (honey yellow + retry glyph) — never red.
  */
 export function MouthMap({ states = {}, size = 220 }: MouthMapProps) {
   const cx = 110, cy = 110, ro = 96, ri = 50;
@@ -68,25 +69,28 @@ export function MouthMap({ states = {}, size = 220 }: MouthMapProps) {
 
   return (
     <Svg width={size} height={size} viewBox="0 0 220 220">
-      <Circle cx={cx} cy={cy} r={ri - 8} fill={tokens.surfaceMint} stroke={tokens.textPrimary} strokeWidth={3} />
+      <Circle cx={cx} cy={cy} r={ri - 8} fill={tokens.primarySoft} />
       {segments.map(({ z, a0, a1, st, lx, ly }) => (
         <Fragment key={z}>
           <Path
             d={sectorPath(cx, cy, ri, ro, a0, a1)}
-            fill={STATE_FILL[st]}
-            stroke={tokens.textPrimary}
-            strokeWidth={3}
+            fill={STATE_STYLE[st][0]}
+            stroke={STATE_STYLE[st][1]}
+            strokeWidth={STATE_STYLE[st][2]}
             strokeLinejoin="round"
           />
+          {st === 'active' ? (
+            <>
+              <Circle cx={lx - 5} cy={ly + 1} r={2.7} fill={tokens.zoneDone} />
+              <Circle cx={lx + 2} cy={ly - 4} r={3.7} fill={tokens.zoneDone} />
+              <Circle cx={lx + 5.5} cy={ly + 3} r={2} fill={tokens.zoneDone} />
+            </>
+          ) : null}
           {st === 'done' ? (
-            <SvgText x={lx} y={ly + 5} textAnchor="middle" fontSize={14} fontFamily={font.display} fill={tokens.textOnBrand}>
-              ✓
-            </SvgText>
+            <Path d={`M ${lx - 6} ${ly} l4 4 l8 -9`} fill="none" stroke={tokens.textOnBrand} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
           ) : null}
           {st === 'missed' ? (
-            <SvgText x={lx} y={ly + 5} textAnchor="middle" fontSize={15} fontFamily={font.display} fill={tokens.textPrimary}>
-              !
-            </SvgText>
+            <Path d={`M ${lx + 5} ${ly - 2} a5.5 5.5 0 1 0 0.5 4 M ${lx + 6} ${ly - 7} v5 h-5`} fill="none" stroke={tokens.onWarning} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
           ) : null}
         </Fragment>
       ))}

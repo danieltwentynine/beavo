@@ -11,17 +11,17 @@ interface InputProps extends TextInputProps {
 }
 
 /**
- * Input — Toy box field: 56px tall, 16px radius, 3px ink outline + hard drop.
- * The outline turns cobalt on focus / danger on error.
+ * Input — 56px tall, 16px radius, a control border that turns primary on focus
+ * (with a soft ring) and danger on error.
  */
 export function Input({ label, error, icon, containerStyle, onFocus, onBlur, ...rest }: InputProps) {
   const [focused, setFocused] = useState(false);
 
   const borderColor = error
-    ? tokens.feedbackDanger
+    ? tokens.danger
     : focused
-    ? tokens.borderFocus
-    : tokens.borderSubtle;
+    ? tokens.brandPrimary
+    : tokens.zoneLine;
 
   return (
     <View style={[{ rowGap: 6 }, containerStyle]}>
@@ -37,20 +37,20 @@ export function Input({ label, error, icon, containerStyle, onFocus, onBlur, ...
           columnGap: 10,
           height: 56,
           paddingHorizontal: 16,
-          borderRadius: radius.lg,
-          backgroundColor: rest.editable === false ? tokens.surfaceSunken : tokens.surfaceCard,
-          borderWidth: 3,
+          borderRadius: radius.md,
+          backgroundColor: rest.editable === false ? tokens.surfacePage : tokens.surfaceCard,
+          borderWidth: 2,
           borderColor,
           // boxShadow must stay present at all times and only change value.
           // Adding/removing a shadow key on focus makes Fabric recreate the native
           // view, which resigns first responder and instantly blurs the field
           // (facebook/react-native#53440).
-          boxShadow: `0 ${focused ? 5 : 3}px 0 ${borderColor}`,
+          boxShadow: `0 0 0 ${focused ? 3 : 0}px ${tokens.primarySoft}`,
         }}
       >
         {icon}
         <TextInput
-          placeholderTextColor={tokens.textTertiary}
+          placeholderTextColor={tokens.textSecondary}
           onFocus={(e) => {
             setFocused(true);
             onFocus?.(e);
@@ -70,7 +70,7 @@ export function Input({ label, error, icon, containerStyle, onFocus, onBlur, ...
         />
       </View>
       {error ? (
-        <Text className="font-body" style={{ fontSize: 14, color: tokens.feedbackDanger }}>
+        <Text className="font-body" style={{ fontSize: 14, color: tokens.danger }}>
           {error}
         </Text>
       ) : null}

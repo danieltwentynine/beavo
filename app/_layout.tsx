@@ -31,11 +31,10 @@ export default function RootLayout() {
 
   // Static weights: the family name picks the weight (see font in lib/tokens.ts).
   const [fontsLoaded] = useFonts({
-    'Fredoka-Medium': require('../assets/fonts/Fredoka-Medium.ttf'),
-    'Fredoka-SemiBold': require('../assets/fonts/Fredoka-SemiBold.ttf'),
-    'Fredoka-Bold': require('../assets/fonts/Fredoka-Bold.ttf'),
-    'Lexend-Regular': require('../assets/fonts/Lexend-Regular.ttf'),
-    'Lexend-SemiBold': require('../assets/fonts/Lexend-SemiBold.ttf'),
+    'Baloo2-ExtraBold': require('../assets/fonts/Baloo2-ExtraBold.ttf'),
+    'Baloo2-Bold': require('../assets/fonts/Baloo2-Bold.ttf'),
+    'Nunito-Regular': require('../assets/fonts/Nunito-Regular.ttf'),
+    'Nunito-SemiBold': require('../assets/fonts/Nunito-SemiBold.ttf'),
   });
 
   useEffect(() => {

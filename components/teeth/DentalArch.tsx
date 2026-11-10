@@ -14,7 +14,7 @@ import Svg, { G, Path } from 'react-native-svg';
 
 import { toothName } from '@/components/teeth/toothName';
 import { t } from '@/lib/i18n';
-import { font, palette, tokens } from '@/lib/tokens';
+import { font, tokens } from '@/lib/tokens';
 import {
   ARCH_CENTER_Y,
   ARCH_VIEWBOX,
@@ -40,13 +40,13 @@ export const CHART_PERSPECTIVE: ViewPerspective = 'dentist';
 const HIT_RADIUS_PT = 22;
 
 const STATUS_FILL: Record<ToothStatus, string> = {
-  symptom: palette.warning[500],
-  treatment: palette.sky[400],
-  both: palette.warning[500],
+  symptom: tokens.warning,
+  treatment: tokens.brandPrimary,
+  both: tokens.warning,
 };
-const BASE_FILL = palette.white;
-const OUTLINE = palette.cobalt[400];
-const OUTLINE_SELECTED = palette.cobalt[600];
+const BASE_FILL = tokens.surfaceCard;
+const OUTLINE = tokens.zoneLine;
+const OUTLINE_SELECTED = tokens.brandPrimaryPress;
 
 const AnimatedG = Animated.createAnimatedComponent(G);
 const LAYOUT = layoutArch(CHART_PERSPECTIVE);
@@ -85,13 +85,13 @@ function Tooth({
 
   return (
     <AnimatedG animatedProps={animatedProps} transform={`translate(${tooth.x} ${tooth.y}) rotate(${tooth.rotation})`}>
-      {/* Soft glow without blur (Toy box: no blurred shadows): a wide translucent halo. */}
+      {/* Soft glow: a wide translucent halo. */}
       {selected ? <Path d={d} fill="none" stroke={tokens.brandPrimary} strokeWidth={9} strokeOpacity={0.28} /> : null}
       <Path
         d={d}
         fill={fill}
         fillOpacity={selected ? 1 : 0.65}
-        stroke={status === 'both' ? palette.sky[600] : selected ? OUTLINE_SELECTED : OUTLINE}
+        stroke={status === 'both' ? tokens.brandPrimaryPress : selected ? OUTLINE_SELECTED : OUTLINE}
         strokeWidth={status === 'both' ? 3 : selected ? 2.5 : 1.5}
       />
       {groove ? <Path d={groove} stroke={OUTLINE} strokeOpacity={0.4} strokeWidth={1.5} strokeLinecap="round" /> : null}
@@ -180,7 +180,7 @@ export function DentalArch({ size, selected, onSelect, multiSelect = false, stat
           accessibilityLiveRegion="polite"
           numberOfLines={2}
           adjustsFontSizeToFit
-          style={{ fontFamily: font.displaySemi, fontSize: 17, color: tokens.textPrimary, textAlign: 'center' }}
+          style={{ fontFamily: font.display, fontSize: 17, color: tokens.textPrimary, textAlign: 'center' }}
         >
           {centerLabel}
         </Text>

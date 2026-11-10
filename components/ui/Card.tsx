@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import { Pressable, View, type ViewStyle } from 'react-native';
 
-import { hardShadow, radius, tokens } from '@/lib/tokens';
+import { cardShadow, radius, tokens } from '@/lib/tokens';
 
-type CardTone = 'plain' | 'soft' | 'cobalt';
+type CardTone = 'plain' | 'soft' | 'primary';
 
 interface CardProps {
   children: ReactNode;
@@ -17,18 +17,18 @@ interface CardProps {
 
 const TONES: Record<CardTone, string> = {
   plain: tokens.surfaceCard,
-  soft: tokens.surfaceMint,
-  cobalt: tokens.brandPrimary,
+  soft: tokens.primarySoft,
+  primary: tokens.brandPrimary,
 };
 
 /**
- * Card — the Toy box surface: 3px ink outline + hard 6px drop. The workhorse container for everything: profiles, sessions, stats.
+ * Card — a white surface with a soft lift. The workhorse container for everything: profiles, sessions, stats.
  */
 export function Card({
   children,
   tone = 'plain',
   padding = 20,
-  radius: radiusProp = radius.xl,
+  radius: radiusProp = radius.lg,
   onPress,
   accessibilityLabel,
   style,
@@ -48,7 +48,7 @@ export function Card({
         onPressOut={() => setPressed(false)}
         style={[
           base,
-          hardShadow(pressed ? 3 : 6),
+          cardShadow,
           { transform: [{ scale: pressed ? 0.98 : 1 }, { translateY: pressed ? 3 : 0 }] },
           style,
         ]}
@@ -58,5 +58,5 @@ export function Card({
     );
   }
 
-  return <View style={[base, hardShadow(6), style]}>{children}</View>;
+  return <View style={[base, cardShadow, style]}>{children}</View>;
 }

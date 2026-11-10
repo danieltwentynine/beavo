@@ -13,7 +13,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
-import { SparkyWave, BeavoLockup } from '@/components/brand/BeavoBrand';
+import { BeavoWave, BeavoLockup } from '@/components/brand/BeavoBrand';
 import { Button } from '@/components/ui/Button';
 import { signInWithGoogle } from '@/lib/socialAuth';
 import { tokens } from '@/lib/tokens';
@@ -42,7 +42,7 @@ function GoogleG() {
   );
 }
 
-/** Sparky drifts gently up and down so the welcome screen feels alive. */
+/** Beavo drifts gently up and down so the welcome screen feels alive. */
 function FloatingMascot({ width }: { width: number }) {
   const reduceMotion = useReducedMotion();
   const float = useSharedValue(0);
@@ -63,7 +63,7 @@ function FloatingMascot({ width }: { width: number }) {
 
   return (
     <Animated.View style={floatStyle}>
-      <SparkyWave width={width} />
+      <BeavoWave width={width} />
     </Animated.View>
   );
 }
@@ -95,7 +95,7 @@ export default function WelcomeScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 6 }}>
           <FloatingMascot width={200} />
           <View style={{ marginTop: 12 }}>
-            <BeavoLockup height={56} />
+            <BeavoLockup width={180} />
           </View>
           <Text
             className="font-body"

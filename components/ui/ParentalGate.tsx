@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Modal, Platform, Text, View } from 'react-native'
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { t } from '@/lib/i18n';
-import { hardShadow, outline, radius, tokens } from '@/lib/tokens';
+import { cardShadow, radius, tokens } from '@/lib/tokens';
 
 const factor = () => 6 + Math.floor(Math.random() * 4); // 6–9: beyond a young child's times tables
 const newQuestion = () => ({ a: factor(), b: factor() });
@@ -74,14 +74,13 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, justifyContent: 'center', padding: 24, backgroundColor: 'rgba(20,20,43,0.6)' }}
+        style={{ flex: 1, justifyContent: 'center', padding: 24, backgroundColor: 'rgba(34,48,46,0.6)' }}
       >
         <View
           accessibilityViewIsModal
           style={[
-            { backgroundColor: tokens.surfaceCard, borderRadius: radius['2xl'], padding: 22, rowGap: 14 },
-            outline,
-            hardShadow(6),
+            { backgroundColor: tokens.surfaceCard, borderRadius: radius.xl, padding: 22, rowGap: 14 },
+            cardShadow,
           ]}
         >
           <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary }}>

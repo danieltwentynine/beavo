@@ -12,12 +12,12 @@ import { TabHeader } from '@/components/ui/TabHeader';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useToothEvents } from '@/hooks/useToothEvents';
 import { t } from '@/lib/i18n';
-import { hardShadow, palette, radius, tokens } from '@/lib/tokens';
+import { cardShadow, radius, tokens } from '@/lib/tokens';
 import { countForYear, statusByTooth } from '@/src/data/teeth';
 
 const CARD_PADDING = 16;
 
-/** Round toy button floating in a card corner. */
+/** Round button floating in a card corner. */
 function CornerButton({
   label,
   active,
@@ -50,7 +50,7 @@ function CornerButton({
           opacity: disabled ? 0.4 : 1,
           zIndex: 2,
         },
-        hardShadow(3),
+        cardShadow,
         style,
       ]}
     >
@@ -76,7 +76,7 @@ function StatCard({ count, label, color }: { count: number; label: string; color
           borderRadius: 6,
           backgroundColor: color,
           borderWidth: 2,
-          borderColor: tokens.borderStrong,
+          borderColor: tokens.line,
         }}
       />
       <Text className="font-numeric" style={{ fontSize: 36, color: tokens.textPrimary, lineHeight: 40 }}>
@@ -127,7 +127,7 @@ export default function OverviewScreen() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 22 }}>
         <TabHeader title={t('overview.title')} />
 
-        <Card tone="soft" padding={CARD_PADDING} radius={radius['2xl']}>
+        <Card tone="soft" padding={CARD_PADDING} radius={radius.xl}>
           {kidMode ? null : (
             <>
               <CornerButton
@@ -173,8 +173,8 @@ export default function OverviewScreen() {
         <View>
           <SectionTitle>{t('overview.thisYear')}</SectionTitle>
           <View style={{ flexDirection: 'row', columnGap: 12 }}>
-            <StatCard count={counts.symptoms} label={t('overview.symptoms')} color={palette.warning[500]} />
-            <StatCard count={counts.treatments} label={t('overview.treatments')} color={palette.sky[400]} />
+            <StatCard count={counts.symptoms} label={t('overview.symptoms')} color={tokens.warning} />
+            <StatCard count={counts.treatments} label={t('overview.treatments')} color={tokens.brandPrimary} />
           </View>
         </View>
 

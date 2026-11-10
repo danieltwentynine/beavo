@@ -91,7 +91,7 @@ types/ index.ts                   # All shared types; firebase-auth.d.ts augment
 
 Not built yet: `useBrushingSession`, `ZoneAlert`, `assets/characters|sounds`.
 
-**DentalArch (`components/teeth/DentalArch.tsx`):** primary teeth only (FDI 51–85), drawn in react-native-svg from the pure geometry in `src/data/teeth.ts`. The chart uses the **dentist perspective** (`CHART_PERSPECTIVE`: the child's right is on the screen's left) — change it only there. Touches resolve to the nearest tooth within a 44pt circle; VoiceOver gets one labelled 44pt element per tooth. Glow is a translucent halo, not a blur (Toy box).
+**DentalArch (`components/teeth/DentalArch.tsx`):** primary teeth only (FDI 51–85), drawn in react-native-svg from the pure geometry in `src/data/teeth.ts`. The chart uses the **dentist perspective** (`CHART_PERSPECTIVE`: the child's right is on the screen's left) — change it only there. Touches resolve to the nearest tooth within a 44pt circle; VoiceOver gets one labelled 44pt element per tooth. Glow is a translucent halo.
 
 ---
 
@@ -127,7 +127,7 @@ users/{uid}                         displayName, locale ('pt-BR'|'en'), createdA
 
 ## Liquid Glass
 
-NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/GlassSurface.tsx` is the only user of `expo-glass-effect`, and only for floating chrome: ProfilePill, Overview's corner buttons, the child-picker and tooth sheets. Never on content cards. It falls back to solid token surfaces when `isLiquidGlassAvailable()` is false or Reduce Transparency is on. Chrome keeps the Toy box ink outline + hard shadow either way.
+NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/GlassSurface.tsx` is the only user of `expo-glass-effect`, and only for floating chrome: ProfilePill, Overview's corner buttons, the child-picker and tooth sheets. Never on content cards. It falls back to solid token surfaces when `isLiquidGlassAvailable()` is false or Reduce Transparency is on. Chrome keeps its soft `cardShadow` either way.
 
 ---
 
@@ -155,10 +155,10 @@ The camera is a **live mirror only**. It must never capture, record, save, uploa
 This is the most important UI component. It is an SVG overlay displayed on top of the camera feed.
 
 - 10 zones total (see `ToothZone` type)
-- Default state: all zones gray/empty
-- As zones are detected: fill progressively (light cobalt `zoneActive`)
-- Fully brushed zone: solid cobalt + checkmark icon; every zone has a 3px ink outline
-- At session end: show missed zones highlighted in soft orange (never red — too alarming for kids)
+- Default state: all zones empty (sunken blue-grey)
+- Zone being brushed: white with a thick teal ring and foam bubbles (`zoneActive`)
+- Fully brushed zone: solid teal + checkmark
+- At session end: missed zones turn honey yellow with the retry glyph (never red — too alarming for kids)
 - The SVG must be responsive and overlay correctly on any phone screen size
 - Zones animate smoothly — no harsh flickers
 
@@ -186,25 +186,28 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 
 ## Design System
 
-Toy box design system, adopted 2026-10-24 from the Claude Design code export (`zing-design-system.zip`). Values live in `lib/tokens.ts` (inline styles/SVG) and `tailwind.preset.js` (classes) — the preset is generated; regenerate it rather than hand-editing.
+**Riacho** ("calm like a picture book"), adopted 2026-11-10 from the Beavo design system artifact (https://claude.ai/artifact/ErXwoX53UF1ie2kYGq1Ajb — its `project/README.md` is the brand book; read it before designing a screen). `design/tokens.json` is a copy of its tokens; `node scripts/build-tokens.mjs` generates `tailwind.preset.js` from it, and `lib/tokens.ts` mirrors the same values for inline styles and SVG. Change values in the design system first, then here.
 
 **Palette:**
-- Primary: `#2D5BFF` (cobalt) — main brand color, brushing success. Press: `#1F45DB`
-- Secondary: `#D6247A` (bubblegum-600) · Reward: `#FFD23F` (sunny)
-- Background: `#FFF6DA` (warm cream) — main screen bg · Surface: `#FFFFFF`
-- Ink: `#14142B` — headings, outlines, hard shadows · Text Secondary: `#55557A`
-- Warning: `#FFB347` — missed zones / retry (warm orange, never red)
-- Danger `#DC2626`: parent-facing auth errors only, never shown to children
+- Primary: `#0A746E` (teal) — buttons, links, done zones; white text on it. Press: `#075A55`. Soft: `#D3EEEA`
+- Secondary: `#8FCB63` with `#1C2B1A` text · Reward: `#B83A75` (berry, white text) — stickers, badges and streaks only
+- Background: `#FFF7EA` (cream) · Surface: `#FFFFFF` · Line: `#EADFCB`
+- Ink: `#22302E` · Ink muted: `#58655F`
+- Session: ground `#E4F1F7`, track / empty zone `#C9DCE5`, zone line `#6F8A96`
+- Warning: `#F6C447` (honey yellow, never red, always with the retry glyph; text on it `#3A2A00`)
+- Danger `#B3261E`: parent screens only, never in kid mode
 
-**Signature (non-negotiable):** every card, button, tile and sticker gets a 3px ink outline + hard drop shadow (`hardShadow()` / `outline` in `lib/tokens.ts`, `boxShadow: '0 6px 0 #14142B'`). No blurred shadows, no gradients. Press feedback = scale 0.96 and the drop shrinks. Only stickers tilt (±3–6°). Touch targets ≥ 48px, controls 56px.
+**Surfaces:** content sits in white cards (`radius.lg`, `cardShadow`) on cream; no outlines, no gradients. Primary buttons are pills on a 3px ledge (`pressShadow`) that collapses on press. Edges that must be seen (inputs, checkboxes, empty dots) use `controlBorder`. Press feedback = scale 0.96. Motion is calm; with Reduce Motion, cross-fade instead of moving. Touch targets ≥ 48px, primary controls 56px, 44px per tooth.
 
-**Contrast:** white text only on cobalt-500/600 and bubblegum-600. Sunny and bubblegum-500 always take ink text.
+**Contrast:** white text only on primary, reward, danger and ink. Every state also has its own glyph or fill, never colour alone.
 
 **Typography:** static weights — choose the family, never `fontWeight`.
-- `Fredoka` (Bold / SemiBold / Medium) — headings, numbers/scores, buttons
-- `Lexend` (Regular / SemiBold) — body (min 16px) and labels
+- `Baloo 2` (Bold; ExtraBold for numerals) — headings, numbers/scores, buttons
+- `Nunito` (Regular / SemiBold) — body (min 16px) and labels
 
-**Logo vs mascot:** the logo is the tooth with the lightning bolt (`BeavoMark`, `BeavoLockup`). Sparky (the foam bubble) is the mascot — splash, empty states, rewards, coaching. Never redraw either; use `components/brand/BeavoBrand.tsx`. Mark and Sparky are still the Zing-era art and `BeavoWordmark` is interim Fredoka text — all three get replaced when the new design system syncs.
+**Logo and mascot:** Beavo the beaver is both. The mark is his head (`BeavoMark`); the wordmark is outlined lettering (`BeavoWordmark`, never retyped in a font); `BeavoLockup` is the default; `BeavoWave` is the waving pose. Never redraw or recolour them: `components/brand/BeavoBrand.tsx` is generated from `assets/brand/*.svg` by `node scripts/build-brand.mjs`. His teeth are always bright white.
+
+**Not built yet from the design system:** the 1-second logo screen after the native splash, the four-screen first-launch intro, and Liquid Glass tints (`glass-chrome`, `glass-session`).
 
 **Tone (copy):**
 - For children: enthusiastic, uses "!" sparingly, never clinical
@@ -320,9 +323,9 @@ Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only 
 
 - Entry point is `expo-router/entry` (set in `package.json` `main`); the template's `App.tsx`/`index.ts` were deleted.
 - Path alias `@/*` maps to the repo root (see `tsconfig.json`). Use it for all cross-directory imports.
-- NativeWind v4 is wired through `babel.config.js` (`jsxImportSource: 'nativewind'` + `nativewind/babel`), `metro.config.js` (`withNativeWind` with `global.css`), and `tailwind.config.js` (`presets: [nativewind/preset, ./tailwind.preset]` supplies the design-system colors, fonts, radii and `shadow-toy*`/`border-toy`; app-only aliases `ink`, `muted`, `danger` live in the config).
+- NativeWind v4 is wired through `babel.config.js` (`jsxImportSource: 'nativewind'` + `nativewind/babel`), `metro.config.js` (`withNativeWind` with `global.css`), and `tailwind.config.js` (`presets: [nativewind/preset, ./tailwind.preset]` supplies the design-system colors, fonts, radii and shadows; app-only aliases `muted`, `text-link`, `surface-page` live in the config).
 - Firebase Auth uses `initializeAuth` + `getReactNativePersistence(AsyncStorage)` in `lib/firebase.ts`. The firebase v12 wrapper's web typings omit `getReactNativePersistence` (it exists in the RN runtime build) — `types/firebase-auth.d.ts` augments the module; do not work around it with `@ts-ignore`.
-- Fonts are bundled TTFs in `assets/fonts/` loaded once in `app/_layout.tsx` via `expo-font` `useFonts`, referenced by family name: `font-display` → `Fredoka-Bold`, `font-display-semi` → `Fredoka-SemiBold`, `font-body` → `Lexend-Regular`, `font-body-semi` → `Lexend-SemiBold`, `font-numeric` → `Fredoka-Bold` (inline styles: `font.*` in `lib/tokens.ts`).
+- Fonts are bundled TTFs in `assets/fonts/` loaded once in `app/_layout.tsx` via `expo-font` `useFonts`, referenced by family name: `font-display` and `font-display-semi` → `Baloo2-Bold`, `font-numeric` → `Baloo2-ExtraBold`, `font-body` → `Nunito-Regular`, `font-body-semi` → `Nunito-SemiBold` (inline styles: `font.*` in `lib/tokens.ts`).
 - Auth state flows: `onAuthStateChanged` in `app/_layout.tsx` → `stores/authStore.ts` (user + consent status from `lib/consent.ts`) → `app/(tabs)/_layout.tsx` gates: signed in → current consent → at least one child, else redirects to welcome / consent / child-form.
 - NativeWind 4.2.5 drops function-form `Pressable` styles (upstream #1105); `Button`, `Chip`, `Card` and `AvatarPicker` keep pressed state in React state instead — don't revert it.
 - Fabric: don't make style *keys* conditional on focus (it recreates the native view and drops `TextInput` focus). Keep the keys, change the values.

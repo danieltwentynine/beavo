@@ -50,7 +50,7 @@ O app funciona sem internet e envia os dados para a sua conta quando a conexão 
 
 ## 8. Propriedade intelectual
 
-O app, a marca Beavo, o mascote Sparky, os textos e as imagens pertencem a [RAZÃO SOCIAL] ou a seus licenciantes. Concedemos a você uma licença pessoal, não exclusiva, intransferível e revogável para usar o app conforme estes Termos. Os dados que você registra continuam sendo seus.
+O app, a marca Beavo, o mascote Beavo, os textos e as imagens pertencem a [RAZÃO SOCIAL] ou a seus licenciantes. Concedemos a você uma licença pessoal, não exclusiva, intransferível e revogável para usar o app conforme estes Termos. Os dados que você registra continuam sendo seus.
 
 ## 9. Disponibilidade
 

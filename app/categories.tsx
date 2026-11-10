@@ -17,7 +17,7 @@ import { background } from '@/src/data/firestore';
 import { DEFAULT_CATEGORIES, addCategory, deleteCategory, updateCategory } from '@/src/data/toothEvents';
 import type { Category, ToothEventType } from '@/types';
 
-/** Category colors: the defaults' palette (all from Toy box tokens, none red). */
+/** Category colors: the defaults' palette (stored on each category; none red). */
 const COLORS = [...new Set(DEFAULT_CATEGORIES.map((c) => c.color))];
 const nextColor = (color: string) => COLORS[(COLORS.indexOf(color) + 1) % COLORS.length];
 
@@ -42,11 +42,11 @@ function CategoryRow({ uid, category }: { uid: string; category: Category }) {
         onPress={() => background(updateCategory(db, uid, category.id, { color: nextColor(category.color) }))}
         style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
       >
-        <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: category.color, borderWidth: 3, borderColor: tokens.borderStrong }} />
+        <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: category.color, borderWidth: 3, borderColor: tokens.line }} />
       </Pressable>
       <Input value={name} onChangeText={setName} onBlur={commit} maxLength={40} accessibilityLabel={category.name} containerStyle={{ flex: 1 }} />
       {category.isDefault ? (
-        <Text className="font-body" style={{ width: 48, fontSize: 12, color: tokens.textTertiary, textAlign: 'center' }}>
+        <Text className="font-body" style={{ width: 48, fontSize: 12, color: tokens.textSecondary, textAlign: 'center' }}>
           {t('categories.default')}
         </Text>
       ) : (

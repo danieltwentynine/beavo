@@ -1,120 +1,78 @@
 /**
- * Beavo design tokens — "Toy box". Values come from the design-system code export
- * (zing-design-system/src/theme/tokens.ts); tailwind.preset.js carries the same
- * values as NativeWind classes. Use these where classes can't reach: SVG fills,
- * shadows, inline styles.
- *
- * Signature: 3px ink outline + hard drop shadow, no blur, no gradients.
+ * Beavo design tokens — "Riacho", calm like a picture book. Values mirror
+ * design/tokens.json (copied from the Beavo design system); tailwind.preset.js
+ * carries the same values as NativeWind classes. Use these where classes can't
+ * reach: SVG fills, shadows, inline styles.
  */
-export const palette = {
-  cobalt: {
-    50: '#eef2ff',
-    100: '#d9e2ff',
-    200: '#b5c6ff',
-    300: '#87a2ff',
-    400: '#5b7eff',
-    500: '#2d5bff',
-    600: '#1f45db',
-    700: '#1835ad',
-    800: '#142a85',
-    900: '#121f5e',
-  },
-  sky: {
-    50: '#eaf7fe',
-    100: '#cdecfd',
-    200: '#a3ddfb',
-    300: '#71cbf9',
-    400: '#4fc3f7',
-    500: '#29aeee',
-    600: '#1690d2',
-    700: '#1372a8',
-    800: '#155f88',
-    900: '#164e6f',
-  },
-  ink: {
-    900: '#14142b',
-    700: '#33335a',
-    600: '#44446b',
-    500: '#55557a',
-    400: '#696989',
-    300: '#c4c4d6',
-    200: '#e1e1eb',
-    100: '#f0f0f6',
-    50: '#f8f8fb',
-  },
-  white: '#ffffff',
-  sunny: { 100: '#fff3c4', 500: '#ffd23f', 600: '#f2be14' },
-  bubblegum: { 100: '#ffe0ef', 500: '#ff6fb5', 600: '#d6247a' },
-  coral: { 100: '#ffe1e5', 500: '#ff7a8a' },
-  grape: { 100: '#ebe7ff', 500: '#9b8cff' },
-  warning: { 100: '#fff1dc', 500: '#ffb347' },
-  danger: { 100: '#fde8e8', 500: '#dc2626' },
-} as const;
-
-/** Semantic aliases — author UIs against these, not the raw ramps. */
 export const tokens = {
-  textPrimary: '#14142b',
-  textSecondary: '#55557a',
-  textTertiary: '#696989',
-  textOnBrand: '#ffffff',
-  textLink: '#1f45db',
+  textPrimary: '#22302E',
+  textSecondary: '#58655F',
+  textOnBrand: '#FFFFFF',
+  textLink: '#0A746E',
 
-  surfacePage: '#fff6da',
-  surfaceCard: '#ffffff',
-  surfaceSunken: '#f8f8fb',
-  surfaceMint: '#eef2ff',
-  surfaceSky: '#fff3c4',
+  surfacePage: '#FFF7EA',
+  surfaceCard: '#FFFFFF',
+  primarySoft: '#D3EEEA',
+  line: '#EADFCB',
 
-  brandPrimary: '#2d5bff',
-  brandPrimaryPress: '#1f45db',
-  brandSecondary: '#d6247a',
-  brandSecondaryPress: '#ff6fb5',
+  brandPrimary: '#0A746E',
+  brandPrimaryPress: '#075A55',
+  secondary: '#8FCB63',
+  onSecondary: '#1C2B1A',
 
-  borderSubtle: '#14142b',
-  borderStrong: '#14142b',
-  borderFocus: '#2d5bff',
+  /** Stickers, badges and streaks only. */
+  reward: '#B83A75',
+  onReward: '#FFFFFF',
+  /** Warm honey yellow, never red. Always paired with the retry glyph. */
+  warning: '#F6C447',
+  onWarning: '#3A2A00',
+  warningLine: '#9C7000',
+  /** Parent screens only; never in kid mode. */
+  danger: '#B3261E',
 
-  feedbackWarning: '#ffb347',
-  feedbackDanger: '#dc2626',
-  feedbackSuccess: '#2d5bff',
-  feedbackReward: '#ffd23f',
+  // Brushing session
+  sessionBg: '#E4F1F7',
+  sessionTrack: '#C9DCE5',
+  zoneEmpty: '#C9DCE5',
+  zoneLine: '#6F8A96',
+  zoneActive: '#FFFFFF',
+  zoneDone: '#0A746E',
+  zoneMissed: '#F6C447',
 
-  // Mouth-map zone states
-  zoneEmpty: '#e1e1eb',
-  zoneActive: '#87a2ff',
-  zoneDone: '#2d5bff',
-  zoneMissed: '#ffb347',
+  // Liquid Glass fallbacks (Reduce Transparency / no glass)
+  glassChromeSolid: '#FBF7F0',
+  glassSessionSolid: '#FFFFFF',
 } as const;
 
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  '2xl': 32,
-  pill: 9999,
+  sm: 10,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  pill: 999,
 } as const;
 
 /** Static weights: pick the family, never fontWeight. Loaded in app/_layout.tsx. */
 export const font = {
-  display: 'Fredoka-Bold',
-  displaySemi: 'Fredoka-SemiBold',
-  displayMedium: 'Fredoka-Medium',
-  body: 'Lexend-Regular',
-  bodySemi: 'Lexend-SemiBold',
-  numeric: 'Fredoka-Bold',
+  display: 'Baloo2-Bold',
+  numeric: 'Baloo2-ExtraBold',
+  body: 'Nunito-Regular',
+  bodySemi: 'Nunito-SemiBold',
 } as const;
 
-/** 3px ink outline — every card, button, tile and sticker. */
-export const outline = { borderWidth: 3, borderColor: tokens.borderStrong } as const;
+/** Hairline for white-on-white edges (inputs, unchecked boxes). Decorative. */
+export const hairline = { borderWidth: 1, borderColor: tokens.line } as const;
 
-/** Outline + hard ink drop (RN `boxShadow`, New Architecture). Smaller drop = pressed. */
-export const hardShadow = (drop: 3 | 5 | 6 | 8 = 6) => ({
-  ...outline,
-  boxShadow: `0 ${drop}px 0 ${tokens.textPrimary}`,
-});
+/** Soft lift under cards and the CoachCard. */
+/** Edge of a control that must be seen (checkbox, input, empty dot): 3:1 on white and cream. */
+export const controlBorder = { borderWidth: 2, borderColor: tokens.zoneLine } as const;
 
-/** Press feedback: scale to 0.96 and the drop shrinks, like pushing a toy button. */
+export const cardShadow = { boxShadow: '0 6px 18px rgba(34,48,46,0.10)' } as const;
+
+/** Resting depth under a primary button; collapses on press. Keep the key, change the value (Fabric). */
+export const pressShadow = (pressed: boolean) => ({ boxShadow: `0 ${pressed ? 0 : 3}px 0 ${tokens.brandPrimaryPress}` });
+
+/** Press feedback: gentle scale, no flicker. */
 export const motion = {
   pressScale: 0.96,
 } as const;

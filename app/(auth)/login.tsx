@@ -113,7 +113,7 @@ export default function LoginScreen() {
                   placeholder="you@example.com"
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  icon={<EnvelopeSimple size={20} color={tokens.textTertiary} weight="bold" />}
+                  icon={<EnvelopeSimple size={20} color={tokens.textSecondary} weight="bold" />}
                   value={value}
                   onChangeText={onChange}
                   error={error?.message}
@@ -129,7 +129,7 @@ export default function LoginScreen() {
                   placeholder="Your password"
                   autoCapitalize="none"
                   secureTextEntry
-                  icon={<LockSimple size={20} color={tokens.textTertiary} weight="bold" />}
+                  icon={<LockSimple size={20} color={tokens.textSecondary} weight="bold" />}
                   value={value}
                   onChangeText={onChange}
                   error={error?.message}

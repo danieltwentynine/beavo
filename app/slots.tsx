@@ -11,7 +11,7 @@ import { SafeScreen } from '@/components/ui/SafeScreen';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { outline, radius, tokens } from '@/lib/tokens';
+import { radius, tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
 import { background } from '@/src/data/firestore';
 import { canRemoveSlot, currentSlots, isValidWindow, moveSlot } from '@/src/data/schedule';
@@ -82,8 +82,7 @@ function SlotRow({ slot, isFirst, isLast, canRemove, onChange, onMove, onRemove 
             borderRadius: radius.pill,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: tokens.surfaceMint,
-            ...outline,
+            backgroundColor: tokens.primarySoft,
           }}
         >
           <SlotIcon icon={slot.icon} size={24} color={tokens.brandPrimary} weight="fill" />

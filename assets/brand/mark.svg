@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 260" width="312" height="260" role="img"><title>Beavo mark</title><g transform="translate(-44.00 -44.00) scale(2.0000)">
+    <circle cx="42" cy="60" r="13" fill="#8A5634"></circle><circle cx="42" cy="60" r="6.5" fill="#5E3820"></circle>
+    <circle cx="158" cy="60" r="13" fill="#8A5634"></circle><circle cx="158" cy="60" r="6.5" fill="#5E3820"></circle>
+    <ellipse cx="100" cy="90" rx="64" ry="56" fill="#8A5634"></ellipse><ellipse cx="60" cy="110" rx="22" ry="20" fill="#8A5634"></ellipse><ellipse cx="140" cy="110" rx="22" ry="20" fill="#8A5634"></ellipse>
+    
+    <path d="M90 36 q5 -10 10 0 q5 -10 10 0" fill="none" stroke="#5E3820" stroke-width="4" stroke-linecap="round"></path>
+    <ellipse cx="64" cy="108" rx="10" ry="6" fill="#F2A08F" opacity=".55"></ellipse><ellipse cx="136" cy="108" rx="10" ry="6" fill="#F2A08F" opacity=".55"></ellipse>
+    <ellipse cx="100" cy="113" rx="36" ry="24" fill="#E8C9A2"></ellipse><g fill="#5E3820" opacity=".55"><circle cx="76" cy="108" r="1.8"></circle><circle cx="72" cy="114" r="1.8"></circle><circle cx="78" cy="116" r="1.8"></circle><circle cx="124" cy="108" r="1.8"></circle><circle cx="128" cy="114" r="1.8"></circle><circle cx="122" cy="116" r="1.8"></circle></g>
+    <circle cx="76" cy="82" r="9.5" fill="#2A1A12"></circle><circle cx="79.5" cy="78.5" r="3.2" fill="#fff"></circle>
+    <circle cx="124" cy="82" r="9.5" fill="#2A1A12"></circle><circle cx="127.5" cy="78.5" r="3.2" fill="#fff"></circle>
+    <rect x="88.5" y="116" width="11" height="23" rx="3.5" fill="#FFFDF7" stroke="#2A1A12" stroke-width="2"></rect>
+    <rect x="100.5" y="116" width="11" height="23" rx="3.5" fill="#FFFDF7" stroke="#2A1A12" stroke-width="2"></rect>
+    <path d="M82 114 Q100 122 118 114" fill="none" stroke="#2A1A12" stroke-width="3" stroke-linecap="round"></path>
+    <ellipse cx="100" cy="100" rx="13" ry="9" fill="#2A1A12"></ellipse><ellipse cx="96" cy="97" rx="4" ry="2.4" fill="#fff" opacity=".7"></ellipse></g></svg>

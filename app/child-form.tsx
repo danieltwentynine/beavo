@@ -12,7 +12,7 @@ import { useActiveChild } from '@/hooks/useActiveChild';
 import { deleteChildProfile } from '@/lib/account';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { outline, radius, tokens } from '@/lib/tokens';
+import { radius, tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
 import { MAX_CHILDREN, createChild, updateChild } from '@/src/data/children';
 import { background } from '@/src/data/firestore';
@@ -161,8 +161,7 @@ export default function ChildFormScreen() {
                       height: 48,
                       borderRadius: radius.pill,
                       backgroundColor: c,
-                      ...outline,
-                      borderColor: c === color ? tokens.brandPrimary : tokens.borderStrong,
+                      borderColor: c === color ? tokens.brandPrimary : tokens.line,
                       borderWidth: c === color ? 5 : 3,
                     }}
                   />

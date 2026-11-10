@@ -10,7 +10,7 @@ import { signOutParent } from '@/lib/account';
 import { acceptConsent } from '@/lib/consent';
 import { t } from '@/lib/i18n';
 import { LEGAL_URLS } from '@/lib/legal';
-import { outline, radius, tokens } from '@/lib/tokens';
+import { controlBorder, radius, tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
 
 /**
@@ -75,7 +75,7 @@ export default function ConsentScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: checked ? tokens.brandPrimary : tokens.surfaceCard,
-              ...outline,
+              ...controlBorder,
             }}
           >
             {checked ? <Check size={20} color={tokens.textOnBrand} weight="bold" /> : null}

@@ -34,10 +34,10 @@ interface GlassSurfaceProps {
  * The ONLY place that uses expo-glass-effect. For floating chrome only — the
  * profile pill, Overview's corner buttons, sheets — never content cards.
  * Falls back to a solid token surface below iOS 26 or with Reduce Transparency.
- * Callers keep the Toy box ink outline in `style`, so the chrome looks like
+ * The solid fallback keeps the chrome looking like
  * Beavo with or without glass.
  */
-export function GlassSurface({ children, style, fallbackColor = tokens.surfaceCard, interactive = false, tint }: GlassSurfaceProps) {
+export function GlassSurface({ children, style, fallbackColor = tokens.glassChromeSolid, interactive = false, tint }: GlassSurfaceProps) {
   const glass = useGlass();
   if (!glass) return <View style={[{ backgroundColor: tint ?? fallbackColor }, style]}>{children}</View>;
   return (

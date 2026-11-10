@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { buildCoachMessage } from '@/lib/coach';
 import { ALL_TOOTH_ZONES, COUNTDOWN_SECONDS } from '@/lib/constants';
-import { outline, palette, tokens } from '@/lib/tokens';
+import { cardShadow, tokens } from '@/lib/tokens';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { ToothZone } from '@/types';
@@ -152,8 +152,8 @@ export default function SessionScreen() {
   const currentZone = ALL_TOOTH_ZONES[Math.min(zonesReached, ALL_TOOTH_ZONES.length - 1)];
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.cobalt[900] }}>
-      <StatusBar style="light" />
+    <View style={{ flex: 1, backgroundColor: tokens.sessionBg }}>
+      <StatusBar style="dark" />
       {cameraOn ? <CameraBackdrop /> : null}
       <SafeAreaView style={{ flex: 1 }}>
         <Pressable
@@ -172,7 +172,7 @@ export default function SessionScreen() {
             backgroundColor: tokens.surfaceCard,
             alignItems: 'center',
             justifyContent: 'center',
-            ...outline,
+            ...cardShadow,
           }}
         >
           <X size={22} color={tokens.textPrimary} weight="bold" />
@@ -182,10 +182,10 @@ export default function SessionScreen() {
           <CameraGate onAllow={() => void camera.requestPermission()} onSkip={() => setSkipCamera(true)} />
         ) : phase === 'countdown' ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 10 }}>
-            <Text className="font-numeric" style={{ fontSize: 140, color: tokens.feedbackReward, lineHeight: 150 }}>
+            <Text className="font-numeric" style={{ fontSize: 140, color: tokens.brandPrimary, lineHeight: 150 }}>
               {count <= 0 ? 'Go!' : count}
             </Text>
-            <Text className="font-body-semi" style={{ fontSize: 18, color: tokens.textOnBrand }}>
+            <Text className="font-body-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
               Get your toothbrush ready, {childName}!
             </Text>
           </View>
@@ -193,7 +193,7 @@ export default function SessionScreen() {
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20 }}>
             {/* Guided-brushing indicator (Phase 1 has no zone detection yet) */}
             <View style={{ marginTop: 8 }}>
-              <Sticker label="Follow Sparky's guide" />
+              <Sticker label="Follow Beavo's guide" />
             </View>
 
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -202,7 +202,7 @@ export default function SessionScreen() {
 
             <Text
               className="font-display"
-              style={{ fontSize: 24, color: tokens.textOnBrand, textAlign: 'center', minHeight: 32 }}
+              style={{ fontSize: 24, color: tokens.textPrimary, textAlign: 'center', minHeight: 32 }}
             >
               {ZONE_HINTS[currentZone]}
             </Text>

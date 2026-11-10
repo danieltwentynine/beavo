@@ -28,7 +28,7 @@ export function ListRow({ Icon, label, hint, onPress, external, right, last }: L
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderBottomWidth: last ? 0 : 2,
-        borderBottomColor: tokens.borderSubtle,
+        borderBottomColor: tokens.line,
       }}
     >
       <Icon size={24} color={tokens.textPrimary} weight="bold" />

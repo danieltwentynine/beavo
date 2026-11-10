@@ -1,7 +1,7 @@
 import { Text, View, type ViewStyle } from 'react-native';
 
-import { Sparky } from '@/components/brand/BeavoBrand';
-import { hardShadow, outline, palette, radius, tokens } from '@/lib/tokens';
+import { BeavoMark } from '@/components/brand/BeavoBrand';
+import { cardShadow, radius, tokens } from '@/lib/tokens';
 
 interface CoachCardProps {
   message: string;
@@ -10,7 +10,7 @@ interface CoachCardProps {
 }
 
 /**
- * CoachCard — the post-session coaching message from Sparky. Warm, playful,
+ * CoachCard — the post-session coaching message from Beavo. Warm, playful,
  * never clinical (CLAUDE.md > Gemini Coach). Optional score chip.
  */
 export function CoachCard({ message, score = null, style }: CoachCardProps) {
@@ -21,31 +21,23 @@ export function CoachCard({ message, score = null, style }: CoachCardProps) {
           flexDirection: 'row',
           columnGap: 14,
           padding: 18,
-          borderRadius: radius['2xl'],
-          backgroundColor: tokens.surfaceMint,
+          borderRadius: radius.xl,
+          backgroundColor: tokens.surfaceCard,
           alignItems: 'flex-start',
         },
-        hardShadow(6),
+        cardShadow,
         style,
       ]}
     >
-      <Sparky width={60} />
+      <BeavoMark width={60} />
       <View style={{ flex: 1, rowGap: 6 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-          <Text className="font-display" style={{ fontSize: 17, color: palette.cobalt[700] }}>
-            Sparky says
+          <Text className="font-display" style={{ fontSize: 17, color: tokens.brandPrimary }}>
+            Beavo says
           </Text>
           {score != null ? (
             <View
-              style={[
-                {
-                  backgroundColor: tokens.brandPrimary,
-                  borderRadius: radius.pill,
-                  paddingHorizontal: 10,
-                  paddingVertical: 1,
-                },
-                outline,
-              ]}
+              style={{ backgroundColor: tokens.brandPrimary, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 1 }}
             >
               <Text className="font-numeric" style={{ fontSize: 14, color: tokens.textOnBrand }}>
                 {score}/100
