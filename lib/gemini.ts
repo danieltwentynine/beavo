@@ -12,7 +12,13 @@ const STREAK_MENTION_MIN_DAYS = 3;
 /** Stands in for the child's name in the prompt and reply — the real name never leaves the device. */
 export const NAME_TOKEN = '{NAME}';
 
-export type CoachLocale = 'en' | 'pt-BR';
+export type CoachLocale = 'en' | 'pt-BR' | 'es';
+
+const LANGUAGE_NAMES: Record<CoachLocale, string> = {
+  en: 'English',
+  'pt-BR': 'Brazilian Portuguese',
+  es: 'Latin American Spanish',
+};
 
 export interface CoachInput {
   age: number;
@@ -36,7 +42,7 @@ const ZONE_PHRASES: Record<ToothZone, string> = {
 };
 
 // Medical/clinical or brand wording is a clinical-advisor call, so reject rather than rewrite.
-const BANNED = /\b(cavit\w*|decay\w*|disease\w*|gingivitis|plaque|infect\w*|diagnos\w*|dentist\w*|doctor\w*|colgate|oral-b|crest|sensodyne|cárie\w*|doença\w*|dentista\w*|médic\w*)\b/i;
+const BANNED = /\b(cavit\w*|decay\w*|disease\w*|gingivitis|plaque|infect\w*|diagnos\w*|dentist\w*|doctor\w*|colgate|oral-b|crest|sensodyne|cárie\w*|doença\w*|dentista\w*|médic\w*|caries|enfermedad\w*|infec\w*|diagn[oó]stic\w*|placa|gengivite|doutor\w*)\b/i;
 
 export function buildCoachPrompt({ age, missedZones, score, streakDays, locale = 'en' }: CoachInput): string {
   const tone =
@@ -52,7 +58,7 @@ export function buildCoachPrompt({ age, missedZones, score, streakDays, locale =
     : 'They brushed every area, so celebrate that.';
   const streakLine =
     streakDays >= STREAK_MENTION_MIN_DAYS ? `Cheer their ${streakDays}-day brushing streak.` : '';
-  const language = locale === 'pt-BR' ? 'Brazilian Portuguese' : 'English';
+  const language = LANGUAGE_NAMES[locale];
 
   return [
     `Write a coaching message in ${language} for a child who just brushed their teeth. Their name is ${NAME_TOKEN}; write ${NAME_TOKEN} exactly like that.`,

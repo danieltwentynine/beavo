@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { dropOutboxForUser } from '@/lib/sync';
 import { useAuthStore } from '@/stores/authStore';
 import { importBackup } from '@/src/data/account';
+import { parseBackup } from '@/src/data/backup';
 import { LOCAL_DATA_KEY, LOCAL_UID, hydrateLocal, localBackup, localClear } from '@/src/data/local';
 
 /**
@@ -15,21 +16,31 @@ import { LOCAL_DATA_KEY, LOCAL_UID, hydrateLocal, localBackup, localClear } from
 const LOCAL_MODE_KEY = 'beavo.localMode.v1';
 
 /**
- * Read the device data once at launch. If storage can't be read the store is
- * left unstarted on purpose: starting it empty would let the next save
- * overwrite real data. Data that is there but unreadable is set aside, not lost.
+ * Read the device data (at launch, and again on return to the foreground until
+ * it works). If storage can't be read the store is left unstarted on purpose:
+ * starting it empty would let the next save overwrite real data. Data that is
+ * there but unreadable is set aside, not lost.
  */
 export async function startLocalStore(): Promise<void> {
-  let text: string | null;
+  if (started) return;
   try {
-    text = await AsyncStorage.getItem(LOCAL_DATA_KEY);
+    const text = await AsyncStorage.getItem(LOCAL_DATA_KEY);
+    // Unreadable data (e.g. written by a newer app version) is set aside BEFORE
+    // the store starts empty and can save over it. The first copy set aside is
+    // kept: a later failure must not replace the one worth recovering.
+    if (text && !parseBackup(text) && !(await AsyncStorage.getItem(UNREADABLE_KEY))) {
+      await AsyncStorage.setItem(UNREADABLE_KEY, text);
+    }
+    if (started) return;
+    hydrateLocal(text, (next) => AsyncStorage.setItem(LOCAL_DATA_KEY, next));
+    started = true;
   } catch {
-    return;
-  }
-  if (!hydrateLocal(text, (next) => AsyncStorage.setItem(LOCAL_DATA_KEY, next)) && text) {
-    await AsyncStorage.setItem(`${LOCAL_DATA_KEY}.unreadable`, text).catch(() => undefined);
+    // Not started: called again when the app returns to the foreground.
   }
 }
+
+let started = false;
+const UNREADABLE_KEY = `${LOCAL_DATA_KEY}.unreadable`;
 
 export async function isLocalMode(): Promise<boolean> {
   try {
@@ -63,7 +74,6 @@ export async function localChildNames(): Promise<string[]> {
 
 async function forgetLocalData(): Promise<void> {
   await localClear();
-  await AsyncStorage.removeItem(`${LOCAL_DATA_KEY}.unreadable`).catch(() => undefined);
   await clearConsentRecord(LOCAL_UID);
   await dropOutboxForUser(LOCAL_UID);
   await leaveLocalMode();
@@ -73,6 +83,9 @@ async function forgetLocalData(): Promise<void> {
 export async function eraseLocalData(): Promise<boolean> {
   try {
     await forgetLocalData();
+    // Erasing means everything, including a copy set aside as unreadable. A move
+    // to an account keeps that copy: it was never moved.
+    await AsyncStorage.removeItem(UNREADABLE_KEY);
     return true;
   } catch {
     return false;

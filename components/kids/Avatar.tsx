@@ -12,6 +12,7 @@ import {
 import { useState, type ComponentType } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { t, type StringKey } from '@/lib/i18n';
 import { motion, radius, tokens } from '@/lib/tokens';
 
 type AvatarConfig = { Icon: ComponentType<IconProps>; bg: string };
@@ -105,7 +106,7 @@ export function AvatarPicker({ value = 'dog', color, onChange }: AvatarPickerPro
           <Pressable
             key={id}
             accessibilityRole="button"
-            accessibilityLabel={`${id} character`}
+            accessibilityLabel={t(`avatar.${id}` as StringKey)}
             accessibilityState={{ selected }}
             onPress={() => onChange?.(id)}
             onPressIn={() => setPressedId(id)}

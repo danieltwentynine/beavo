@@ -46,7 +46,7 @@ Você pode usar o Beavo sem criar uma conta (*Usar sem conta*). Nesse caso, os p
 
 - **Guardar esses dados depende de você.** Eles se perdem se o app for apagado ou se o aparelho for restaurado, perdido ou trocado, e não temos como recuperá-los. *Mais → Exportar backup* cria uma cópia que você pode guardar.
 - **Apagar:** *Mais → Apagar os dados deste celular* (pede uma confirmação para adultos) apaga tudo na hora.
-- **Levar para uma conta:** se depois você criar uma conta ou entrar em uma neste aparelho, o app mostra os nomes dos perfis guardados no aparelho e pergunta se deseja levá-los para essa conta. Eles só são levados se você confirmar, após uma confirmação para adultos; então saem do aparelho e passam a ser tratados como dados da conta, conforme esta Política. Se você recusar, continuam só no aparelho.
+- **Levar para uma conta:** se depois você criar uma conta ou entrar em uma neste aparelho, o app mostra os nomes dos perfis guardados no aparelho e pergunta se deseja levá-los para essa conta. Eles só são levados se você confirmar, após uma confirmação para adultos; então saem do aparelho e passam a ser tratados como dados da conta, conforme esta Política. Se você recusar, continuam só no aparelho; a mesma tela também permite apagá-los.
 
 ## 3. A câmera é só um espelho
 
@@ -94,6 +94,7 @@ No próprio app:
 - **Restaurar um backup:** *Mais → Importar backup* (pede uma confirmação para adultos). Você escolhe um arquivo de backup do Beavo; os dados são conferidos e juntados à sua conta (itens com o mesmo identificador são substituídos; nada é apagado).
 - **Corrigir:** para o perfil, toque no seletor de criança, no canto superior direito, e depois em *Editar*. Para um registro dentário, toque no dente em *Visão geral*, apague o registro e registre de novo.
 - **Excluir uma criança:** *Editar perfil → Excluir perfil* (pede uma confirmação para adultos).
+- **Sem conta (seção 2.6):** exportar e importar valem para os dados guardados no seu aparelho, e *Mais → Apagar os dados deste celular* substitui *Excluir conta*. Apagar esses dados também retira o seu consentimento.
 - **Excluir sua conta e todos os dados:** *Mais → Excluir conta* (pede uma confirmação para adultos e uma nova confirmação de login).
 
 Para os outros direitos, escreva para [E-MAIL DO ENCARREGADO]. Respondemos em até [PRAZO] dias. Você também pode apresentar reclamação à **Autoridade Nacional de Proteção de Dados (ANPD)**.

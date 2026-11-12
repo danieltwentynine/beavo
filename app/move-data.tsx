@@ -1,6 +1,6 @@
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 
 import { BeavoWave } from '@/components/brand/BeavoBrand';
 import { Button } from '@/components/ui/Button';
@@ -8,7 +8,7 @@ import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { useLocalChildNames } from '@/hooks/useLocalChildNames';
 import { t } from '@/lib/i18n';
-import { moveLocalDataToAccount } from '@/lib/localData';
+import { eraseLocalData, moveLocalDataToAccount } from '@/lib/localData';
 import { useAuthStore } from '@/stores/authStore';
 
 /**
@@ -37,6 +37,24 @@ export default function MoveDataScreen() {
     else setFailed(true);
   };
 
+  // Signed in, More only covers the account, so the right to erase what is on
+  // the phone has to be reachable here.
+  const erase = () =>
+    Alert.alert(t('more.eraseTitle'), t('more.eraseBody'), [
+      { text: t('more.eraseKeep'), style: 'cancel' },
+      {
+        text: t('more.eraseConfirm'),
+        style: 'destructive',
+        onPress: async () => {
+          setMoving(true);
+          const ok = await eraseLocalData();
+          setMoving(false);
+          if (ok) router.replace('/');
+          else Alert.alert(t('more.eraseFail'));
+        },
+      },
+    ]);
+
   const keep = () => {
     declineMove();
     router.replace('/');
@@ -56,6 +74,7 @@ export default function MoveDataScreen() {
         <View style={{ marginTop: 'auto', paddingTop: 28, rowGap: 12 }}>
           <Button label={t('move.confirm')} size="lg" loading={moving} onPress={() => requireParent(() => void move())} />
           <Button label={t('move.keep')} variant="ghost" disabled={moving} onPress={keep} />
+          <Button label={t('more.erase')} variant="ghost" size="sm" disabled={moving} onPress={() => requireParent(erase)} />
         </View>
       </ScrollView>
       {gate}

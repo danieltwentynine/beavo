@@ -40,8 +40,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   setLocal: (isLocal) => {
     localKnown = true;
-    // Signed in, the owner is the account either way, so its consent still stands.
-    set((s) => ({ isLocal, isLoading: !userKnown, consent: s.user ? s.consent : 'unknown' }));
+    // Consent belongs to an owner. Signed in, the owner is the account either way;
+    // signed out, it only changes if this choice does (a repeated tap must not
+    // wipe a consent nothing would re-check).
+    set((s) => ({ isLocal, isLoading: !userKnown, consent: s.user || s.isLocal === isLocal ? s.consent : 'unknown' }));
   },
   setConsent: (consent) => set({ consent }),
   declineMove: () => set({ moveDeclined: true }),

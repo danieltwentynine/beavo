@@ -75,11 +75,13 @@ export default function RootLayout() {
     };
   }, [uid, setConsent]);
 
-  // Back in the foreground (often back online too): retry unconfirmed sessions.
+  // Back in the foreground (often back online too): retry unconfirmed sessions,
+  // and reading the device data if storage wasn't available at launch.
   useEffect(() => {
-    if (!uid) return;
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void flushOutbox(uid);
+      if (state !== 'active') return;
+      void startLocalStore();
+      if (uid) void flushOutbox(uid);
     });
     return () => sub.remove();
   }, [uid]);

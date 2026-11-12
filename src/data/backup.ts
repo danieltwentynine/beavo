@@ -8,6 +8,9 @@ import { isPrimaryTooth } from './teeth.ts';
  * here and again by the security rules. Pure (no firebase) for `node --test`.
  */
 export const BACKUP_FORMAT = 'beavo-backup';
+// The device-only store (local.ts) is kept in this format: before changing the
+// version or tightening a field, add a migration there, or every family using
+// Beavo without an account has their data set aside as unreadable.
 export const BACKUP_VERSION = 1;
 
 /** Generous family-scale limits: a file beyond them is not a real backup. */
