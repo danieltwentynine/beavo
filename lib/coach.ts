@@ -16,3 +16,22 @@ export function buildCoachMessage(childName: string, missedZones: ToothZone[], s
   }
   return `Great brushing today, ${name}! Your smile is getting stronger every day.`;
 }
+
+/**
+ * Little cheers shown while brushing — one per step of the guide, in order, so
+ * "Halfway hero" lands at the halfway mark and the last one at the finish.
+ * Pure encouragement on purpose: no technique tips, nothing clinical
+ * (docs/CLINICAL.md). Short enough to fit a sticker on one line.
+ */
+export const BRUSHING_CHEERS = [
+  'Bubble power, go!',
+  'Look at you go',
+  'Wiggle, wiggle, shine',
+  'Sparkle mode: on',
+  'Your smile is glowing',
+  'Halfway hero!',
+  'Foam party in here',
+  'Super brusher at work',
+  'So close, keep shining',
+  'Big finish, superstar!',
+] as const;

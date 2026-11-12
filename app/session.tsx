@@ -12,7 +12,7 @@ import { BrushTimer } from '@/components/brushing/BrushTimer';
 import { MouthMap, type ZoneState } from '@/components/brushing/MouthMap';
 import { Sticker } from '@/components/kids/Sticker';
 import { Button } from '@/components/ui/Button';
-import { buildCoachMessage } from '@/lib/coach';
+import { BRUSHING_CHEERS, buildCoachMessage } from '@/lib/coach';
 import { generateCoachMessage } from '@/lib/gemini';
 import { nextStreak } from '@/lib/streak';
 import { ALL_TOOTH_ZONES, BRUSHING_DURATION_SECONDS, COUNTDOWN_SECONDS } from '@/lib/constants';
@@ -188,9 +188,9 @@ export default function SessionScreen() {
           </View>
         ) : (
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20 }}>
-            {/* Guided-brushing indicator (Phase 1 has no zone detection yet) */}
+            {/* A cheer per guide step (Phase 1 has no zone detection yet) */}
             <View style={{ marginTop: 8 }}>
-              <Sticker label="Follow Sparky's guide" />
+              <Sticker label={BRUSHING_CHEERS[Math.min(zonesReached, BRUSHING_CHEERS.length - 1)]} />
             </View>
 
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
