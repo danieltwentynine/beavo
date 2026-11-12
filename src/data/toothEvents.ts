@@ -14,6 +14,17 @@ import { z } from 'zod';
 import type { Category, ToothEvent, ToothEventType } from '@/types';
 
 import { parseDocs } from './firestore.ts';
+import {
+  LOCAL_UID,
+  localAddCategory,
+  localAddToothEvents,
+  localDeleteCategory,
+  localDeleteToothEvent,
+  localSeedCategories,
+  localUpdateCategory,
+  watchLocalCategories,
+  watchLocalToothEvents,
+} from './local.ts';
 import { isPrimaryTooth } from './teeth.ts';
 
 // ---- Tooth events (health data: symptoms and treatments per FDI tooth) ----
@@ -37,6 +48,7 @@ export function addToothEvent(
   event: Omit<ToothEvent, 'id'>,
 ): { id: string; written: Promise<void> } {
   const ref = doc(toothEventsRef(db, uid, childId));
+  if (uid === LOCAL_UID) return { id: ref.id, written: localAddToothEvents(childId, [{ ...event, id: ref.id }]) };
   return { id: ref.id, written: setDoc(ref, event) };
 }
 
@@ -47,18 +59,22 @@ export function watchToothEvents(
   onChange: (events: ToothEvent[]) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
+  if (uid === LOCAL_UID) return watchLocalToothEvents(childId, onChange);
   return onSnapshot(toothEventsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, toothEventSchema)), onError);
 }
 
 /** One event per tooth in a single atomic batch (multi-select logging). */
 export function addToothEvents(db: Firestore, uid: string, childId: string, events: readonly Omit<ToothEvent, 'id'>[]): Promise<void> {
+  if (uid === LOCAL_UID) {
+    return localAddToothEvents(childId, events.map((event) => ({ ...event, id: doc(toothEventsRef(db, uid, childId)).id })));
+  }
   const batch = writeBatch(db);
   for (const event of events) batch.set(doc(toothEventsRef(db, uid, childId)), event);
   return batch.commit();
 }
 
 export const deleteToothEvent = (db: Firestore, uid: string, childId: string, eventId: string): Promise<void> =>
-  deleteDoc(doc(toothEventsRef(db, uid, childId), eventId));
+  uid === LOCAL_UID ? localDeleteToothEvent(childId, eventId) : deleteDoc(doc(toothEventsRef(db, uid, childId), eventId));
 
 // ---- Categories (per parent) ----
 
@@ -91,6 +107,9 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
 
 /** Write the default categories (names already localized). Run once, for a new account. */
 export function seedDefaultCategories(db: Firestore, uid: string, names: Record<string, string>): Promise<void> {
+  if (uid === LOCAL_UID) {
+    return localSeedCategories(DEFAULT_CATEGORIES.map((c) => ({ id: c.id, name: names[c.id] ?? c.id, type: c.type, color: c.color, isDefault: true })));
+  }
   const batch = writeBatch(db);
   for (const c of DEFAULT_CATEGORIES) {
     batch.set(doc(categoriesRef(db, uid), c.id), { name: names[c.id] ?? c.id, type: c.type, color: c.color, isDefault: true });
@@ -100,15 +119,16 @@ export function seedDefaultCategories(db: Firestore, uid: string, names: Record<
 
 export function addCategory(db: Firestore, uid: string, category: Omit<Category, 'id' | 'isDefault'>): { id: string; written: Promise<void> } {
   const ref = doc(categoriesRef(db, uid));
+  if (uid === LOCAL_UID) return { id: ref.id, written: localAddCategory({ ...category, id: ref.id, isDefault: false }) };
   return { id: ref.id, written: setDoc(ref, { ...category, isDefault: false }) };
 }
 
 export const updateCategory = (db: Firestore, uid: string, categoryId: string, patch: Partial<Pick<Category, 'name' | 'color'>>): Promise<void> =>
-  updateDoc(doc(categoriesRef(db, uid), categoryId), patch);
+  uid === LOCAL_UID ? localUpdateCategory(categoryId, patch) : updateDoc(doc(categoriesRef(db, uid), categoryId), patch);
 
 /** Events that used it keep their categoryId and show without a category name. */
 export const deleteCategory = (db: Firestore, uid: string, categoryId: string): Promise<void> =>
-  deleteDoc(doc(categoriesRef(db, uid), categoryId));
+  uid === LOCAL_UID ? localDeleteCategory(categoryId) : deleteDoc(doc(categoriesRef(db, uid), categoryId));
 
 /** `fromCache`: the list may be incomplete (offline) — don't treat empty as "none exist". */
 export function watchCategories(
@@ -117,5 +137,6 @@ export function watchCategories(
   onChange: (categories: Category[], fromCache: boolean) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
+  if (uid === LOCAL_UID) return watchLocalCategories((categories) => onChange(categories, false));
   return onSnapshot(categoriesRef(db, uid), (snap) => onChange(parseDocs(snap, categorySchema), snap.metadata.fromCache), onError);
 }

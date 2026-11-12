@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { User } from 'firebase/auth';
 
 import { db } from '@/lib/firebase';
 import { locale, t, type StringKey } from '@/lib/i18n';
@@ -7,6 +6,7 @@ import { LEGAL_VERSIONS } from '@/lib/legal';
 import type { ConsentStatus } from '@/stores/authStore';
 import { fetchUserProfile, saveConsent } from '@/src/data/account';
 import { background } from '@/src/data/firestore';
+import { LOCAL_UID } from '@/src/data/local';
 import { DEFAULT_CATEGORIES, seedDefaultCategories } from '@/src/data/toothEvents';
 import type { UserProfile } from '@/types';
 
@@ -56,6 +56,8 @@ export function seedCategories(uid: string): void {
 export async function checkConsent(uid: string): Promise<Exclude<ConsentStatus, 'unknown'>> {
   const local = await readLocal(uid);
   if (isCurrent(local)) return 'ok';
+  // Without an account the acceptance is recorded on this device only.
+  if (uid === LOCAL_UID) return local ? 'updated' : 'needed';
   try {
     const consent = (await fetchUserProfile(db, uid))?.consent;
     if (!consent) return 'needed';
@@ -70,8 +72,17 @@ export async function checkConsent(uid: string): Promise<Exclude<ConsentStatus, 
   }
 }
 
-/** Record acceptance of the current versions. Works offline; syncs on reconnect. */
-export async function acceptConsent(user: User): Promise<void> {
+/**
+ * Record acceptance of the current versions. Works offline; syncs on reconnect.
+ * Without an account (`LOCAL_UID`) it is recorded on this device only.
+ */
+export async function acceptConsent(user: { uid: string; displayName?: string | null }): Promise<void> {
+  if (user.uid === LOCAL_UID) {
+    // Seeding only adds missing defaults, so re-consenting keeps the parent's edits.
+    seedCategories(LOCAL_UID);
+    await writeLocal(LOCAL_UID);
+    return;
+  }
   let existing: UserProfile | null | undefined;
   try {
     existing = await fetchUserProfile(db, user.uid);

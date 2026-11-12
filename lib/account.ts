@@ -8,11 +8,15 @@ import { auth, db } from '@/lib/firebase';
 import { reauthenticateWithGoogle, signOutGoogle } from '@/lib/socialAuth';
 import { dropOutboxForChild, dropOutboxForUser } from '@/lib/sync';
 import { clearConsentRecord } from '@/lib/consent';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { clearSnapshot, useChildStore } from '@/stores/childStore';
 import { deleteAllUserData, exportAllData, importBackup } from '@/src/data/account';
 import { MAX_BACKUP_BYTES, parseBackup, type Backup } from '@/src/data/backup';
 import { localDate } from '@/src/data/schedule';
 import { deleteChild } from '@/src/data/children';
+import { LOCAL_UID, localBackup, localImport } from '@/src/data/local';
+
+const ownerId = () => ownerIdOf(useAuthStore.getState());
 
 /**
  * Sign the parent out. The on-device child snapshot is cleared by the auth
@@ -40,16 +44,21 @@ export function reauthMethod(): 'google' | 'password' | null {
 
 /**
  * Export all of the parent's data as a .json backup file through the share
- * sheet. Needs a connection. The temporary file is deleted once the sheet closes.
+ * sheet. Needs a connection, except without an account, where the data is
+ * already on the device. The temporary file is deleted once the sheet closes.
  */
 export async function shareDataExport(): Promise<boolean> {
   const user = auth.currentUser;
-  if (!user) return false;
+  const uid = ownerId();
+  if (!uid) return false;
   const file = new File(Paths.cache, `beavo-backup-${localDate(new Date())}.json`);
   try {
     // Sign-in data lives in Firebase Auth, not Firestore — include it so the export is complete.
-    const account = { email: user.email ?? null, displayName: user.displayName ?? null, providers: user.providerData.map((p) => p.providerId) };
-    const data = { ...(await exportAllData(db, user.uid)), account };
+    const account = user ? { email: user.email ?? null, displayName: user.displayName ?? null, providers: user.providerData.map((p) => p.providerId) } : null;
+    const data =
+      uid === LOCAL_UID || !user
+        ? { ...(await localBackup()), exportedAt: new Date().toISOString() }
+        : { ...(await exportAllData(db, uid)), account };
     if (file.exists) file.delete();
     file.create();
     file.write(JSON.stringify(data, null, 2));
@@ -105,12 +114,12 @@ export function cleanupBackupFiles(): void {
   }
 }
 
-/** Merge a validated backup into this account. Needs a connection. Returns docs written, or null on failure. */
+/** Merge a validated backup into this account (needs a connection) or, without one, into this device. Returns records written, or null on failure. */
 export async function restoreBackup(backup: Backup): Promise<number | null> {
-  const uid = auth.currentUser?.uid;
+  const uid = ownerId();
   if (!uid) return null;
   try {
-    return await importBackup(db, uid, backup);
+    return uid === LOCAL_UID ? await localImport(backup) : await importBackup(db, uid, backup);
   } catch {
     return null;
   }
@@ -118,7 +127,7 @@ export async function restoreBackup(backup: Backup): Promise<number | null> {
 
 /** Delete one child and everything under it. Needs a connection. */
 export async function deleteChildProfile(childId: string): Promise<boolean> {
-  const uid = auth.currentUser?.uid;
+  const uid = ownerId();
   if (!uid) return false;
   try {
     await deleteChild(db, uid, childId);

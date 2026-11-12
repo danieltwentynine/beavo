@@ -17,7 +17,7 @@ import { useToothEvents } from '@/hooks/useToothEvents';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { background } from '@/src/data/firestore';
 import { localDate } from '@/src/data/schedule';
 import { isPrimaryTooth, isValidEventDate, newestFirst } from '@/src/data/teeth';
@@ -34,7 +34,7 @@ export default function ToothSheet() {
   const teeth = useMemo(() => (teethParam ?? '').split(',').map(Number).filter(isPrimaryTooth), [teethParam]);
   const single = teeth.length === 1;
 
-  const uid = useAuthStore((s) => s.user?.uid ?? null);
+  const uid = useAuthStore(ownerIdOf);
   const { child } = useActiveChild();
   const events = useToothEvents();
   const categories = useCategories();

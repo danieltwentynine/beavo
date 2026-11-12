@@ -277,6 +277,30 @@ const ptBR = {
   'intro.trustCamera': 'Câmera só como espelho, nada é gravado',
   'intro.createAccount': 'Criar conta dos pais',
   'intro.signIn': 'Entrar na minha conta',
+
+  'local.use': 'Usar sem conta',
+  'local.note': 'Sem conta, tudo fica salvo só neste celular e se perde se o app for apagado.',
+  'local.setupFail': 'Não foi possível preparar este celular. Tente de novo.',
+  'more.device': 'Este celular',
+  'more.deviceHint':
+    'Você usa o Beavo sem conta: os dados ficam só neste celular e se perdem se o app for apagado. Exporte um backup de vez em quando.',
+  'more.createAccount': 'Criar uma conta',
+  'more.haveAccount': 'Já tenho uma conta',
+  'more.erase': 'Apagar os dados deste celular',
+  'more.eraseTitle': 'Apagar tudo deste celular?',
+  'more.eraseBody':
+    'Os perfis das crianças, horários, escovações e registros dentários deste celular serão apagados. Isso não pode ser desfeito.',
+  'more.eraseConfirm': 'Apagar tudo',
+  'more.eraseKeep': 'Manter meus dados',
+  'more.eraseFail': 'Nada foi apagado. Tente de novo.',
+  'move.title': 'Levar os perfis deste celular para a sua conta?',
+  'move.body':
+    'Este celular tem perfis que não estão em nenhuma conta: {names}. Ao levar, os perfis, horários, escovações e registros dentários ficam salvos na sua conta e saem do celular.',
+  'move.keepHint': 'Se deixar, eles continuam só neste celular e voltam a aparecer quando você sair da conta.',
+  'move.confirm': 'Levar para a minha conta',
+  'move.keep': 'Deixar neste celular',
+  'move.fail':
+    'Não foi possível levar agora: parte dos dados pode já estar na conta. Verifique a internet e tente de novo (nada é duplicado, e nada foi apagado do celular).',
 } as const;
 
 export type StringKey = keyof typeof ptBR;
@@ -550,6 +574,30 @@ const en: Record<StringKey, string> = {
   'intro.trustCamera': 'Camera is only a mirror; nothing is recorded',
   'intro.createAccount': 'Create parent account',
   'intro.signIn': 'Sign in to my account',
+
+  'local.use': 'Use without an account',
+  'local.note': 'Without an account, everything is saved only on this phone and is lost if the app is deleted.',
+  'local.setupFail': "We couldn't set up this phone. Please try again.",
+  'more.device': 'This phone',
+  'more.deviceHint':
+    "You're using Beavo without an account: the data is only on this phone and is lost if the app is deleted. Export a backup now and then.",
+  'more.createAccount': 'Create an account',
+  'more.haveAccount': 'I already have an account',
+  'more.erase': 'Erase data on this phone',
+  'more.eraseTitle': 'Erase everything on this phone?',
+  'more.eraseBody':
+    "The children's profiles, brushing times, sessions and dental records on this phone will be erased. This can't be undone.",
+  'more.eraseConfirm': 'Erase everything',
+  'more.eraseKeep': 'Keep my data',
+  'more.eraseFail': 'Nothing was erased. Please try again.',
+  'move.title': "Move this phone's profiles into your account?",
+  'move.body':
+    "This phone has profiles that aren't in any account: {names}. Moving them saves the profiles, brushing times, sessions and dental records to your account and removes them from the phone.",
+  'move.keepHint': 'If you leave them, they stay only on this phone and show again when you log out.',
+  'move.confirm': 'Move to my account',
+  'move.keep': 'Leave on this phone',
+  'move.fail':
+    "We couldn't move them right now: some data may already be in the account. Check your connection and try again (nothing is duplicated, and nothing was erased from the phone).",
 };
 
 export const locale: Locale = getLocales()[0]?.languageCode === 'en' ? 'en' : 'pt-BR';

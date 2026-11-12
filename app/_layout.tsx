@@ -11,11 +11,12 @@ import { AppState } from 'react-native';
 import { LogoScreen } from '@/components/brand/LogoScreen';
 import { useChildDataSync } from '@/hooks/useChildDataSync';
 import { cleanupBackupFiles } from '@/lib/account';
+import { isLocalMode, startLocalStore } from '@/lib/localData';
 import { checkConsent } from '@/lib/consent';
 import { auth } from '@/lib/firebase';
 import { flushOutbox } from '@/lib/sync';
 import { tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { clearSnapshot } from '@/stores/childStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 
@@ -27,12 +28,17 @@ export default function RootLayout() {
   const hideLogo = useCallback(() => setLogoDone(true), []);
   const setUser = useAuthStore((state) => state.setUser);
   const setConsent = useAuthStore((state) => state.setConsent);
+  const setLocal = useAuthStore((state) => state.setLocal);
   const loadSettings = useSettingsStore((state) => state.load);
   useEffect(() => {
     void loadSettings();
     cleanupBackupFiles();
-  }, [loadSettings]);
-  const uid = useAuthStore((state) => state.user?.uid ?? null);
+    // Device-only mode (ADR 0005): the data kept on this phone, and whether it is in use.
+    void startLocalStore();
+    void isLocalMode().then(setLocal);
+  }, [loadSettings, setLocal]);
+  // The signed-in parent, or this device when Beavo is used without an account.
+  const uid = useAuthStore((state) => (state.isLoading ? null : ownerIdOf(state)));
   useChildDataSync(uid);
   const lastUid = useRef<string | null>(null);
 
@@ -51,16 +57,23 @@ export default function RootLayout() {
       // the previous parent's child names from this device.
       if (!user && lastUid.current) void clearSnapshot(lastUid.current);
       lastUid.current = user?.uid ?? null;
-      if (!user) return;
-      // Sessions saved offline in an earlier run: retried once we know which
-      // parent is signed in, since the security rules are scoped to them.
-      void flushOutbox(user.uid);
-      void checkConsent(user.uid).then((status) => {
-        if (useAuthStore.getState().user?.uid === user.uid) setConsent(status);
-      });
     });
     return unsubscribe;
-  }, [setUser, setConsent]);
+  }, [setUser]);
+
+  useEffect(() => {
+    if (!uid) return;
+    let stale = false;
+    // Sessions saved offline in an earlier run: retried once we know whose they
+    // are, since the security rules are scoped to the signed-in parent.
+    void flushOutbox(uid);
+    void checkConsent(uid).then((status) => {
+      if (!stale) setConsent(status);
+    });
+    return () => {
+      stale = true;
+    };
+  }, [uid, setConsent]);
 
   // Back in the foreground (often back online too): retry unconfirmed sessions.
   useEffect(() => {

@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { signOutParent } from '@/lib/account';
+import { leaveLocalMode } from '@/lib/localData';
 import { acceptConsent } from '@/lib/consent';
 import { t } from '@/lib/i18n';
 import { LEGAL_URLS } from '@/lib/legal';
 import { controlBorder, radius, tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 
 /**
  * Parent consent to the Terms and Privacy Policy (LGPD art. 14: specific
@@ -20,6 +21,7 @@ import { useAuthStore } from '@/stores/authStore';
  */
 export default function ConsentScreen() {
   const user = useAuthStore((s) => s.user);
+  const ownerId = useAuthStore(ownerIdOf);
   const status = useAuthStore((s) => s.consent);
   const setConsent = useAuthStore((s) => s.setConsent);
   const [checked, setChecked] = useState(false);
@@ -28,15 +30,18 @@ export default function ConsentScreen() {
   const { gate, requireParent } = useParentalGate();
 
   const onAccept = async () => {
-    if (!user || !checked) return;
+    if (!ownerId || !checked) return;
     setSaving(true);
-    await acceptConsent(user);
+    await acceptConsent({ uid: ownerId, displayName: user?.displayName });
     setConsent('ok');
     router.replace('/');
   };
 
   const onSignOut = async () => {
-    if (await signOutParent()) router.replace('/onboarding/welcome');
+    // Without an account there is nothing to sign out of: just step back out.
+    if (!user) await leaveLocalMode();
+    else if (!(await signOutParent())) return;
+    router.replace('/onboarding/welcome');
   };
 
   const link = (label: string, url: string) => (
@@ -87,7 +92,7 @@ export default function ConsentScreen() {
 
         <View style={{ marginTop: 'auto', paddingTop: 28, rowGap: 12 }}>
           <Button label={t('consent.continue')} size="lg" onPress={onAccept} disabled={!checked} loading={saving} />
-          <Button label={t('consent.signOut')} variant="ghost" onPress={onSignOut} />
+          <Button label={user ? t('consent.signOut') : t('childForm.back')} variant="ghost" onPress={onSignOut} />
         </View>
       </ScrollView>
       {gate}

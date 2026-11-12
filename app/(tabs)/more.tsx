@@ -10,6 +10,7 @@ import {
   Tag,
   Trash,
   UploadSimple,
+  UserPlus,
   UsersThree,
 } from 'phosphor-react-native';
 import { useState, type ReactNode } from 'react';
@@ -32,8 +33,10 @@ import {
   type DeleteAccountResult,
 } from '@/lib/account';
 import { t } from '@/lib/i18n';
+import { eraseLocalData } from '@/lib/localData';
 import { LEGAL_URLS, REVIEW_URL } from '@/lib/legal';
 import { tokens } from '@/lib/tokens';
+import { useAuthStore } from '@/stores/authStore';
 
 async function openExternal(url: string) {
   try {
@@ -58,6 +61,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
  */
 export default function MoreTab() {
   const [busy, setBusy] = useState<'export' | 'import' | 'delete' | null>(null);
+  // No account: the data is only on this phone (ADR 0005), so the account rows don't apply.
+  const signedIn = useAuthStore((s) => s.user !== null);
   const { gate, requireParent } = useParentalGate();
 
   const confirmSignOut = () =>
@@ -104,6 +109,22 @@ export default function MoreTab() {
       },
     ]);
   };
+
+  const confirmErase = () =>
+    Alert.alert(t('more.eraseTitle'), t('more.eraseBody'), [
+      { text: t('more.eraseKeep'), style: 'cancel' },
+      {
+        text: t('more.eraseConfirm'),
+        style: 'destructive',
+        onPress: async () => {
+          setBusy('delete');
+          const ok = await eraseLocalData();
+          setBusy(null);
+          if (ok) router.replace('/onboarding/welcome');
+          else Alert.alert(t('more.eraseFail'));
+        },
+      },
+    ]);
 
   const runDelete = async (password?: string) => {
     setBusy('delete');
@@ -185,16 +206,35 @@ export default function MoreTab() {
           <ListRow Icon={ShieldCheck} label={t('consent.privacy')} external onPress={() => requireParent(() => void openExternal(LEGAL_URLS.privacy))} last />
         </Section>
 
-        <Section title={t('more.account')}>
-          <ListRow Icon={SignOut} label={t('more.signOut')} onPress={() => requireParent(confirmSignOut)} />
-          <ListRow
-            Icon={Trash}
-            label={t('more.delete')}
-            hint={busy === 'delete' ? '…' : undefined}
-            onPress={() => requireParent(confirmDelete)}
-            last
-          />
-        </Section>
+        {signedIn ? (
+          <Section title={t('more.account')}>
+            <ListRow Icon={SignOut} label={t('more.signOut')} onPress={() => requireParent(confirmSignOut)} />
+            <ListRow
+              Icon={Trash}
+              label={t('more.delete')}
+              hint={busy === 'delete' ? '…' : undefined}
+              onPress={() => requireParent(confirmDelete)}
+              last
+            />
+          </Section>
+        ) : (
+          <View style={{ rowGap: 10 }}>
+            <Section title={t('more.device')}>
+              <ListRow Icon={UserPlus} label={t('more.createAccount')} onPress={() => requireParent(() => router.push('/(auth)/register'))} />
+              <ListRow Icon={SignOut} label={t('more.haveAccount')} onPress={() => requireParent(() => router.push('/(auth)/login'))} />
+              <ListRow
+                Icon={Trash}
+                label={t('more.erase')}
+                hint={busy === 'delete' ? '…' : undefined}
+                onPress={() => requireParent(confirmErase)}
+                last
+              />
+            </Section>
+            <Text className="font-body" style={{ fontSize: 14, lineHeight: 20, color: tokens.textSecondary }}>
+              {t('more.deviceHint')}
+            </Text>
+          </View>
+        )}
 
         <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary, textAlign: 'center' }}>
           {t('more.version', { version: Constants.expoConfig?.version ?? '' })}

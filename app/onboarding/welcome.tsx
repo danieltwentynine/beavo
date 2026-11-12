@@ -15,6 +15,8 @@ import Svg, { Path } from 'react-native-svg';
 
 import { BeavoWave, BeavoLockup } from '@/components/brand/BeavoBrand';
 import { Button } from '@/components/ui/Button';
+import { t } from '@/lib/i18n';
+import { enterLocalMode } from '@/lib/localData';
 import { signInWithGoogle } from '@/lib/socialAuth';
 import { tokens } from '@/lib/tokens';
 
@@ -89,6 +91,12 @@ export default function WelcomeScreen() {
     }
   };
 
+  const onUseWithoutAccount = async () => {
+    setSignInError(null);
+    if (await enterLocalMode()) router.replace('/');
+    else setSignInError(t('local.setupFail'));
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 28, paddingBottom: 32 }}>
@@ -133,6 +141,10 @@ export default function WelcomeScreen() {
             variant="ghost"
             onPress={() => router.push('/(auth)/login')}
           />
+          <Button label={t('local.use')} variant="ghost" onPress={onUseWithoutAccount} />
+          <Text className="font-body" style={{ fontSize: 14, lineHeight: 20, color: tokens.textSecondary, textAlign: 'center' }}>
+            {t('local.note')}
+          </Text>
         </View>
       </SafeAreaView>
     </View>

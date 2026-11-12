@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 import { db } from '@/lib/firebase';
 import { saveSession } from '@/lib/sync';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
 import { localDate, pickSlotForTime, slotsActiveOn } from '@/src/data/schedule';
 import { newSessionId } from '@/src/data/sessions';
@@ -48,25 +48,25 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     const { lastResult, saveStatus, saveId } = get();
     if (!lastResult || saveStatus === 'saved') return;
 
-    const user = useAuthStore.getState().user;
+    const uid = ownerIdOf(useAuthStore.getState());
     const slots = useChildStore.getState().slotsByChild[lastResult.childId] ?? [];
     // The slot is resolved against the slots active on the day brushing started.
     const day = localDate(lastResult.startedAt);
     const activeThatDay = slotsActiveOn(slots, day);
     const slot = activeThatDay.find((s) => s.id === lastResult.slotId) ?? pickSlotForTime(activeThatDay, lastResult.startedAt);
-    if (!user || !slot) {
+    if (!uid || !slot) {
       // Signed out, or slots not loaded yet. Keep the result so "Try again" can save it.
       set({ saveStatus: 'failed' });
       return;
     }
 
-    const id = saveId ?? newSessionId(db, user.uid, lastResult.childId);
+    const id = saveId ?? newSessionId(db, uid, lastResult.childId);
     set({ saveId: id, saveStatus: 'saving' });
 
     // Durable in the on-device outbox once this is called; the promise settles
     // when the server confirms (offline: when back online, or the next launch).
     const write = saveSession({
-      uid: user.uid,
+      uid,
       childId: lastResult.childId,
       id,
       slotId: slot.id,

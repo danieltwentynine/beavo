@@ -23,7 +23,7 @@ import { useSessions } from '@/hooks/useSessions';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { pressShadow, radius, tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { updateChild } from '@/src/data/children';
 import { background } from '@/src/data/firestore';
 import { localDate, slotAt, slotsActiveOn } from '@/src/data/schedule';
@@ -148,7 +148,7 @@ function StartButton({ label, disabled, onPress }: { label: string; disabled: bo
 
 /** Today only: the active child's slots, the start button, kid mode and routine editing. */
 export default function BrushingTab() {
-  const uid = useAuthStore((s) => s.user?.uid ?? null);
+  const uid = useAuthStore(ownerIdOf);
   const { child, slots } = useActiveChild();
   const sessions = useSessions();
   const now = useNow();

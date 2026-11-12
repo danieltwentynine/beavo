@@ -12,7 +12,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { background } from '@/src/data/firestore';
 import { DEFAULT_CATEGORIES, addCategory, deleteCategory, updateCategory } from '@/src/data/toothEvents';
 import type { Category, ToothEventType } from '@/types';
@@ -89,7 +89,7 @@ function TypeSection({ uid, type, title, categories }: { uid: string; type: Toot
 
 /** Parent edits symptom/treatment categories (reached through the gate in More). Defaults can be renamed, not deleted. */
 export default function CategoriesScreen() {
-  const uid = useAuthStore((s) => s.user?.uid ?? null);
+  const uid = useAuthStore(ownerIdOf);
   const categories = useCategories();
   if (!uid) return null;
   const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));

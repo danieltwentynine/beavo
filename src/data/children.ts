@@ -14,6 +14,7 @@ import { z } from 'zod';
 import type { Child } from '@/types';
 
 import { deleteCollection, optionalDate, date, parseDocs } from './firestore.ts';
+import { LOCAL_UID, localCreateChild, localDeleteChild, localUpdateChild, watchLocalChildren } from './local.ts';
 import { defaultSlots, type DefaultSlotLabels } from './schedule.ts';
 
 /** Profile limit per parent. Infinity = unlimited. */
@@ -53,6 +54,12 @@ export function createChild(
   slotLabels: DefaultSlotLabels,
 ): { id: string; written: Promise<void> } {
   const ref = doc(childrenRef(db, uid));
+  if (uid === LOCAL_UID) {
+    // Firestore's id generator works offline; the ids stay valid doc ids if the
+    // parent later moves this child into an account.
+    const slots = defaultSlots(slotLabels).map((slot) => ({ ...slot, id: doc(collection(ref, 'brushingSlots')).id }));
+    return { id: ref.id, written: localCreateChild(ref.id, input, slots, new Date()) };
+  }
   const now = Timestamp.now();
   const batch = writeBatch(db);
   batch.set(ref, {
@@ -76,6 +83,7 @@ export function updateChild(
   childId: string,
   patch: Partial<ChildInput & { kidMode: boolean }>,
 ): Promise<void> {
+  if (uid === LOCAL_UID) return localUpdateChild(childId, patch);
   const { birthYear, ...rest } = patch;
   return updateDoc(childRef(db, uid, childId), {
     ...rest,
@@ -94,6 +102,7 @@ export function watchChildren(
   onChange: (children: Child[], fromCache: boolean) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
+  if (uid === LOCAL_UID) return watchLocalChildren((children) => onChange(children, false));
   return onSnapshot(
     childrenRef(db, uid),
     (snap) => {
@@ -115,6 +124,7 @@ export function watchChildren(
  * or account deletion still finds it.
  */
 export async function deleteChild(db: Firestore, uid: string, childId: string): Promise<void> {
+  if (uid === LOCAL_UID) return localDeleteChild(childId);
   const ref = childRef(db, uid, childId);
   await updateDoc(ref, { archivedAt: Timestamp.now() });
   for (const sub of CHILD_SUBCOLLECTIONS) await deleteCollection(db, collection(ref, sub));

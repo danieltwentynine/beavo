@@ -12,7 +12,7 @@ import { useActiveChild } from '@/hooks/useActiveChild';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { radius, tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { background } from '@/src/data/firestore';
 import { canRemoveSlot, currentSlots, isValidWindow, moveSlot } from '@/src/data/schedule';
 import { addSlot, removeSlot, reorderSlots, updateSlot, type SlotPatch } from '@/src/data/slots';
@@ -113,13 +113,12 @@ function SlotRow({ slot, isFirst, isLast, canRemove, onChange, onMove, onRemove 
 
 /** Parent edits the active child's brushing slots. Writes are instant and sync when online. */
 export default function SlotsScreen() {
-  const user = useAuthStore((s) => s.user);
+  const uid = useAuthStore(ownerIdOf);
   const { child, slots } = useActiveChild();
   const current = currentSlots(slots);
   const removable = canRemoveSlot(current);
 
-  if (!user || !child) return <SafeScreen>{null}</SafeScreen>;
-  const uid = user.uid;
+  if (!uid || !child) return <SafeScreen>{null}</SafeScreen>;
   const childId = child.id;
 
   const add = () => {

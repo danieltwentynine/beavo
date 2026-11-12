@@ -67,3 +67,6 @@ zing-design-system*.zip
 
 # Legal pages built from /legal by scripts/build-legal.mjs (Hosting predeploy)
 /public/legal/
+
+# Enola sh*t
+.enola/

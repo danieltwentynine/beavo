@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { db } from '@/lib/firebase';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { watchAllSessions } from '@/src/data/sessions';
 import type { BrushingSession } from '@/types';
 
@@ -10,7 +10,7 @@ const NONE: BrushingSession[] = [];
 
 /** Live brushing sessions of the active child (all dates). */
 export function useSessions(): BrushingSession[] {
-  const uid = useAuthStore((s) => s.user?.uid ?? null);
+  const uid = useAuthStore(ownerIdOf);
   const { child } = useActiveChild();
   const childId = child?.id ?? null;
   const key = uid && childId ? `${uid}/${childId}` : null;

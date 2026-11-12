@@ -13,7 +13,7 @@ import { deleteChildProfile } from '@/lib/account';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { radius, tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { MAX_CHILDREN, createChild, updateChild } from '@/src/data/children';
 import { background } from '@/src/data/firestore';
 
@@ -38,7 +38,7 @@ const formSchema = z.object({
  */
 export default function ChildFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const user = useAuthStore((s) => s.user);
+  const uid = useAuthStore(ownerIdOf);
   const consent = useAuthStore((s) => s.consent);
   const { children, setActiveChild } = useActiveChild();
   const existing = id ? children.find((c) => c.id === id) : undefined;
@@ -57,7 +57,7 @@ export default function ChildFormScreen() {
   const leave = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/overview'));
 
   const onSave = () => {
-    if (!user) return;
+    if (!uid) return;
     const parsed = formSchema.safeParse({ name, birthYear });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? t('childForm.errName'));
@@ -65,7 +65,7 @@ export default function ChildFormScreen() {
     }
     const input = { name: parsed.data.name, avatarIcon: icon, avatarColor: color, birthYear: parsed.data.birthYear };
     if (existing) {
-      background(updateChild(db, user.uid, existing.id, input));
+      background(updateChild(db, uid, existing.id, input));
       leave();
       return;
     }
@@ -74,7 +74,7 @@ export default function ChildFormScreen() {
       return;
     }
     // Not awaited: works offline, and the listener shows the child at once.
-    const created = createChild(db, user.uid, input, {
+    const created = createChild(db, uid, input, {
       breakfast: t('slots.breakfast'),
       lunch: t('slots.lunch'),
       dinner: t('slots.dinner'),
