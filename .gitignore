@@ -68,5 +68,8 @@ ds-bundle/
 .design-sync/learnings/
 .design-sync/node_modules
 
+# Enola (generated architecture snapshot; machine-specific)
+.enola/
+
 # Design exports (source zips from Claude Design; adopted content lives in the repo)
 zing-design-system*.zip
