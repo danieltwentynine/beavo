@@ -12,27 +12,15 @@ import { BrushTimer } from '@/components/brushing/BrushTimer';
 import { MouthMap, type ZoneState } from '@/components/brushing/MouthMap';
 import { Sticker } from '@/components/kids/Sticker';
 import { Button } from '@/components/ui/Button';
-import { BRUSHING_CHEERS, buildCoachMessage } from '@/lib/coach';
+import { brushingCheer, buildCoachMessage } from '@/lib/coach';
 import { generateCoachMessage } from '@/lib/gemini';
+import { locale, t } from '@/lib/i18n';
 import { nextStreak } from '@/lib/streak';
 import { ALL_TOOTH_ZONES, BRUSHING_DURATION_SECONDS, COUNTDOWN_SECONDS } from '@/lib/constants';
 import { outline, palette, tokens } from '@/lib/tokens';
 import { useChildStore } from '@/stores/childStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import type { ToothZone } from '@/types';
-
-const ZONE_HINTS: Record<ToothZone, string> = {
-  'top-front': 'Brush your top front teeth',
-  'top-left': 'Now the top left',
-  'top-right': 'Now the top right',
-  'top-back-left': 'Reach the top back left',
-  'top-back-right': 'Reach the top back right',
-  'bottom-front': 'Down to the bottom front',
-  'bottom-left': 'Bottom left now',
-  'bottom-right': 'Bottom right — nice!',
-  'bottom-back-left': "Back teeth — you've got this",
-  'bottom-back-right': 'Last one — keep going!',
-};
 
 export default function SessionScreen() {
   const child = useChildStore((s) => s.activeChild);
@@ -51,7 +39,7 @@ export default function SessionScreen() {
   const [remaining, setRemaining] = useState(BRUSHING_DURATION_SECONDS);
   const remainingRef = useRef(BRUSHING_DURATION_SECONDS);
   const finishedRef = useRef(false);
-  const childName = child?.name ?? 'friend';
+  const childName = child?.name ?? t('common.friend');
 
   // Zone progress is derived from the clock: one source of truth, no drift.
   const elapsed = BRUSHING_DURATION_SECONDS - remaining;
@@ -103,7 +91,7 @@ export default function SessionScreen() {
     });
 
     const score = Math.round((reached / ALL_TOOTH_ZONES.length) * 100);
-    const name = child?.name ?? 'friend';
+    const name = child?.name ?? t('common.friend');
     // Gemini has its own short timeout; any failure keeps the local message.
     const coachMessage =
       (child &&
@@ -112,6 +100,7 @@ export default function SessionScreen() {
           missedZones: missed,
           score,
           streakDays: nextStreak(child, new Date()),
+          locale,
         }))) ||
       buildCoachMessage(name, missed, score);
 
@@ -155,7 +144,7 @@ export default function SessionScreen() {
       <SafeAreaView style={{ flex: 1 }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Cancel brushing"
+          accessibilityLabel={t('session.cancel')}
           onPress={() => router.back()}
           style={{
             // Absolute children ignore SafeAreaView padding — offset by the inset.
@@ -180,17 +169,17 @@ export default function SessionScreen() {
         ) : phase === 'countdown' ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 10 }}>
             <Text className="font-numeric" style={{ fontSize: 140, color: tokens.feedbackReward, lineHeight: 150 }}>
-              {count <= 0 ? 'Go!' : count}
+              {count <= 0 ? t('session.go') : count}
             </Text>
             <Text className="font-body-semi" style={{ fontSize: 18, color: tokens.textOnBrand }}>
-              Get your toothbrush ready, {childName}!
+              {t('session.ready', { name: childName })}
             </Text>
           </View>
         ) : (
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20 }}>
             {/* A cheer per guide step (Phase 1 has no zone detection yet) */}
             <View style={{ marginTop: 8 }}>
-              <Sticker label={BRUSHING_CHEERS[Math.min(zonesReached, BRUSHING_CHEERS.length - 1)]} />
+              <Sticker label={brushingCheer(zonesReached)} />
             </View>
 
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -201,14 +190,14 @@ export default function SessionScreen() {
               className="font-display"
               style={{ fontSize: 24, color: tokens.textOnBrand, textAlign: 'center', minHeight: 32 }}
             >
-              {ZONE_HINTS[currentZone]}
+              {t(`zone.${currentZone}`)}
             </Text>
 
             <View style={{ marginVertical: 18 }}>
               <BrushTimer remaining={remaining} total={BRUSHING_DURATION_SECONDS} size={150} />
             </View>
 
-            <Button label="I'm done" variant="outline" size="sm" fullWidth={false} onPress={() => void finish()} />
+            <Button label={t('session.done')} variant="outline" size="sm" fullWidth={false} onPress={() => void finish()} />
           </View>
         )}
       </SafeAreaView>

@@ -1,20 +1,17 @@
 import type { ToothZone } from '@/types';
+import { t } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/translations';
 
 /**
- * Builds a warm, kid-friendly coaching message (CLAUDE.md > Gemini Coach voice).
- * Phase 1 uses this local generator; Phase 2 will swap in the Gemini Flash call
- * with this as the offline/rate-limited fallback. Never clinical, never scolding.
+ * Builds a warm, kid-friendly coaching message in the app language — the
+ * fallback whenever the Gemini coach (lib/gemini.ts) fails or times out.
+ * Never clinical, never scolding. The wording lives in lib/translations.ts.
  */
 export function buildCoachMessage(childName: string, missedZones: ToothZone[], score: number): string {
-  const name = childName.trim() || 'friend';
-  if (missedZones.length === 0 || score >= 100) {
-    return `You did it, ${name}! Keep brushing every day and your teeth will sparkle.`;
-  }
-  const missedBackTeeth = missedZones.some((z) => z.includes('back'));
-  if (missedBackTeeth) {
-    return `Awesome job, ${name}! Tomorrow, try to reach all the way to your back teeth.`;
-  }
-  return `Great brushing today, ${name}! Your smile is getting stronger every day.`;
+  const name = childName.trim() || t('common.friend');
+  if (missedZones.length === 0 || score >= 100) return t('coach.perfect', { name });
+  if (missedZones.some((z) => z.includes('back'))) return t('coach.backTeeth', { name });
+  return t('coach.default', { name });
 }
 
 /**
@@ -23,15 +20,19 @@ export function buildCoachMessage(childName: string, missedZones: ToothZone[], s
  * Pure encouragement on purpose: no technique tips, nothing clinical
  * (docs/CLINICAL.md). Short enough to fit a sticker on one line.
  */
-export const BRUSHING_CHEERS = [
-  'Bubble power, go!',
-  'Look at you go',
-  'Wiggle, wiggle, shine',
-  'Sparkle mode: on',
-  'Your smile is glowing',
-  'Halfway hero!',
-  'Foam party in here',
-  'Super brusher at work',
-  'So close, keep shining',
-  'Big finish, superstar!',
-] as const;
+const CHEERS: TranslationKey[] = [
+  'cheer.0',
+  'cheer.1',
+  'cheer.2',
+  'cheer.3',
+  'cheer.4',
+  'cheer.5',
+  'cheer.6',
+  'cheer.7',
+  'cheer.8',
+  'cheer.9',
+];
+
+export function brushingCheer(step: number): string {
+  return t(CHEERS[Math.max(0, Math.min(step, CHEERS.length - 1))]);
+}

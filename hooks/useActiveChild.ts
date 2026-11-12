@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Alert } from 'react-native';
 
 import { fetchActiveChild, moveLocalDataToAccount } from '@/lib/children';
+import { t } from '@/lib/i18n';
 import { LOCAL_UID } from '@/lib/localData';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
@@ -11,11 +12,11 @@ import { useChildStore } from '@/stores/childStore';
 function confirmMove(childName: string): Promise<boolean> {
   return new Promise((resolve) => {
     Alert.alert(
-      `Move ${childName}'s progress into this account?`,
-      `This phone has a profile for ${childName} that isn't in any account. Moving it saves it to this account and removes it from the phone.`,
+      t('move.title', { name: childName }),
+      t('move.body', { name: childName }),
       [
-        { text: 'Keep it on this phone', style: 'cancel', onPress: () => resolve(false) },
-        { text: 'Move it to this account', onPress: () => resolve(true) },
+        { text: t('move.keep'), style: 'cancel', onPress: () => resolve(false) },
+        { text: t('move.confirm'), onPress: () => resolve(true) },
       ],
       { cancelable: false },
     );

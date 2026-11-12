@@ -12,6 +12,7 @@ import {
 import { useState, type ComponentType } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { t } from '@/lib/i18n';
 import { motion, outline, palette, radius, tokens } from '@/lib/tokens';
 
 type AvatarConfig = { Icon: ComponentType<IconProps>; bg: string };
@@ -21,7 +22,7 @@ type AvatarConfig = { Icon: ComponentType<IconProps>; bg: string };
 // no two are within 30 CIELAB dE of each other — a child picks by color name.
 // The Toy box ramps' 500s are too light for a white icon, hence the deep
 // avatar-only shades below.
-const AVATARS: Record<string, AvatarConfig> = {
+const AVATARS = {
   shark: { Icon: Fish, bg: palette.sky[600] },
   robot: { Icon: Robot, bg: palette.ink[900] },
   rocket: { Icon: Rocket, bg: palette.ink[500] },
@@ -30,9 +31,11 @@ const AVATARS: Record<string, AvatarConfig> = {
   butterfly: { Icon: Butterfly, bg: '#6d4fd6' },
   star: { Icon: Star, bg: '#a8850f' },
   heart: { Icon: Heart, bg: palette.bubblegum[600] },
-};
+} satisfies Record<string, AvatarConfig>;
 
-export const AVATAR_IDS = Object.keys(AVATARS);
+type AvatarId = keyof typeof AVATARS;
+
+export const AVATAR_IDS = Object.keys(AVATARS) as AvatarId[];
 
 interface AvatarProps {
   avatarId?: string;
@@ -41,7 +44,7 @@ interface AvatarProps {
 }
 
 export function Avatar({ avatarId = 'dog', size = 56, ring = false }: AvatarProps) {
-  const a = AVATARS[avatarId] ?? AVATARS.dog;
+  const a: AvatarConfig = avatarId in AVATARS ? AVATARS[avatarId as AvatarId] : AVATARS.dog;
   const circle = (
     <View
       style={[
@@ -96,7 +99,7 @@ export function AvatarPicker({ value = 'dog', onChange }: AvatarPickerProps) {
           <Pressable
             key={id}
             accessibilityRole="button"
-            accessibilityLabel={`${id} character`}
+            accessibilityLabel={t(`avatar.${id}`)}
             accessibilityState={{ selected }}
             onPress={() => onChange?.(id)}
             onPressIn={() => setPressedId(id)}

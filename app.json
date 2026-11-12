@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Zing",
+    "name": "Beavo",
     "slug": "zing",
     "version": "1.0.0",
     "scheme": "zing",
@@ -11,7 +11,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.zingdentalai.zing",
       "infoPlist": {
-        "NSCameraUsageDescription": "Zing uses the front camera to see your child's mouth while they brush. Video stays on this phone and is never saved or sent anywhere."
+        "NSCameraUsageDescription": "Beavo uses the front camera to see your child's mouth while they brush. Video stays on this phone and is never saved or sent anywhere.",
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -51,7 +52,17 @@
           "backgroundColor": "#2D5BFF"
         }
       ],
-      "./plugins/withSceneLifecycle"
+      "./plugins/withSceneLifecycle",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": [
+            "en",
+            "pt-BR",
+            "es"
+          ]
+        }
+      ]
     ],
     "extra": {
       "router": {},
@@ -59,6 +70,10 @@
         "projectId": "d9d41921-b061-4b1d-9bc8-813ad94f21ed"
       }
     },
-    "owner": "zing-dental-ai"
+    "owner": "zing-dental-ai",
+    "locales": {
+      "pt-BR": "./locales/pt-BR.json",
+      "es": "./locales/es.json"
+    }
   }
 }

@@ -15,6 +15,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { SparkyWave, ZingLockup } from '@/components/brand/ZingBrand';
 import { Button } from '@/components/ui/Button';
+import { t } from '@/lib/i18n';
 import { readLocalChild, setLocalMode } from '@/lib/localStore';
 import { signInWithGoogle } from '@/lib/socialAuth';
 import { tokens } from '@/lib/tokens';
@@ -99,7 +100,7 @@ export default function WelcomeScreen() {
     try {
       await setLocalMode(true);
     } catch {
-      setSignInError("We couldn't set that up on this phone. Please try again.");
+      setSignInError(t('welcome.localSetupFail'));
       return;
     }
     useAuthStore.getState().setLocal(true);
@@ -127,7 +128,7 @@ export default function WelcomeScreen() {
               marginTop: 10,
             }}
           >
-            The brushing buddy that turns two minutes into a daily adventure.
+            {t('welcome.tagline')}
           </Text>
         </View>
         <View style={{ rowGap: 12, marginTop: 24 }}>
@@ -139,25 +140,25 @@ export default function WelcomeScreen() {
               {signInError}
             </Text>
           ) : null}
-          <Button label="Get started" size="lg" onPress={() => router.push('/(auth)/register')} />
+          <Button label={t('welcome.getStarted')} size="lg" onPress={() => router.push('/(auth)/register')} />
           <Button
-            label="Continue with Google"
+            label={t('welcome.google')}
             variant="outline"
             icon={<GoogleG />}
             loading={googlePending}
             onPress={onGoogleSignIn}
           />
           <Button
-            label="I already have an account"
+            label={t('welcome.haveAccount')}
             variant="ghost"
             onPress={() => router.push('/(auth)/login')}
           />
-          <Button label="Use without an account" variant="ghost" onPress={onUseWithoutAccount} />
+          <Button label={t('welcome.noAccount')} variant="ghost" onPress={onUseWithoutAccount} />
           <Text
             className="font-body"
             style={{ fontSize: 14, lineHeight: 20, color: tokens.textSecondary, textAlign: 'center' }}
           >
-            Without an account, progress is saved only on this phone and is lost if the app is deleted.
+            {t('welcome.noAccountNote')}
           </Text>
         </View>
       </SafeAreaView>

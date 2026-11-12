@@ -19,7 +19,7 @@ Status confirmed by the owner on 2026-10-06 (previously inferred from the repo: 
 ## Before Phase 2
 - [ ] Test and CI baseline (see RUNBOOK) — started
 - [ ] Firestore rules reviewed against the privacy checklist
-- [ ] Portuguese (BR) strings — launch target is PT-BR + English; no i18n layer yet
+- [x] Portuguese (BR) and Spanish strings — `lib/translations.ts`, language follows the device; pending native-speaker and clinical review of the child-facing copy (see CLINICAL.md)
 
 ## Phase 2 — Camera and AI (not started)
 - [ ] Decide face/mouth detection approach — see [ADR 0002](decisions/0002-camera-and-zone-detection.md) (Proposed; needs a spike)

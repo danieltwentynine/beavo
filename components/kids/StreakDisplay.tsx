@@ -1,6 +1,7 @@
 import { Text, View, type ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import { t } from '@/lib/i18n';
 import { hardShadow, outline, palette, radius, tokens } from '@/lib/tokens';
 
 function Flame({ size = 18 }: { size?: number }) {
@@ -89,11 +90,11 @@ export function StreakDisplay({ days = 0, best = null, layout = 'card', style }:
       </View>
       <View>
         <Text className="font-numeric" style={{ fontSize: 32, color: tokens.textPrimary, lineHeight: 36 }}>
-          {days} {days === 1 ? 'day' : 'days'}
+          {t(days === 1 ? 'streak.day' : 'streak.days', { count: days })}
         </Text>
         <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
-          {days > 0 ? 'brushing streak' : 'Start your streak today!'}
-          {best != null && days > 0 ? `  ·  best ${best}` : ''}
+          {days > 0 ? t('streak.label') : t('streak.start')}
+          {best != null && days > 0 ? `  ·  ${t('streak.best', { best })}` : ''}
         </Text>
       </View>
     </View>

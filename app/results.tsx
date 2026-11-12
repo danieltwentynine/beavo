@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CoachCard } from '@/components/brushing/CoachCard';
 import { MouthMap } from '@/components/brushing/MouthMap';
 import { Button } from '@/components/ui/Button';
+import { t } from '@/lib/i18n';
 import { outline, tokens } from '@/lib/tokens';
 import { useSessionStore } from '@/stores/sessionStore';
 
@@ -28,7 +29,7 @@ export default function ResultsScreen() {
     return <Redirect href="/(tabs)/home" />;
   }
 
-  const title = result.score >= 80 ? 'Great brushing!' : 'Good effort!';
+  const title = result.score >= 80 ? t('results.great') : t('results.good');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
@@ -37,7 +38,7 @@ export default function ResultsScreen() {
           className="font-display-semi"
           style={{ fontSize: 15, letterSpacing: 1.1, color: tokens.textLink, marginTop: 6 }}
         >
-          SESSION COMPLETE
+          {t('results.complete')}
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginVertical: 4 }}>
@@ -58,8 +59,8 @@ export default function ResultsScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', columnGap: 16, marginBottom: 18 }}>
-          <LegendDot color={tokens.zoneDone} label="Brushed" />
-          <LegendDot color={tokens.zoneMissed} label="Missed" />
+          <LegendDot color={tokens.zoneDone} label={t('results.brushed')} />
+          <LegendDot color={tokens.zoneMissed} label={t('results.missed')} />
         </View>
 
         <CoachCard score={result.score} message={result.coachMessage} style={{ width: '100%' }} />
@@ -72,7 +73,7 @@ export default function ResultsScreen() {
             className="font-body-semi"
             style={{ fontSize: 14, color: tokens.textSecondary, marginTop: 14 }}
           >
-            Saving your session…
+            {t('results.saving')}
           </Text>
         ) : null}
 
@@ -81,7 +82,7 @@ export default function ResultsScreen() {
             className="font-body-semi"
             style={{ fontSize: 14, color: tokens.textSecondary, marginTop: 14, textAlign: 'center' }}
           >
-            Kept safe on this phone — it joins your progress when you're back online.
+            {t('results.pending')}
           </Text>
         ) : null}
 
@@ -91,10 +92,10 @@ export default function ResultsScreen() {
               className="font-body-semi"
               style={{ fontSize: 14, color: tokens.textPrimary, textAlign: 'center' }}
             >
-              This one hasn't reached your progress yet.
+              {t('results.failed')}
             </Text>
             <Button
-              label="Try saving again"
+              label={t('results.retry')}
               variant="ghost"
               size="sm"
               fullWidth={false}
@@ -104,8 +105,8 @@ export default function ResultsScreen() {
         ) : null}
 
         <View style={{ width: '100%', rowGap: 12, marginTop: 'auto', paddingTop: 22 }}>
-          <Button label="See my progress" size="lg" onPress={() => router.replace('/(tabs)/progress')} />
-          <Button label="Brush again" variant="soft" onPress={() => router.replace('/session')} />
+          <Button label={t('results.seeProgress')} size="lg" onPress={() => router.replace('/(tabs)/progress')} />
+          <Button label={t('results.again')} variant="soft" onPress={() => router.replace('/session')} />
         </View>
       </ScrollView>
     </SafeAreaView>

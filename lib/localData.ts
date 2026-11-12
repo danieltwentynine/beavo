@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { ChildProfile } from '@/types';
 
 /**
- * Device-only mode: a parent using Zing without an account. Their data never
+ * Device-only mode: a parent using Beavo without an account. Their data never
  * reaches Firestore; it is owned by this reserved id instead of a Firebase uid.
  * Kept dependency-free (no firebase, no AsyncStorage) so `lib/localData.check.mjs`
  * can run it under plain node — the storage side lives in `lib/localStore.ts`.

@@ -14,6 +14,7 @@ import { sameDay } from '@/lib/streak';
 import { fetchRecentSessions, type RecentSession } from '@/lib/sessions';
 import { outline, palette, radius, tokens } from '@/lib/tokens';
 import { auth } from '@/lib/firebase';
+import { locale, t } from '@/lib/i18n';
 import { clearLocalData } from '@/lib/localStore';
 import { signOutGoogle } from '@/lib/socialAuth';
 import { useAuthStore } from '@/stores/authStore';
@@ -21,27 +22,27 @@ import { useChildStore } from '@/stores/childStore';
 import { useSessionStore } from '@/stores/sessionStore';
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return date.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
 }
 
 function greetingForHour(hour: number): string {
-  if (hour < 12) return 'Good morning,';
-  if (hour < 18) return 'Good afternoon,';
-  return 'Good evening,';
+  if (hour < 12) return t('home.greeting.morning');
+  if (hour < 18) return t('home.greeting.afternoon');
+  return t('home.greeting.evening');
 }
 
 function confirmLogOut(): void {
-  Alert.alert('Log out?', "You'll need to sign in again to see your child's progress.", [
-    { text: 'Stay signed in', style: 'cancel' },
+  Alert.alert(t('home.logout.title'), t('home.logout.body'), [
+    { text: t('home.logout.stay'), style: 'cancel' },
     {
-      text: 'Log out',
+      text: t('home.logout.confirm'),
       style: 'destructive',
       onPress: async () => {
         try {
           await signOut(auth);
           await signOutGoogle();
         } catch {
-          Alert.alert('Could not log out', 'Please check your connection and try again.');
+          Alert.alert(t('home.logout.failTitle'), t('home.logout.failBody'));
           return;
         }
         // No auth guard on (tabs) — nothing navigates on sign-out by itself.
@@ -54,42 +55,34 @@ function confirmLogOut(): void {
 
 /** Without an account the settings button offers a backup instead of log out. */
 function offerAccount(): void {
-  Alert.alert(
-    'Back up to an account?',
-    "Progress is saved only on this phone and is lost if the app is deleted. With an account that has no child yet, you can move it over.",
-    [
-      { text: 'Create an account', onPress: () => router.push('/(auth)/register') },
-      { text: 'I already have an account', onPress: () => router.push('/(auth)/login') },
-      { text: 'Erase data on this phone', style: 'destructive', onPress: confirmErase },
-      { text: 'Not now', style: 'cancel' },
-    ],
-  );
+  Alert.alert(t('home.backup.title'), t('home.backup.body'), [
+    { text: t('home.backup.create'), onPress: () => router.push('/(auth)/register') },
+    { text: t('home.backup.have'), onPress: () => router.push('/(auth)/login') },
+    { text: t('home.backup.erase'), style: 'destructive', onPress: confirmErase },
+    { text: t('home.backup.notNow'), style: 'cancel' },
+  ]);
 }
 
 function confirmErase(): void {
-  Alert.alert(
-    'Erase everything on this phone?',
-    "Your child's profile, streak, badges and brushing history will be deleted. This can't be undone.",
-    [
-      { text: 'Keep my data', style: 'cancel' },
-      {
-        text: 'Erase everything',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await clearLocalData();
-          } catch {
-            Alert.alert('Could not erase', 'Nothing was deleted. Please try again.');
-            return;
-          }
-          useAuthStore.getState().setLocal(false);
-          useChildStore.getState().setActiveChild(null);
-          useSessionStore.getState().setLastResult(null);
-          router.replace('/onboarding/welcome');
-        },
+  Alert.alert(t('home.erase.title'), t('home.erase.body'), [
+    { text: t('home.erase.keep'), style: 'cancel' },
+    {
+      text: t('home.erase.confirm'),
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await clearLocalData();
+        } catch {
+          Alert.alert(t('home.erase.failTitle'), t('home.erase.failBody'));
+          return;
+        }
+        useAuthStore.getState().setLocal(false);
+        useChildStore.getState().setActiveChild(null);
+        useSessionStore.getState().setLastResult(null);
+        router.replace('/onboarding/welcome');
       },
-    ],
-  );
+    },
+  ]);
 }
 
 interface Slot {
@@ -120,22 +113,22 @@ export default function HomeScreen() {
     }, [child]),
   );
 
-  const parentName = user?.displayName?.split(' ')[0] ?? 'there';
+  const parentName = user?.displayName?.split(' ')[0] ?? t('home.parentFallback');
   const hour = new Date().getHours();
   const morning = todaySessions.find((s) => s.completedAt.getHours() < 12);
   const evening = todaySessions.find((s) => s.completedAt.getHours() >= 12);
   const nextSlot = !morning && hour < 12 ? 'morning' : 'evening';
   const slots: Slot[] = [
     {
-      label: 'Morning',
+      label: t('common.morning'),
       done: Boolean(morning),
-      time: morning ? formatTime(morning.completedAt) : 'Not yet',
+      time: morning ? formatTime(morning.completedAt) : t('home.notYet'),
       Icon: Sun,
     },
     {
-      label: 'Evening',
+      label: t('common.evening'),
       done: Boolean(evening),
-      time: evening ? formatTime(evening.completedAt) : 'Not yet',
+      time: evening ? formatTime(evening.completedAt) : t('home.notYet'),
       Icon: Moon,
     },
   ];
@@ -155,7 +148,7 @@ export default function HomeScreen() {
           </View>
           <Card
             onPress={usingAccount ? confirmLogOut : offerAccount}
-            accessibilityLabel="Settings"
+            accessibilityLabel={t('home.settings')}
             padding={0}
             radius={radius.pill}
             style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
@@ -170,10 +163,10 @@ export default function HomeScreen() {
             <Avatar avatarId={child?.avatarId ?? 'shark'} size={62} />
             <View style={{ flex: 1 }}>
               <Text className="font-display" style={{ fontSize: 20, color: tokens.textPrimary }}>
-                {child?.name ?? 'Your child'}
+                {child?.name ?? t('home.childFallback')}
               </Text>
               <Text className="font-body-semi" style={{ fontSize: 13, color: tokens.textSecondary }}>
-                Age {child?.age ?? '–'}
+                {t('home.age', { age: child?.age ?? '–' })}
               </Text>
             </View>
             <StreakDisplay days={child?.streakCurrent ?? 0} layout="chip" />
@@ -182,7 +175,7 @@ export default function HomeScreen() {
 
         {/* Today's brushing */}
         <View>
-          <SectionTitle>Today's brushing</SectionTitle>
+          <SectionTitle>{t('home.today')}</SectionTitle>
           <View style={{ flexDirection: 'row', columnGap: 12 }}>
             {slots.map((s) => (
               <Card key={s.label} padding={16} style={{ flex: 1, alignItems: 'center' }}>
@@ -211,7 +204,7 @@ export default function HomeScreen() {
                   className="font-body-semi"
                   style={{ fontSize: 13, color: s.done ? tokens.textLink : tokens.textTertiary }}
                 >
-                  {s.done ? `Done · ${s.time}` : s.time}
+                  {s.done ? t('home.done', { time: s.time }) : s.time}
                 </Text>
               </Card>
             ))}
@@ -223,18 +216,18 @@ export default function HomeScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 14 }}>
             <View style={{ flex: 1 }}>
               <Text className="font-display" style={{ fontSize: 24, color: tokens.textOnBrand }}>
-                Time to brush!
+                {t('home.cta.title')}
               </Text>
               <Text
                 className="font-body"
                 style={{ fontSize: 16, color: tokens.textOnBrand, marginTop: 2 }}
               >
-                Sparky is ready for your {nextSlot} session.
+                {t(nextSlot === 'morning' ? 'home.cta.morning' : 'home.cta.evening')}
               </Text>
             </View>
             <Card
               onPress={() => router.push('/session')}
-              accessibilityLabel="Start brushing"
+              accessibilityLabel={t('common.startBrushing')}
               padding={0}
               radius={radius.pill}
               style={{

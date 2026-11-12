@@ -21,19 +21,20 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { auth, db } from '@/lib/firebase';
+import { t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
 
 const registerSchema = z
   .object({
-    displayName: z.string().trim().min(2, 'Please tell us your name'),
-    email: z.string().trim().email("That email address doesn't look right"),
-    password: z.string().min(8, 'Your password needs at least 8 characters'),
+    displayName: z.string().trim().min(2, t('register.nameRequired')),
+    email: z.string().trim().email(t('form.emailInvalid')),
+    password: z.string().min(8, t('register.passwordShort')),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ['confirmPassword'],
-    message: "The passwords don't match",
+    message: t('register.passwordMismatch'),
   });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -42,16 +43,16 @@ function registrationErrorMessage(error: unknown): string {
   if (error instanceof FirebaseError) {
     switch (error.code) {
       case 'auth/email-already-in-use':
-        return 'This email is already registered. Try logging in instead.';
+        return t('register.err.inUse');
       case 'auth/invalid-email':
-        return "That email address doesn't look right. Please check it.";
+        return t('register.err.invalidEmail');
       case 'auth/weak-password':
-        return 'Please choose a stronger password (at least 8 characters).';
+        return t('register.err.weak');
       case 'auth/network-request-failed':
-        return 'No connection. Please check your internet and try again.';
+        return t('auth.err.network');
     }
   }
-  return "We couldn't create your account right now. Please try again.";
+  return t('register.err.generic');
 }
 
 interface FormFieldProps {
@@ -133,25 +134,25 @@ export default function RegisterScreen() {
             <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
           </Pressable>
 
-          <Text className="font-display text-3xl text-ink">Welcome to Zing</Text>
+          <Text className="font-display text-3xl text-ink">{t('register.title')}</Text>
           <Text className="mb-6 mt-1.5 font-body text-base text-muted">
-            Create your parent account to start your child's brushing adventure.
+            {t('register.subtitle')}
           </Text>
 
           <View style={{ rowGap: 16 }}>
             <FormField
               control={control}
               name="displayName"
-              label="Your name"
-              placeholder="e.g. Maria"
+              label={t('register.name')}
+              placeholder={t('register.namePlaceholder')}
               autoCapitalize="words"
               icon={<User size={20} color={tokens.textTertiary} weight="bold" />}
             />
             <FormField
               control={control}
               name="email"
-              label="Email"
-              placeholder="you@example.com"
+              label={t('form.email')}
+              placeholder={t('form.emailPlaceholder')}
               autoCapitalize="none"
               keyboardType="email-address"
               icon={<EnvelopeSimple size={20} color={tokens.textTertiary} weight="bold" />}
@@ -159,8 +160,8 @@ export default function RegisterScreen() {
             <FormField
               control={control}
               name="password"
-              label="Password"
-              placeholder="At least 8 characters"
+              label={t('form.password')}
+              placeholder={t('register.passwordPlaceholder')}
               autoCapitalize="none"
               secureTextEntry
               icon={<LockSimple size={20} color={tokens.textTertiary} weight="bold" />}
@@ -168,8 +169,8 @@ export default function RegisterScreen() {
             <FormField
               control={control}
               name="confirmPassword"
-              label="Confirm password"
-              placeholder="Type it again"
+              label={t('register.confirm')}
+              placeholder={t('register.confirmPlaceholder')}
               autoCapitalize="none"
               secureTextEntry
               icon={<LockSimple size={20} color={tokens.textTertiary} weight="bold" />}
@@ -181,7 +182,7 @@ export default function RegisterScreen() {
           ) : null}
 
           <Button
-            label="Create account"
+            label={t('register.submit')}
             size="lg"
             onPress={handleSubmit(onSubmit)}
             loading={formState.isSubmitting}
@@ -189,9 +190,9 @@ export default function RegisterScreen() {
           />
 
           <View className="mt-4 flex-row justify-center">
-            <Text className="font-body text-muted">Already have an account? </Text>
+            <Text className="font-body text-muted">{t('register.haveAccount')}</Text>
             <Pressable onPress={() => router.replace('/(auth)/login')}>
-              <Text className="font-display-semi text-text-link">Log in</Text>
+              <Text className="font-display-semi text-text-link">{t('register.logIn')}</Text>
             </Pressable>
           </View>
         </ScrollView>

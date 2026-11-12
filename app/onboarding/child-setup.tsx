@@ -8,6 +8,7 @@ import { Chip } from '@/components/ui/Chip';
 import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { createChild } from '@/lib/children';
+import { t } from '@/lib/i18n';
 import { outline, tokens } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
@@ -29,11 +30,11 @@ export default function ChildSetupScreen() {
     if (!ownerId) return;
     const trimmed = name.trim();
     if (trimmed.length < 1) {
-      setError("Please add your child's name.");
+      setError(t('child.nameRequired'));
       return;
     }
     if (age === null || !AGES.includes(age)) {
-      setError("Please pick your child's age.");
+      setError(t('child.ageRequired'));
       return;
     }
     setError(null);
@@ -43,7 +44,7 @@ export default function ChildSetupScreen() {
       setActiveChild(child);
       router.replace('/(tabs)/home');
     } catch {
-      setError("We couldn't save that right now. Please try again.");
+      setError(t('child.saveFail'));
       setSaving(false);
     }
   };
@@ -69,27 +70,27 @@ export default function ChildSetupScreen() {
               }}
             >
               <Text className="font-numeric" style={{ fontSize: 14, color: tokens.textLink }}>
-                STEP 2 OF 2
+                {t('child.step')}
               </Text>
             </View>
           )}
 
-          <Text className="font-display text-3xl text-ink">Add your child</Text>
+          <Text className="font-display text-3xl text-ink">{t('child.title')}</Text>
           <Text className="mb-5 mt-1 font-body text-base text-muted">
-            You can add more children later.
+            {t('child.subtitle')}
           </Text>
 
           <View style={{ rowGap: 18, flex: 1 }}>
-            <Input label="Child's name" placeholder="e.g. Leo" value={name} onChangeText={setName} />
+            <Input label={t('child.name')} placeholder={t('child.namePlaceholder')} value={name} onChangeText={setName} />
 
             <View>
-              <Text className="mb-2 font-body-semi text-sm text-ink">How old is your child?</Text>
+              <Text className="mb-2 font-body-semi text-sm text-ink">{t('child.ageQuestion')}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {AGES.map((a) => (
                   <Chip
                     key={a}
                     label={String(a)}
-                    accessibilityLabel={`Age ${a}`}
+                    accessibilityLabel={t('child.ageA11y', { age: a })}
                     selected={age === a}
                     onPress={() => setAge(a)}
                     style={{ flexGrow: 1, flexBasis: '30%' }}
@@ -99,7 +100,7 @@ export default function ChildSetupScreen() {
             </View>
 
             <View>
-              <Text className="mb-2.5 font-body-semi text-sm text-ink">Pick a character</Text>
+              <Text className="mb-2.5 font-body-semi text-sm text-ink">{t('child.pickCharacter')}</Text>
               <AvatarPicker value={avatar} onChange={setAvatar} />
             </View>
           </View>
@@ -107,7 +108,7 @@ export default function ChildSetupScreen() {
           {error ? <Text className="mt-4 font-body-semi text-sm text-danger">{error}</Text> : null}
 
           <Button
-            label="Start brushing adventure"
+            label={t('child.submit')}
             size="lg"
             onPress={onDone}
             loading={saving}

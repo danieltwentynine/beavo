@@ -3,6 +3,7 @@ import { ChartLineUp, House, Tooth } from 'phosphor-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t } from '@/lib/i18n';
 import { hardShadow, tokens } from '@/lib/tokens';
 
 function TabItem({
@@ -57,7 +58,7 @@ function ZingTabBar({ state, navigation }: TabBarProps) {
       ]}
     >
       <TabItem
-        label="Home"
+        label={t('tabs.home')}
         active={activeRoute === 'home'}
         icon={(c, w) => <House size={25} color={c} weight={w} />}
         onPress={() => navigation.navigate('home')}
@@ -66,7 +67,7 @@ function ZingTabBar({ state, navigation }: TabBarProps) {
       <View style={{ flex: 1, alignItems: 'center' }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Start brushing"
+          accessibilityLabel={t('common.startBrushing')}
           onPress={() => router.push('/session')}
           style={[
             {
@@ -88,12 +89,12 @@ function ZingTabBar({ state, navigation }: TabBarProps) {
           className="font-display-semi"
           style={{ position: 'absolute', top: 46, fontSize: 13, color: tokens.textLink }}
         >
-          Brush
+          {t('tabs.brush')}
         </Text>
       </View>
 
       <TabItem
-        label="Progress"
+        label={t('tabs.progress')}
         active={activeRoute === 'progress'}
         icon={(c, w) => <ChartLineUp size={25} color={c} weight={w} />}
         onPress={() => navigation.navigate('progress')}

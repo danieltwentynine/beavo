@@ -10,12 +10,12 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { useActiveChild } from '@/hooks/useActiveChild';
+import { locale, t } from '@/lib/i18n';
 import { sameDay } from '@/lib/streak';
 import { fetchRecentSessions, type RecentSession } from '@/lib/sessions';
 import { outline, radius, tokens } from '@/lib/tokens';
 import type { Badge as BadgeType } from '@/types';
 
-const WEEK_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const BADGE_TYPES: BadgeType['type'][] = ['firstSession', 'streak', 'perfect', 'weeklyGoal'];
 const HISTORY_LENGTH = 5;
 
@@ -24,18 +24,21 @@ function formatSessionDay(date: Date): string {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayMs = 86400000;
   const diffDays = Math.floor((startOfToday.getTime() - new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()) / dayMs);
-  const slot = date.getHours() < 12 ? 'Morning' : 'Evening';
-  if (diffDays <= 0) return `Today · ${slot}`;
-  if (diffDays === 1) return `Yesterday · ${slot}`;
-  return `${date.toLocaleDateString(undefined, { weekday: 'long' })} · ${slot}`;
+  const slot = date.getHours() < 12 ? t('common.morning') : t('common.evening');
+  if (diffDays <= 0) return t('progress.today', { slot });
+  if (diffDays === 1) return t('progress.yesterday', { slot });
+  // Portuguese and Spanish weekdays are lowercase; this one starts the line.
+  const weekday = date.toLocaleDateString(locale, { weekday: 'long' });
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} · ${slot}`;
 }
 
 /** Mon–Sun of the current week, marked done when any session landed that day. */
 function buildWeek(sessions: RecentSession[]): { d: string; done: boolean }[] {
   const now = new Date();
   const mondayOffset = (now.getDay() + 6) % 7;
-  return WEEK_LABELS.map((d, i) => {
+  return Array.from({ length: 7 }, (_, i) => {
     const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset + i);
+    const d = day.toLocaleDateString(locale, { weekday: 'narrow' }).toUpperCase();
     return { d, done: sessions.some((s) => sameDay(s.completedAt, day)) };
   });
 }
@@ -70,14 +73,14 @@ export default function ProgressScreen() {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 22 }}>
         <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary }}>
-          {child?.name ? `${child.name}'s progress` : 'Progress'}
+          {child?.name ? t('progress.titleNamed', { name: child.name }) : t('progress.title')}
         </Text>
 
         <StreakDisplay days={child?.streakCurrent ?? 0} best={child?.streakBest ?? 0} />
 
         {/* This week */}
         <Card padding={18}>
-          <SectionTitle>This week</SectionTitle>
+          <SectionTitle>{t('progress.week')}</SectionTitle>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             {week.map((w, i) => (
               <View key={i} style={{ alignItems: 'center', rowGap: 8 }}>
@@ -104,7 +107,7 @@ export default function ProgressScreen() {
 
         {/* Badges */}
         <View>
-          <SectionTitle>Badges</SectionTitle>
+          <SectionTitle>{t('progress.badges')}</SectionTitle>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ columnGap: 12, paddingBottom: 10, paddingHorizontal: 2 }}>
             {BADGE_TYPES.map((type) => (
               <BadgeCard key={type} type={type} earned={earnedBadgeTypes.has(type)} />
@@ -114,7 +117,7 @@ export default function ProgressScreen() {
 
         {/* History */}
         <View>
-          <SectionTitle>Recent sessions</SectionTitle>
+          <SectionTitle>{t('progress.recent')}</SectionTitle>
           {history.length > 0 ? (
             <Card padding={6}>
               {history.map((h, i) => (
@@ -144,7 +147,7 @@ export default function ProgressScreen() {
           ) : (
             <Card padding={18}>
               <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
-                No sessions yet — time for the first brushing adventure!
+                {t('progress.empty')}
               </Text>
             </Card>
           )}

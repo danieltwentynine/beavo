@@ -20,6 +20,7 @@ import {
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 import { auth, db } from '@/lib/firebase';
+import { t } from '@/lib/i18n';
 
 GoogleSignin.configure({
   // Web client ID is what Firebase verifies the ID token against — required
@@ -38,18 +39,18 @@ function socialErrorMessage(error: unknown): string {
     switch (error.code) {
       case 'auth/account-exists-with-different-credential':
       case 'auth/email-already-in-use':
-        return 'You already have a Zing account with this email. Log in the way you signed up first, then you can add this option.';
+        return t('auth.err.exists');
       case 'auth/network-request-failed':
-        return 'No connection. Please check your internet and try again.';
+        return t('auth.err.network');
       case 'auth/too-many-requests':
-        return 'Too many attempts. Please wait a moment and try again.';
+        return t('auth.err.tooMany');
       case 'auth/invalid-credential':
-        return "That sign-in didn't go through. Please try again.";
+        return t('auth.err.socialInvalid');
       case 'auth/user-disabled':
-        return 'This account has been disabled. Please contact support.';
+        return t('auth.err.disabled');
     }
   }
-  return "We couldn't sign you in right now. Please try again.";
+  return t('auth.err.socialGeneric');
 }
 
 export async function signInWithGoogle(): Promise<SocialSignInResult> {

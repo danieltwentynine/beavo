@@ -61,6 +61,7 @@ lib/
 ├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In
 ├── children.ts, sessions.ts      # Firestore reads/writes
 ├── outbox.ts                     # Offline queue so finished sessions are never lost
+├── translations.ts, i18n.ts      # All UI strings in en / pt-BR / es; `t()` + device language
 ├── localData.ts, localStore.ts   # Device-only mode (no account): codec + AsyncStorage (ADR 0003)
 ├── streak.ts, badges.ts
 ├── coach.ts                      # Local coach message — fallback when Gemini fails
@@ -144,7 +145,7 @@ interface Badge {
 ## Gemini Coach Integration (implemented in `lib/gemini.ts`)
 
 - Model `gemini-3.5-flash-lite` (constant `GEMINI_MODEL` — re-check https://ai.google.dev/gemini-api/docs/deprecations before each release).
-- `generateCoachMessage(childName, { age, missedZones, score, streakDays, locale })` returns a sanitized message or `null`. It is the only place Gemini is called.
+- `generateCoachMessage(childName, { age, missedZones, score, streakDays, locale })` (`locale` is the app language: `en`, `pt-BR` or `es`) returns a sanitized message or `null`. It is the only place Gemini is called.
 - **The child's name never leaves the device**: the prompt uses the token `{NAME}`, substituted locally after the reply. Only age, up to 2 missed zones, score and streak are sent.
 - Replies are rejected (→ fallback) if empty, over 300 chars, or containing clinical/brand wording (`BANNED` regex — clinical advisor owns this list). Capped at 2 sentences.
 - `app/session.tsx` awaits it (4 s timeout) in `finish()`; on `null` it uses `lib/coach.ts`. Never show an error to the child.
@@ -297,7 +298,7 @@ npx expo export --platform ios --output-dir dist-check   # Full bundle check (de
 npx expo install <pkg>  # Always use this (not npm install) for Expo/RN native packages — it picks SDK-compatible versions
 ```
 
-Self-checks (plain node + assert, no framework): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/outbox.check.mjs`, `node lib/gemini.check.mjs`, `node lib/localData.check.mjs`. Add one next to any new non-trivial pure logic. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`.
+Self-checks (plain node + assert, no framework): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/outbox.check.mjs`, `node lib/gemini.check.mjs`, `node lib/localData.check.mjs`, `node lib/translations.check.mjs`. Add one next to any new non-trivial pure logic. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`.
 
 There is no linter configured. `tsc --noEmit` plus the self-checks are the gates.
 
@@ -314,6 +315,7 @@ There is no linter configured. `tsc --noEmit` plus the self-checks are the gates
 - Fonts are bundled TTFs in `assets/fonts/` loaded once in `app/_layout.tsx` via `expo-font` `useFonts`, referenced by family name: `font-display` → `Fredoka-Bold`, `font-display-semi` → `Fredoka-SemiBold`, `font-body` → `Lexend-Regular`, `font-body-semi` → `Lexend-SemiBold`, `font-numeric` → `Fredoka-Bold` (inline styles: `font.*` in `lib/tokens.ts`).
 - Auth state flows: `onAuthStateChanged` subscription in `app/_layout.tsx` → `stores/authStore.ts` (Zustand) → `app/index.tsx` redirects to `(tabs)/home` when there is an owner, else `onboarding/welcome`.
 - Device-only mode (ADR 0003): a parent can use Zing without an account. The owner is then the reserved id `LOCAL_UID` and `lib/children.ts` / `lib/sessions.ts` branch on it to AsyncStorage (`lib/localStore.ts`) — nothing is written to Firestore. Always take the owner from `ownerIdOf` in `stores/authStore.ts`, never `user.uid` directly. Signing in to an account with no child offers to move the device data into it — the parent must confirm, since the person signing in may not be the parent whose child is on the phone (`moveLocalDataToAccount`, called from `useActiveChild`).
+- Languages: English, Portuguese (Brazil) and Spanish. Never hard-code user-facing text — add a key to all three tables in `lib/translations.ts` (a missing one is a type error) and read it with `t()` from `lib/i18n.ts`. The language follows the device (`expo-localization`), with English as the fallback; pass `locale` from `lib/i18n.ts` to date/time formatting. The system camera prompt is translated in `locales/*.json` (wired through `locales` in `app.json`).
 - NativeWind 4.2.5 drops function-form `Pressable` styles (upstream #1105); `Button`, `Chip`, `Card` and `AvatarPicker` keep pressed state in React state instead — don't revert it.
 - Fabric: don't make style *keys* conditional on focus (it recreates the native view and drops `TextInput` focus). Keep the keys, change the values.
 - Finished sessions go through `lib/outbox.ts` so an offline write is retried, not lost. Session docs are idempotent via a stable id; `totalSessions` is an increment, guarded by `inFlight` in `sessionStore`.
