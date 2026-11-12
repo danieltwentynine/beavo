@@ -13,6 +13,8 @@ import { z } from 'zod';
 
 import type { ToothZone } from '@/types';
 import { db, timestampToDate } from '@/lib/firebase';
+import { LOCAL_UID } from '@/lib/localData';
+import { addLocalSession, readLocalSessions } from '@/lib/localStore';
 import { OUTBOX_KEY, decodeOutbox, encodeOutbox, type PendingSession } from '@/lib/outbox';
 
 export interface SavedSessionInput {
@@ -82,23 +84,26 @@ async function dropEntry(id: string): Promise<void> {
   }
 }
 
-async function writeEntry(entry: PendingSession): Promise<boolean> {
+/** The Firestore session doc for a stored entry — shared with the device → account move. */
+export function sessionDoc(entry: PendingSession) {
   const completedAt = new Date(entry.completedAt);
+  return {
+    childId: entry.childId,
+    parentUid: entry.parentUid,
+    startedAt: Timestamp.fromDate(new Date(completedAt.getTime() - entry.durationSeconds * 1000)),
+    completedAt: Timestamp.fromDate(completedAt),
+    durationSeconds: entry.durationSeconds,
+    zonesDetected: entry.zonesDetected,
+    zonesCoverage: entry.zonesCoverage,
+    score: entry.score,
+    coachMessage: entry.coachMessage,
+    streak: entry.streak,
+  };
+}
+
+async function writeEntry(entry: PendingSession): Promise<boolean> {
   try {
-    await setDoc(doc(db, 'sessions', entry.id), {
-      childId: entry.childId,
-      parentUid: entry.parentUid,
-      startedAt: Timestamp.fromDate(
-        new Date(completedAt.getTime() - entry.durationSeconds * 1000),
-      ),
-      completedAt: Timestamp.fromDate(completedAt),
-      durationSeconds: entry.durationSeconds,
-      zonesDetected: entry.zonesDetected,
-      zonesCoverage: entry.zonesCoverage,
-      score: entry.score,
-      coachMessage: entry.coachMessage,
-      streak: entry.streak,
-    });
+    await setDoc(doc(db, 'sessions', entry.id), sessionDoc(entry));
     return true;
   } catch {
     return false;
@@ -116,6 +121,15 @@ async function writeEntry(entry: PendingSession): Promise<boolean> {
  */
 export async function saveSession(input: SavedSessionInput): Promise<boolean> {
   const entry = toEntry(input);
+  if (input.parentUid === LOCAL_UID) {
+    // Device-only: storage is the destination, so there is nothing to sync.
+    try {
+      await addLocalSession(entry);
+      return true;
+    } catch {
+      return false;
+    }
+  }
   await putEntry(entry);
   const ok = await writeEntry(entry);
   if (ok) await dropEntry(entry.id);
@@ -150,6 +164,13 @@ export async function fetchRecentSessions(
   max = 10,
 ): Promise<RecentSession[]> {
   try {
+    if (parentUid === LOCAL_UID) {
+      return (await readLocalSessions())
+        .filter((s) => s.childId === childId)
+        .map((s) => ({ id: s.id, score: s.score, completedAt: new Date(s.completedAt) }))
+        .sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime())
+        .slice(0, max);
+    }
     const q = query(
       collection(db, 'sessions'),
       where('parentUid', '==', parentUid),

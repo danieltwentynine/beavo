@@ -9,13 +9,14 @@ import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { createChild } from '@/lib/children';
 import { outline, tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
 
 const AGES = [4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 export default function ChildSetupScreen() {
-  const user = useAuthStore((s) => s.user);
+  const ownerId = useAuthStore(ownerIdOf);
+  const isLocal = useAuthStore((s) => s.isLocal);
   const setActiveChild = useChildStore((s) => s.setActiveChild);
 
   const [name, setName] = useState('');
@@ -25,7 +26,7 @@ export default function ChildSetupScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const onDone = async () => {
-    if (!user) return;
+    if (!ownerId) return;
     const trimmed = name.trim();
     if (trimmed.length < 1) {
       setError("Please add your child's name.");
@@ -38,7 +39,7 @@ export default function ChildSetupScreen() {
     setError(null);
     setSaving(true);
     try {
-      const child = await createChild(user.uid, { name: trimmed, age, avatarId: avatar });
+      const child = await createChild(ownerId, { name: trimmed, age, avatarId: avatar });
       setActiveChild(child);
       router.replace('/(tabs)/home');
     } catch {
@@ -54,21 +55,24 @@ export default function ChildSetupScreen() {
           contentContainerClassName="flex-grow px-6 pb-7 pt-1"
           keyboardShouldPersistTaps="handled"
         >
-          <View
-            style={{
-              alignSelf: 'flex-start',
-              backgroundColor: tokens.surfaceMint,
-              borderRadius: 999,
-              paddingHorizontal: 12,
-              paddingVertical: 3,
-              marginBottom: 10,
-              ...outline,
-            }}
-          >
-            <Text className="font-numeric" style={{ fontSize: 14, color: tokens.textLink }}>
-              STEP 2 OF 2
-            </Text>
-          </View>
+          {/* Without an account there was no step 1. */}
+          {isLocal ? null : (
+            <View
+              style={{
+                alignSelf: 'flex-start',
+                backgroundColor: tokens.surfaceMint,
+                borderRadius: 999,
+                paddingHorizontal: 12,
+                paddingVertical: 3,
+                marginBottom: 10,
+                ...outline,
+              }}
+            >
+              <Text className="font-numeric" style={{ fontSize: 14, color: tokens.textLink }}>
+                STEP 2 OF 2
+              </Text>
+            </View>
+          )}
 
           <Text className="font-display text-3xl text-ink">Add your child</Text>
           <Text className="mb-5 mt-1 font-body text-base text-muted">

@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { auth, db } from '@/lib/firebase';
 import { tokens } from '@/lib/tokens';
+import { useAuthStore } from '@/stores/authStore';
 
 const registerSchema = z
   .object({
@@ -108,7 +109,9 @@ export default function RegisterScreen() {
       } catch {
         // Best-effort: displayName/profile doc can be filled in later.
       }
-      router.replace('/onboarding/child-setup');
+      // Coming from device-only mode there is already a child on this phone:
+      // home moves it into the new account instead of asking for it again.
+      router.replace(useAuthStore.getState().isLocal ? '/' : '/onboarding/child-setup');
     } catch (error) {
       setSubmitError(registrationErrorMessage(error));
     }

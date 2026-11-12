@@ -14,9 +14,11 @@ import { sameDay } from '@/lib/streak';
 import { fetchRecentSessions, type RecentSession } from '@/lib/sessions';
 import { outline, palette, radius, tokens } from '@/lib/tokens';
 import { auth } from '@/lib/firebase';
+import { clearLocalData } from '@/lib/localStore';
 import { signOutGoogle } from '@/lib/socialAuth';
 import { useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSessionStore } from '@/stores/sessionStore';
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -50,6 +52,46 @@ function confirmLogOut(): void {
   ]);
 }
 
+/** Without an account the settings button offers a backup instead of log out. */
+function offerAccount(): void {
+  Alert.alert(
+    'Back up to an account?',
+    "Progress is saved only on this phone and is lost if the app is deleted. With an account that has no child yet, you can move it over.",
+    [
+      { text: 'Create an account', onPress: () => router.push('/(auth)/register') },
+      { text: 'I already have an account', onPress: () => router.push('/(auth)/login') },
+      { text: 'Erase data on this phone', style: 'destructive', onPress: confirmErase },
+      { text: 'Not now', style: 'cancel' },
+    ],
+  );
+}
+
+function confirmErase(): void {
+  Alert.alert(
+    'Erase everything on this phone?',
+    "Your child's profile, streak, badges and brushing history will be deleted. This can't be undone.",
+    [
+      { text: 'Keep my data', style: 'cancel' },
+      {
+        text: 'Erase everything',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await clearLocalData();
+          } catch {
+            Alert.alert('Could not erase', 'Nothing was deleted. Please try again.');
+            return;
+          }
+          useAuthStore.getState().setLocal(false);
+          useChildStore.getState().setActiveChild(null);
+          useSessionStore.getState().setLastResult(null);
+          router.replace('/onboarding/welcome');
+        },
+      },
+    ],
+  );
+}
+
 interface Slot {
   label: string;
   done: boolean;
@@ -60,6 +102,7 @@ interface Slot {
 export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const { child } = useActiveChild();
+  const usingAccount = Boolean(user);
   const [todaySessions, setTodaySessions] = useState<RecentSession[]>([]);
 
   // Re-fetch on focus so a just-finished session shows up when the
@@ -111,7 +154,7 @@ export default function HomeScreen() {
             </Text>
           </View>
           <Card
-            onPress={confirmLogOut}
+            onPress={usingAccount ? confirmLogOut : offerAccount}
             accessibilityLabel="Settings"
             padding={0}
             radius={radius.pill}

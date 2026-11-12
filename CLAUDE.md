@@ -61,6 +61,7 @@ lib/
 ├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In
 ├── children.ts, sessions.ts      # Firestore reads/writes
 ├── outbox.ts                     # Offline queue so finished sessions are never lost
+├── localData.ts, localStore.ts   # Device-only mode (no account): codec + AsyncStorage (ADR 0003)
 ├── streak.ts, badges.ts
 ├── coach.ts                      # Local coach message — fallback when Gemini fails
 ├── gemini.ts                     # Gemini Flash client + prompt/sanitizer
@@ -239,7 +240,7 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 - Use `useEffect` with missing dependencies — fix the dep array properly
 
 ### Privacy (critical — this is a children's app):
-- COPPA compliance: parents authenticate, children never do
+- COPPA compliance: parents authenticate, children never do. In device-only mode nobody authenticates and nothing is stored off the device. The Gemini coach call is the same as with an account: age, up to 2 missed zones, score and streak, never the name
 - No analytics that track individual children by name
 - Session data in Firestore is keyed by `parentUid` — always enforce this in security rules
 - Camera frames are processed on-device and never uploaded
@@ -296,7 +297,7 @@ npx expo export --platform ios --output-dir dist-check   # Full bundle check (de
 npx expo install <pkg>  # Always use this (not npm install) for Expo/RN native packages — it picks SDK-compatible versions
 ```
 
-Self-checks (plain node + assert, no framework): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/outbox.check.mjs`, `node lib/gemini.check.mjs`. Add one next to any new non-trivial pure logic. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`.
+Self-checks (plain node + assert, no framework): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/outbox.check.mjs`, `node lib/gemini.check.mjs`, `node lib/localData.check.mjs`. Add one next to any new non-trivial pure logic. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`.
 
 There is no linter configured. `tsc --noEmit` plus the self-checks are the gates.
 
@@ -311,7 +312,8 @@ There is no linter configured. `tsc --noEmit` plus the self-checks are the gates
 - NativeWind v4 is wired through `babel.config.js` (`jsxImportSource: 'nativewind'` + `nativewind/babel`), `metro.config.js` (`withNativeWind` with `global.css`), and `tailwind.config.js` (`presets: [nativewind/preset, ./tailwind.preset]` supplies the design-system colors, fonts, radii and `shadow-toy*`/`border-toy`; app-only aliases `ink`, `muted`, `danger` live in the config).
 - Firebase Auth uses `initializeAuth` + `getReactNativePersistence(AsyncStorage)` in `lib/firebase.ts`. The firebase v12 wrapper's web typings omit `getReactNativePersistence` (it exists in the RN runtime build) — `types/firebase-auth.d.ts` augments the module; do not work around it with `@ts-ignore`.
 - Fonts are bundled TTFs in `assets/fonts/` loaded once in `app/_layout.tsx` via `expo-font` `useFonts`, referenced by family name: `font-display` → `Fredoka-Bold`, `font-display-semi` → `Fredoka-SemiBold`, `font-body` → `Lexend-Regular`, `font-body-semi` → `Lexend-SemiBold`, `font-numeric` → `Fredoka-Bold` (inline styles: `font.*` in `lib/tokens.ts`).
-- Auth state flows: `onAuthStateChanged` subscription in `app/_layout.tsx` → `stores/authStore.ts` (Zustand) → `app/index.tsx` redirects to `(tabs)/home` when signed in, else `onboarding/welcome`.
+- Auth state flows: `onAuthStateChanged` subscription in `app/_layout.tsx` → `stores/authStore.ts` (Zustand) → `app/index.tsx` redirects to `(tabs)/home` when there is an owner, else `onboarding/welcome`.
+- Device-only mode (ADR 0003): a parent can use Zing without an account. The owner is then the reserved id `LOCAL_UID` and `lib/children.ts` / `lib/sessions.ts` branch on it to AsyncStorage (`lib/localStore.ts`) — nothing is written to Firestore. Always take the owner from `ownerIdOf` in `stores/authStore.ts`, never `user.uid` directly. Signing in to an account with no child offers to move the device data into it — the parent must confirm, since the person signing in may not be the parent whose child is on the phone (`moveLocalDataToAccount`, called from `useActiveChild`).
 - NativeWind 4.2.5 drops function-form `Pressable` styles (upstream #1105); `Button`, `Chip`, `Card` and `AvatarPicker` keep pressed state in React state instead — don't revert it.
 - Fabric: don't make style *keys* conditional on focus (it recreates the native view and drops `TextInput` focus). Keep the keys, change the values.
 - Finished sessions go through `lib/outbox.ts` so an offline write is retried, not lost. Session docs are idempotent via a stable id; `totalSessions` is an increment, guarded by `inFlight` in `sessionStore`.

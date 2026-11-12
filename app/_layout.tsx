@@ -7,12 +7,14 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
 
 import { auth } from '@/lib/firebase';
+import { isLocalMode } from '@/lib/localStore';
 import { flushOutbox } from '@/lib/sessions';
 import { tokens } from '@/lib/tokens';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function RootLayout() {
   const setUser = useAuthStore((state) => state.setUser);
+  const setLocal = useAuthStore((state) => state.setLocal);
 
   // Static weights: the family name picks the weight (see font in lib/tokens.ts).
   const [fontsLoaded] = useFonts({
@@ -22,6 +24,10 @@ export default function RootLayout() {
     'Lexend-Regular': require('../assets/fonts/Lexend-Regular.ttf'),
     'Lexend-SemiBold': require('../assets/fonts/Lexend-SemiBold.ttf'),
   });
+
+  useEffect(() => {
+    void isLocalMode().then(setLocal);
+  }, [setLocal]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {

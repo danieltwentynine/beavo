@@ -15,8 +15,10 @@ import Svg, { Path } from 'react-native-svg';
 
 import { SparkyWave, ZingLockup } from '@/components/brand/ZingBrand';
 import { Button } from '@/components/ui/Button';
+import { readLocalChild, setLocalMode } from '@/lib/localStore';
 import { signInWithGoogle } from '@/lib/socialAuth';
 import { tokens } from '@/lib/tokens';
+import { useAuthStore } from '@/stores/authStore';
 
 /** Google's official four-colour "G". Unmodified — required for OAuth branding review. */
 function GoogleG() {
@@ -83,10 +85,27 @@ export default function WelcomeScreen() {
         setSignInError(result.message);
         return;
       }
-      router.replace(result.isNewUser ? '/onboarding/child-setup' : '/');
+      // A parent upgrading from device-only mode already has a child on this
+      // phone — home moves it into the account instead of asking again.
+      const hasDeviceData = useAuthStore.getState().isLocal;
+      router.replace(result.isNewUser && !hasDeviceData ? '/onboarding/child-setup' : '/');
     } finally {
       setGooglePending(false);
     }
+  };
+
+  const onUseWithoutAccount = async () => {
+    setSignInError(null);
+    try {
+      await setLocalMode(true);
+    } catch {
+      setSignInError("We couldn't set that up on this phone. Please try again.");
+      return;
+    }
+    useAuthStore.getState().setLocal(true);
+    // This phone may already hold a child from an earlier time without an account.
+    const existing = await readLocalChild().catch(() => null);
+    router.replace(existing ? '/' : '/onboarding/child-setup');
   };
 
   return (
@@ -133,6 +152,13 @@ export default function WelcomeScreen() {
             variant="ghost"
             onPress={() => router.push('/(auth)/login')}
           />
+          <Button label="Use without an account" variant="ghost" onPress={onUseWithoutAccount} />
+          <Text
+            className="font-body"
+            style={{ fontSize: 14, lineHeight: 20, color: tokens.textSecondary, textAlign: 'center' }}
+          >
+            Without an account, progress is saved only on this phone and is lost if the app is deleted.
+          </Text>
         </View>
       </SafeAreaView>
     </View>

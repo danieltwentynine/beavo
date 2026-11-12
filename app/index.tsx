@@ -1,13 +1,14 @@
 import { Redirect } from 'expo-router';
 
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 
 export default function Index() {
-  const { user, isLoading } = useAuthStore();
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const ownerId = useAuthStore(ownerIdOf);
 
   if (isLoading) {
     return null;
   }
 
-  return <Redirect href={user ? '/(tabs)/home' : '/onboarding/welcome'} />;
+  return <Redirect href={ownerId ? '/(tabs)/home' : '/onboarding/welcome'} />;
 }

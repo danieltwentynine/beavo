@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { recordSession } from '@/lib/children';
 import { newSessionId, saveSession } from '@/lib/sessions';
 import { nextStreak } from '@/lib/streak';
-import { useAuthStore } from '@/stores/authStore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
 import type { ToothZone } from '@/types';
 
@@ -54,9 +54,9 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     const { lastResult, saveStatus, saveId, finishedAt } = get();
     if (!lastResult || saveStatus === 'saved' || inFlight) return;
 
-    const user = useAuthStore.getState().user;
+    const ownerId = ownerIdOf(useAuthStore.getState());
     const child = useChildStore.getState().activeChild;
-    if (!user || !child) {
+    if (!ownerId || child?.parentUid !== ownerId) {
       // Signed out, or the profile hasn't loaded. Keep the result so "Try again"
       // can still save it once the parent is back, instead of dropping it.
       set({ saveStatus: 'failed' });
@@ -79,7 +79,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     const write = saveSession({
       id,
       childId: child.id,
-      parentUid: user.uid,
+      parentUid: ownerId,
       completedAt: now,
       durationSeconds: lastResult.durationSeconds,
       zonesDetected: zones.filter(([, s]) => s === 'done').map(([zone]) => zone as ToothZone),

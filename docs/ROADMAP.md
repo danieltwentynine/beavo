@@ -14,6 +14,7 @@ Status confirmed by the owner on 2026-10-06 (previously inferred from the repo: 
 - [x] Session save with offline outbox (`lib/outbox.ts`, `lib/sessions.ts`)
 - [x] Streaks and badges (`lib/streak.ts`, `lib/badges.ts`)
 - [x] Progress history
+- [x] Use without an account — data on the device only, moved into the account on sign-up ([ADR 0003](decisions/0003-device-only-mode.md)); pending a simulator pass
 
 ## Before Phase 2
 - [ ] Test and CI baseline (see RUNBOOK) — started

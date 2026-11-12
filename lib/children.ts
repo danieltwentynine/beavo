@@ -9,13 +9,21 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { z } from 'zod';
 
 import type { Badge, ChildProfile } from '@/types';
 import { daysBrushedThisWeek, newBadges } from '@/lib/badges';
 import { db, timestampToDate } from '@/lib/firebase';
-import { fetchRecentSessions } from '@/lib/sessions';
+import { LOCAL_UID } from '@/lib/localData';
+import {
+  clearLocalData,
+  readLocalChild,
+  readLocalSessions,
+  writeLocalChild,
+} from '@/lib/localStore';
+import { fetchRecentSessions, sessionDoc } from '@/lib/sessions';
 
 const badgeSchema = z.object({
   id: z.string(),
@@ -46,6 +54,13 @@ export interface NewChildInput {
 
 export async function createChild(parentUid: string, input: NewChildInput): Promise<ChildProfile> {
   const profile = { parentUid, ...input, streakCurrent: 0, streakBest: 0, totalSessions: 0, badges: [] as Badge[] };
+  if (parentUid === LOCAL_UID) {
+    // Firestore's id generator is offline — reusing it lets a later move to an
+    // account keep the same id as the doc id.
+    const child = { id: doc(collection(db, 'children')).id, ...profile, createdAt: new Date() };
+    await writeLocalChild(child);
+    return child;
+  }
   const ref = await addDoc(collection(db, 'children'), { ...profile, createdAt: serverTimestamp() });
   return { id: ref.id, ...profile, createdAt: new Date() };
 }
@@ -58,8 +73,16 @@ export async function createChild(parentUid: string, input: NewChildInput): Prom
  * provably within the parentUid security rules.
  */
 export async function fetchActiveChild(parentUid: string): Promise<ChildProfile | null> {
+  if (parentUid === LOCAL_UID) return readLocalChild();
   const q = query(collection(db, 'children'), where('parentUid', '==', parentUid));
   const snap = await getDocs(q);
+  // Offline, the SDK answers from its (in-memory, so empty after a cold start)
+  // cache instead of failing. "No child" may only come from the server —
+  // otherwise an existing parent is sent to child setup, or device data is
+  // moved into an account that already has a child.
+  if (snap.empty && snap.metadata.fromCache) {
+    throw new Error('Children could not be read from the server');
+  }
   if (snap.empty) return null;
 
   const children = snap.docs.flatMap((docSnap) => {
@@ -136,6 +159,18 @@ export async function recordSession(
       },
       now,
     );
+    const updated: ChildProfile = {
+      ...child,
+      totalSessions,
+      streakCurrent,
+      streakBest,
+      badges: [...child.badges, ...earned],
+      lastSessionAt: now,
+    };
+    if (child.parentUid === LOCAL_UID) {
+      await writeLocalChild(updated);
+      return updated;
+    }
     await updateDoc(doc(db, 'children', child.id), {
       totalSessions: counted ?? increment(1),
       streakCurrent,
@@ -143,24 +178,81 @@ export async function recordSession(
       lastSessionAt: Timestamp.fromDate(now),
       // Timestamp, not serverTimestamp() — a sentinel inside an array is illegal
       // and a raw Date wouldn't survive `badgeSchema` on the way back.
-      ...(earned.length > 0
-        ? {
-            badges: [...child.badges, ...earned].map((badge) => ({
-              ...badge,
-              earnedAt: Timestamp.fromDate(badge.earnedAt),
-            })),
-          }
-        : {}),
+      ...(earned.length > 0 ? { badges: badgeDocs(updated.badges) } : {}),
     });
+    return updated;
   } catch {
     return null;
   }
-  return {
-    ...child,
-    totalSessions,
-    streakCurrent,
-    streakBest,
-    badges: [...child.badges, ...earned],
-    lastSessionAt: now,
-  };
+}
+
+const badgeDocs = (badges: Badge[]) =>
+  badges.map((badge) => ({ ...badge, earnedAt: Timestamp.fromDate(badge.earnedAt) }));
+
+/** Firestore allows 500 writes per batch. */
+const BATCH_SIZE = 400;
+
+/**
+ * A parent who used Zing without an account has just signed in to one that has
+ * no child yet: move the device's child and history into it. Returns the moved
+ * profile, or null if the device holds no child or the parent declined.
+ *
+ * `confirm` gets the device child's name and must be answered by the parent:
+ * whoever signs in on this phone is not necessarily the parent whose child is
+ * stored on it, and the move uploads that child to their account.
+ *
+ * Device ids are reused as doc ids, so a retry after a partial failure
+ * overwrites instead of duplicating. The child doc goes in the last batch: it
+ * is what `fetchActiveChild` finds, so it must not exist before its history
+ * does. Throws on failure, leaving the device data untouched.
+ */
+export function moveLocalDataToAccount(
+  uid: string,
+  confirm: (childName: string) => Promise<boolean>,
+): Promise<ChildProfile | null> {
+  // Home and Progress can both ask at once; the second caller would otherwise
+  // find the device already emptied and conclude there is no child at all.
+  if (move?.uid !== uid) {
+    const promise = runMove(uid, confirm).catch((error: unknown) => {
+      move = null;
+      throw error;
+    });
+    move = { uid, promise };
+  }
+  return move.promise;
+}
+
+let move: { uid: string; promise: Promise<ChildProfile | null> } | null = null;
+
+async function runMove(
+  uid: string,
+  confirm: (childName: string) => Promise<boolean>,
+): Promise<ChildProfile | null> {
+  const local = await readLocalChild();
+  if (!local) return null;
+  if (!(await confirm(local.name))) return null;
+  const sessions = (await readLocalSessions()).filter((s) => s.childId === local.id);
+  // lastSessionAt is optional, and Firestore rejects an explicit `undefined`.
+  const { id, lastSessionAt, ...profile } = local;
+
+  for (let start = 0; start === 0 || start < sessions.length; start += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    const chunk = sessions.slice(start, start + BATCH_SIZE);
+    for (const session of chunk) {
+      batch.set(doc(db, 'sessions', session.id), sessionDoc({ ...session, parentUid: uid }));
+    }
+    if (start + BATCH_SIZE >= sessions.length) {
+      batch.set(doc(db, 'children', id), {
+        ...profile,
+        parentUid: uid,
+        badges: badgeDocs(local.badges),
+        createdAt: Timestamp.fromDate(local.createdAt),
+        ...(lastSessionAt ? { lastSessionAt: Timestamp.fromDate(lastSessionAt) } : {}),
+      });
+    }
+    await batch.commit();
+  }
+
+  await clearLocalData();
+  return { ...local, parentUid: uid };
 }
