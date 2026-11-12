@@ -2,7 +2,7 @@
 
 # Beavo Privacy Policy
 
-**Version:** 2026-11-10 · **Effective:** [PUBLICATION DATE]
+**Version:** 2026-11-11 · **Effective:** [PUBLICATION DATE]
 
 This Policy explains how the Beavo app ("Beavo", "we") processes personal data under Brazil's General Data Protection Law (Law No. 13,709/2018, "LGPD"). Beavo helps children aged 4 to 12 build a tooth-brushing habit. **The account always belongs to an adult (a parent or legal guardian). Children never create an account or sign in.** The Portuguese version prevails if the two versions differ.
 
@@ -40,6 +40,13 @@ So the app works offline, your device keeps: your sign-in session, a copy of the
 - **No** analytics, crash reporting, advertising or tracking of any kind.
 - **No** location, contacts, photos, videos, audio or advertising identifiers.
 - We do **not** send your or your children's data to artificial-intelligence services.
+
+### 2.6 Using Beavo without an account
+You can use Beavo without creating an account (*Use without an account*). In that case the children's profiles, brushing times, brushing sessions, dental records, categories and the record of your consent are stored **only on your device**. We do not receive them, they are not sent to our servers, and section 5 does not apply to them.
+
+- **Keeping the data is up to you.** It is lost if the app is deleted or the device is reset, lost or replaced, and we cannot recover it. *More → Export backup* creates a copy you can keep.
+- **Erasing it:** *More → Erase data on this phone* (asks for a grown-ups-only check) deletes everything immediately.
+- **Moving it to an account:** if you later create or sign in to an account on this device, the app shows the names of the profiles kept on the device and asks whether to move them into that account. They are moved only if you confirm, after a grown-ups-only check; they are then removed from the device and treated as account data under this Policy. If you decline, they stay on the device only.
 
 ## 3. The camera is only a mirror
 

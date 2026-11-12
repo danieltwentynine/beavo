@@ -17,7 +17,7 @@ export interface Badge {
   type: 'streak' | 'perfect' | 'firstSession' | 'weeklyGoal';
 }
 
-export type Locale = 'pt-BR' | 'en';
+export type Locale = 'pt-BR' | 'en' | 'es';
 
 export interface Consent {
   termsVersion: string;

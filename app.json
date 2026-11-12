@@ -69,7 +69,8 @@
     "owner": "zing-dental-ai",
     "locales": {
       "en": "./locales/en.json",
-      "pt-BR": "./locales/pt-BR.json"
+      "pt-BR": "./locales/pt-BR.json",
+      "es": "./locales/es.json"
     }
   }
 }

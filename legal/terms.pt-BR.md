@@ -2,7 +2,7 @@
 
 # Termos de Uso do Beavo
 
-**Versão:** 2026-11-10 · **Vigência:** [DATA DE PUBLICAÇÃO]
+**Versão:** 2026-11-11 · **Vigência:** [DATA DE PUBLICAÇÃO]
 
 Estes Termos regem o uso do aplicativo Beavo, oferecido por [RAZÃO SOCIAL], CNPJ [CNPJ], com sede em [ENDEREÇO] ("nós"). Ao marcar a caixa de aceite no app, você concorda com estes Termos e com a [Política de Privacidade](privacy-policy.pt-BR.html).
 
@@ -24,6 +24,7 @@ Estes Termos regem o uso do aplicativo Beavo, oferecido por [RAZÃO SOCIAL], CNP
 - Mantenha seus dados de acesso em segurança. Você responde pelo que for feito na sua conta.
 - As informações que você registra (perfis, horários, registros dentários) são de sua responsabilidade; mantenha-as corretas.
 - Você pode exportar seus dados e excluir sua conta a qualquer momento pelo app (*Mais → Exportar backup* e *Mais → Excluir conta*).
+- Você também pode usar o Beavo **sem conta** (*Usar sem conta*). Nesse caso seus dados ficam só no seu aparelho, perdem-se se o app for removido ou se o aparelho for restaurado ou trocado, e não temos como recuperá-los (Política de Privacidade, seção 2.6).
 
 ## 4. A câmera
 

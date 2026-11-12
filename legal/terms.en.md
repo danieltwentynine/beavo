@@ -2,7 +2,7 @@
 
 # Beavo Terms of Service
 
-**Version:** 2026-11-10 · **Effective:** [PUBLICATION DATE]
+**Version:** 2026-11-11 · **Effective:** [PUBLICATION DATE]
 
 These Terms govern the use of the Beavo app, provided by [COMPANY NAME], CNPJ [CNPJ], [ADDRESS] ("we"). By ticking the acceptance box in the app, you agree to these Terms and to the [Privacy Policy](privacy-policy.en.html). The Portuguese version prevails if the two versions differ.
 
@@ -24,6 +24,7 @@ These Terms govern the use of the Beavo app, provided by [COMPANY NAME], CNPJ [C
 - Keep your sign-in details secure. You are responsible for activity in your account.
 - You are responsible for the information you record (profiles, brushing times, dental records); keep it accurate.
 - You can export your data and delete your account at any time in the app (*More → Export backup* and *More → Delete account*).
+- You can also use Beavo **without an account** (*Use without an account*). Your data then stays only on your device, it is lost if the app is removed or the device is reset or replaced, and we cannot recover it (Privacy Policy, section 2.6).
 
 ## 4. The camera
 

@@ -1,6 +1,7 @@
 import { Text, View, type ViewStyle } from 'react-native';
 
 import { BeavoMark } from '@/components/brand/BeavoBrand';
+import { t } from '@/lib/i18n';
 import { cardShadow, radius, tokens } from '@/lib/tokens';
 
 interface CoachCardProps {
@@ -33,7 +34,7 @@ export function CoachCard({ message, score = null, style }: CoachCardProps) {
       <View style={{ flex: 1, rowGap: 6 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
           <Text className="font-display" style={{ fontSize: 17, color: tokens.brandPrimary }}>
-            Beavo says
+            {t('coach.says')}
           </Text>
           {score != null ? (
             <View

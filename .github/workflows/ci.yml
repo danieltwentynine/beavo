@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [step1-foundation] # the official branch; main is deprecated
 
 jobs:
   check:

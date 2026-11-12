@@ -5,11 +5,11 @@
 
 ## What is Beavo?
 
-Beavo is an iOS-first mobile app (Brazil first, pt-BR default) that coaches children through a 2-minute guided brushing session. The front camera can act as a **mirror** so the child sees themselves — it never captures or analyzes anything (see Camera guardrail). The app is built by a dentist mother and her developer son.
+Beavo is an iOS-first mobile app (Brazil first, pt-BR default; English and Spanish when the device uses them) that coaches children through a 2-minute guided brushing session. The front camera can act as a **mirror** so the child sees themselves — it never captures or analyzes anything (see Camera guardrail). The app is built by a dentist mother and her developer son.
 
 **Core loop:**
 
-1. Parent signs in (Google or email), accepts Terms + Privacy Policy, adds one or more child profiles (name, avatar, optional birth year)
+1. Parent signs in (Google or email) or chooses to use the app without an account (data stays on the phone — ADR 0005), accepts Terms + Privacy Policy, adds one or more child profiles (name, avatar, optional birth year)
 2. Each child has brushing slots tied to meals (after breakfast / lunch / dinner by default, editable)
 3. Child starts a 2-minute guided session (timer + mouth-zone guide), optionally with the camera mirror
 4. Session is saved against the slot active at that time; a local, reviewed message closes it (no AI tips)
@@ -29,7 +29,7 @@ Beavo is an iOS-first mobile app (Brazil first, pt-BR default) that coaches chil
 | Backend | Firebase JS SDK v12 (Firestore + Auth + Storage) | Free tier sufficient for MVP |
 | Camera | react-native-vision-camera v5, **preview only** (ADR 0003; needs a development build) | Live mirror; no capture, no frame processing |
 | AI Coach (text) | Gemini client kept in `lib/gemini.ts` but **not called** (ADR 0003) | Re-enable only with a privacy-policy update |
-| i18n | `lib/i18n.ts` (`t()`, pt-BR default, English if the device is English) + `expo-localization` | No i18n library needed |
+| i18n | `lib/i18n.ts` (`t()`, pt-BR default, English or Spanish if that is the device language) + `expo-localization` | No i18n library needed |
 | Subscriptions | RevenueCat | Free until $2,500 MRR |
 | Styling | NativeWind (Tailwind for RN) | Consistent design system |
 | State | Zustand | Lightweight, no boilerplate |
@@ -45,11 +45,12 @@ Actual layout (the repo root is the project; ignore any older `fable/` naming):
 ```
 app/                              # Expo Router screens
 ├── _layout.tsx                   # Fonts, auth → consent check, child data sync, outbox flush, child-picker sheet
-├── index.tsx                     # Redirect: signed in → (tabs)/overview, else onboarding/intro (first launch) or onboarding/welcome
+├── index.tsx                     # Redirect: an owner (signed in, or device-only) → (tabs)/overview, else onboarding/intro (first launch) or onboarding/welcome
 ├── (auth)/ login.tsx, register.tsx
 ├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more
 ├── onboarding/ intro.tsx (first launch only), welcome.tsx
 ├── consent.tsx                   # Terms + Privacy acceptance (unchecked box, re-prompt on version change)
+├── move-data.tsx                 # Signed-in parent: move the profiles left on this phone into the account? (gated)
 ├── child-form.tsx                # Add (gated) / edit / delete (gated) a child
 ├── child-picker.tsx              # Form sheet opened by ProfilePill
 ├── slots.tsx                     # Edit the active child's brushing slots
@@ -65,7 +66,7 @@ components/
 ├── kids/ Avatar, BadgeCard, StreakDisplay, Sticker, ProfilePill
 ├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
 └── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate (+ useParentalGate), TabHeader, ListRow, GlassSurface
-hooks/ useActiveChild.ts, useChildDataSync.ts, useToothEvents.ts, useCategories.ts, useSessions.ts
+hooks/ useActiveChild.ts, useChildDataSync.ts, useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts
 src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
 ├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
 ├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
@@ -73,17 +74,19 @@ src/data/                         # REPOSITORY LAYER — the only code that touc
 ├── teeth.ts                      # Pure tooth logic: primary FDI teeth, arch geometry/shapes, nearestTooth, stats
 ├── progress.ts                   # Pure: week dots, streak (all slots completed), 30-day completion rate, derived badges
 ├── backup.ts                     # Pure: backup file format + validation (import)
+├── local.ts                      # Pure: device-only store (a Backup in memory) used when the owner is LOCAL_UID
 ├── outbox.ts                     # Pure outbox codec for unsynced sessions
 └── *.test.ts                     # node --test unit tests
 lib/
 ├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In (+ reauth for account deletion)
 ├── account.ts                    # Sign out, data export, delete child / account (app glue over src/data)
 ├── consent.ts, legal.ts          # Consent check/accept; LEGAL_VERSIONS + hosted URLs
+├── localData.ts                  # Device-only mode glue: load/save the store, enter/leave, move to account, erase
 ├── sync.ts                       # AsyncStorage outbox: sessions survive app kill offline, retried on launch/foreground
-├── i18n.ts                       # t(), pt-BR + en strings
+├── i18n.ts                       # t(), pt-BR + en + es strings
 ├── coach.ts, gemini.ts (not called), constants.ts, tokens.ts
 └── *.check.mjs                   # Plain-node self-checks
-stores/ authStore.ts (user + consent), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length, intro seen)
+stores/ authStore.ts (user, device-only flag, consent; `ownerIdOf`), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length, intro seen)
 tests/ rules.test.ts, repository.test.ts   # Firestore emulator tests
 legal/                            # Terms + Privacy Policy drafts (pt-BR, en) → public/legal/*.html on Firebase Hosting
 types/ index.ts                   # All shared types; firebase-auth.d.ts augments RN persistence
@@ -106,7 +109,7 @@ All shared types live in `types/index.ts` — `Child`, `BrushingSlot`, `Brushing
 Everything lives under the parent's uid (ADR 0004). Firestore region: southamerica-east1.
 
 ```
-users/{uid}                         displayName, locale ('pt-BR'|'en'), createdAt,
+users/{uid}                         displayName, locale ('pt-BR'|'en'|'es'), createdAt,
                                     consent { termsVersion, privacyVersion, acceptedAt }
   children/{childId}                name, avatarColor (#hex), avatarIcon, birthYear?, kidMode, createdAt, archivedAt
     brushingSlots/{slotId}          label, icon, mealType (breakfast|lunch|dinner|custom),
@@ -116,6 +119,7 @@ users/{uid}                         displayName, locale ('pt-BR'|'en'), createdA
   categories/{categoryId}           name, type, color, isDefault
 ```
 
+- **Device-only mode (ADR 0005):** when the owner is `LOCAL_UID` (no account), every repository function routes to `src/data/local.ts` and nothing is written to Firestore. Take the owner from `ownerIdOf` (`stores/authStore.ts`), never `user.uid`. Moving device data into an account is always asked (`app/move-data.tsx`), never automatic.
 - **Repository rule:** screens never import `firebase/firestore`; they call `src/data/*` (functions take `db` first so the emulator tests can pass their own).
 - **Offline:** the JS SDK can't persist its cache on React Native. Writes are fired without awaiting (they show instantly via `watch*` listeners and sync on reconnect); sessions also go through `lib/sync.ts` (AsyncStorage outbox) so an app kill offline loses nothing; `stores/childStore.ts` snapshots children + slots to the device so the app starts offline. Deletes and exports need a connection (they list from the server).
 - **Slots:** never hard-delete a slot with sessions — `removeSlot` archives it. Past days are evaluated with `slotsActiveOn(slots, day)` (a slot counts on every day from its creation day to its archive day, inclusive). Minimum one slot per child (client-enforced).
@@ -225,7 +229,7 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 - Handle all Firebase errors with try/catch and user-friendly fallback messages
 - Use Zod schemas to validate all Firestore reads — data can be malformed (in `src/data/`)
 - Go through the repository layer in `src/data/` — never call Firestore from screens
-- Put user-facing strings in `lib/i18n.ts` (pt-BR first, English second)
+- Put user-facing strings in `lib/i18n.ts` (pt-BR first, then English and Spanish — all three)
 - Use `expo-constants` for environment variables, never hardcode API keys
 - Write self-documenting code — prefer clear names over comments
 - Use NativeWind classes, never raw StyleSheet unless performance demands it
@@ -240,11 +244,11 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 - Use `useEffect` with missing dependencies — fix the dep array properly
 
 ### Privacy (critical — this is a children's app):
-- COPPA compliance: parents authenticate, children never do
+- COPPA compliance: parents authenticate, children never do. Without an account nobody authenticates and nothing leaves the device (ADR 0005)
 - No analytics that track individual children by name
 - All data lives under `users/{uid}` — the security rules enforce owner-only access
 - Camera frames are never processed, stored or uploaded (mirror only)
-- **Parental gate (Apple Kids Category):** every external link (legal, review), purchase/Premium, backup export/import, settings, categories, kid-mode change, routine editing, adding/deleting a child or tooth event, sign-out and account deletion goes through `ParentalGate` / `useParentalGate` (viewing the chart and records is open). The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal).
+- **Parental gate (Apple Kids Category):** every external link (legal, review), purchase/Premium, backup export/import, moving or erasing device-only data, creating an account from device-only mode, settings, categories, kid-mode change, routine editing, adding/deleting a child or tooth event, sign-out and account deletion goes through `ParentalGate` / `useParentalGate` (viewing the chart and records is open). The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal).
 - **Kid mode** (`children.kidMode`, off for new children, toggled behind the gate on Brushing): hides the More tab, makes the Overview chart view-only (no tooth sheet, no Dental History) and hides edit/add in the child picker. first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
 - Legal docs (`legal/`) must describe what the code actually does — change them (and `LEGAL_VERSIONS`) whenever data handling changes
 - The Gemini prompt must never include the child's last name, school, or location
@@ -326,7 +330,7 @@ Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only 
 - NativeWind v4 is wired through `babel.config.js` (`jsxImportSource: 'nativewind'` + `nativewind/babel`), `metro.config.js` (`withNativeWind` with `global.css`), and `tailwind.config.js` (`presets: [nativewind/preset, ./tailwind.preset]` supplies the design-system colors, fonts, radii and shadows; app-only aliases `muted`, `text-link`, `surface-page` live in the config).
 - Firebase Auth uses `initializeAuth` + `getReactNativePersistence(AsyncStorage)` in `lib/firebase.ts`. The firebase v12 wrapper's web typings omit `getReactNativePersistence` (it exists in the RN runtime build) — `types/firebase-auth.d.ts` augments the module; do not work around it with `@ts-ignore`.
 - Fonts are bundled TTFs in `assets/fonts/` loaded once in `app/_layout.tsx` via `expo-font` `useFonts`, referenced by family name: `font-display` and `font-display-semi` → `Baloo2-Bold`, `font-numeric` → `Baloo2-ExtraBold`, `font-body` → `Nunito-Regular`, `font-body-semi` → `Nunito-SemiBold` (inline styles: `font.*` in `lib/tokens.ts`).
-- Auth state flows: `onAuthStateChanged` in `app/_layout.tsx` → `stores/authStore.ts` (user + consent status from `lib/consent.ts`) → `app/(tabs)/_layout.tsx` gates: signed in → current consent → at least one child, else redirects to welcome / consent / child-form.
+- Auth state flows: `onAuthStateChanged` and the stored device-only flag in `app/_layout.tsx` → `stores/authStore.ts` (user, `isLocal`, consent status from `lib/consent.ts`) → `app/(tabs)/_layout.tsx` gates: an owner → current consent → device profiles to move (signed-in only) → at least one child, else redirects to welcome / consent / move-data / child-form.
 - NativeWind 4.2.5 drops function-form `Pressable` styles (upstream #1105); `Button`, `Chip`, `Card` and `AvatarPicker` keep pressed state in React state instead — don't revert it.
 - Fabric: don't make style *keys* conditional on focus (it recreates the native view and drops `TextInput` focus). Keep the keys, change the values.
 - Finished sessions go through `lib/sync.ts` (outbox codec in `src/data/outbox.ts`) so an offline write is retried, not lost. Session docs are idempotent via a stable id reserved before the first attempt.
@@ -338,6 +342,6 @@ Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only 
 
 **App concept:** Daniel Cardoso (developer) + his dentist mother (clinical advisor)
 **Primary clinical advisor:** Reviews all coaching message templates for accuracy
-**Target launch:** App Store, iOS first, Portuguese (BR) + English
+**Target launch:** App Store, iOS first, Portuguese (BR) + English + Spanish (legal documents exist in Portuguese and English only)
 
 When generating coaching messages or dental content, flag anything that sounds like medical advice for review by the clinical advisor before shipping.

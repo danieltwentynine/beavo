@@ -98,6 +98,7 @@ describe('users/{uid}', () => {
     const alice = dbAs(env, 'alice');
     await assertFails(setDoc(doc(alice, 'users/alice'), { ...user, email: 'ana@example.com' }));
     await assertFails(setDoc(doc(alice, 'users/alice'), { ...user, locale: 'fr' }));
+    await assertSucceeds(setDoc(doc(alice, 'users/alice'), { ...user, locale: 'es', consent: consented }));
     await assertFails(setDoc(doc(alice, 'users/alice'), { ...user, consent: { termsVersion: '', privacyVersion: 'x', acceptedAt: now } }));
     await assertFails(setDoc(doc(alice, 'users/alice'), { displayName: 'Ana', locale: 'en' }));
   });

@@ -116,7 +116,7 @@ export default function WelcomeScreen() {
               marginTop: 10,
             }}
           >
-            The brushing buddy that turns two minutes into a daily adventure.
+            {t('welcome.tagline')}
           </Text>
         </View>
         <View style={{ rowGap: 12, marginTop: 24 }}>
@@ -128,16 +128,16 @@ export default function WelcomeScreen() {
               {signInError}
             </Text>
           ) : null}
-          <Button label="Get started" size="lg" onPress={() => router.push('/(auth)/register')} />
+          <Button label={t('welcome.getStarted')} size="lg" onPress={() => router.push('/(auth)/register')} />
           <Button
-            label="Continue with Google"
+            label={t('welcome.google')}
             variant="outline"
             icon={<GoogleG />}
             loading={googlePending}
             onPress={onGoogleSignIn}
           />
           <Button
-            label="I already have an account"
+            label={t('welcome.haveAccount')}
             variant="ghost"
             onPress={() => router.push('/(auth)/login')}
           />

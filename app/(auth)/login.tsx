@@ -12,11 +12,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { auth } from '@/lib/firebase';
+import { t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
 
 const loginSchema = z.object({
-  email: z.string().trim().email("That email address doesn't look right"),
-  password: z.string().min(1, 'Please enter your password'),
+  email: z.string().trim().email(t('form.emailInvalid')),
+  password: z.string().min(1, t('login.passwordRequired')),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -27,14 +28,14 @@ function loginErrorMessage(error: unknown): string {
       case 'auth/invalid-credential':
       case 'auth/wrong-password':
       case 'auth/user-not-found':
-        return "That email or password didn't match. Please try again.";
+        return t('login.err.mismatch');
       case 'auth/too-many-requests':
-        return 'Too many attempts. Please wait a moment and try again.';
+        return t('auth.err.tooMany');
       case 'auth/network-request-failed':
-        return 'No connection. Please check your internet and try again.';
+        return t('auth.err.network');
     }
   }
-  return "We couldn't log you in right now. Please try again.";
+  return t('login.err.generic');
 }
 
 export default function LoginScreen() {
@@ -62,7 +63,7 @@ export default function LoginScreen() {
     const email = getValues('email').trim();
     if (!loginSchema.shape.email.safeParse(email).success) {
       setResetNotice(null);
-      setSubmitError('Enter the email you signed up with, then tap this again.');
+      setSubmitError(t('login.resetNeedEmail'));
       return;
     }
     setSubmitError(null);
@@ -79,7 +80,7 @@ export default function LoginScreen() {
     } finally {
       setSendingReset(false);
     }
-    setResetNotice(`If ${email} has a Beavo account, a reset link is on its way. Check your inbox.`);
+    setResetNotice(t('login.resetSent', { email }));
   };
 
   return (
@@ -98,9 +99,9 @@ export default function LoginScreen() {
             <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
           </Pressable>
 
-          <Text className="font-display text-3xl text-ink">Welcome back</Text>
+          <Text className="font-display text-3xl text-ink">{t('login.title')}</Text>
           <Text className="mb-6 mt-1.5 font-body text-base text-muted">
-            Log in to keep your child's brushing adventure going.
+            {t('login.subtitle')}
           </Text>
 
           <View style={{ rowGap: 16 }}>
@@ -109,8 +110,8 @@ export default function LoginScreen() {
               name="email"
               render={({ field: { onChange, value }, fieldState: { error } }) => (
                 <Input
-                  label="Email"
-                  placeholder="you@example.com"
+                  label={t('form.email')}
+                  placeholder={t('form.emailPlaceholder')}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   icon={<EnvelopeSimple size={20} color={tokens.textSecondary} weight="bold" />}
@@ -125,8 +126,8 @@ export default function LoginScreen() {
               name="password"
               render={({ field: { onChange, value }, fieldState: { error } }) => (
                 <Input
-                  label="Password"
-                  placeholder="Your password"
+                  label={t('form.password')}
+                  placeholder={t('login.passwordPlaceholder')}
                   autoCapitalize="none"
                   secureTextEntry
                   icon={<LockSimple size={20} color={tokens.textSecondary} weight="bold" />}
@@ -145,7 +146,7 @@ export default function LoginScreen() {
             style={{ alignSelf: 'flex-end', marginTop: 10 }}
           >
             <Text className="font-display-semi text-sm text-text-link">
-              {sendingReset ? 'Sending…' : 'Forgot my password'}
+              {sendingReset ? t('login.sending') : t('login.forgot')}
             </Text>
           </Pressable>
 
@@ -158,7 +159,7 @@ export default function LoginScreen() {
           ) : null}
 
           <Button
-            label="Log in"
+            label={t('login.submit')}
             size="lg"
             onPress={handleSubmit(onSubmit)}
             loading={formState.isSubmitting}
@@ -166,9 +167,9 @@ export default function LoginScreen() {
           />
 
           <View className="mt-6 flex-row justify-center">
-            <Text className="font-body text-muted">New to Beavo? </Text>
+            <Text className="font-body text-muted">{t('login.newHere')}</Text>
             <Pressable onPress={() => router.replace('/(auth)/register')}>
-              <Text className="font-display-semi text-text-link">Create an account</Text>
+              <Text className="font-display-semi text-text-link">{t('login.create')}</Text>
             </Pressable>
           </View>
         </ScrollView>

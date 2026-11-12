@@ -54,3 +54,12 @@ Status confirmed by the owner on 2026-10-06 (previously inferred from the repo: 
 
 ## Phase 3 — Subscriptions (not started): RevenueCat
 ## Phase 4 — Android (not started)
+
+## Device-only mode, Spanish, brushing cheers (2026-11-11)
+- [x] Use without an account: device store in `src/data/local.ts`, move-to-account screen, erase, legal update (ADR 0005)
+- [x] Spanish (`es`) in `lib/i18n.ts`, `locales/es.json`, profile `locale`; welcome, login, register, session and results moved into `lib/i18n.ts` (all three languages)
+- [x] Brushing cheers on the session sticker (`cheer.*`)
+- [ ] Deploy `firestore.rules` (now accepts `locale: 'es'`) **before** a Spanish device signs in — the deployed rules refuse the consent write otherwise
+- [ ] Native-speaker review of the Spanish strings and of the pt-BR strings added here; clinical review (see CLINICAL.md)
+- [ ] Simulator pass of the device-only flows: use without an account → child → session; create account → move data; erase
+

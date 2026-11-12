@@ -2,7 +2,7 @@
 
 # Política de Privacidade do Beavo
 
-**Versão:** 2026-11-10 · **Vigência:** [DATA DE PUBLICAÇÃO]
+**Versão:** 2026-11-11 · **Vigência:** [DATA DE PUBLICAÇÃO]
 
 Esta Política explica como o aplicativo Beavo ("Beavo", "nós") trata dados pessoais, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, "LGPD"). O Beavo é um app para ajudar crianças de 4 a 12 anos a criar o hábito de escovar os dentes. **A conta é sempre de um adulto (mãe, pai ou responsável legal). Crianças não criam conta nem fazem login.**
 
@@ -40,6 +40,13 @@ Para o app funcionar sem internet, o aparelho guarda: sua sessão de login, uma 
 - **Não** usamos ferramentas de análise (analytics), relatórios de falhas, publicidade ou rastreamento de qualquer tipo.
 - **Não** coletamos localização, contatos, fotos, vídeos, áudio ou identificadores de publicidade.
 - **Não** enviamos seus dados nem os das crianças a serviços de inteligência artificial.
+
+### 2.6 Usar o Beavo sem conta
+Você pode usar o Beavo sem criar uma conta (*Usar sem conta*). Nesse caso, os perfis das crianças, os horários, as sessões de escovação, os registros dentários, as categorias e o registro do seu consentimento ficam guardados **só no seu aparelho**. Nós não os recebemos, eles não são enviados aos nossos servidores, e a seção 5 não se aplica a eles.
+
+- **Guardar esses dados depende de você.** Eles se perdem se o app for apagado ou se o aparelho for restaurado, perdido ou trocado, e não temos como recuperá-los. *Mais → Exportar backup* cria uma cópia que você pode guardar.
+- **Apagar:** *Mais → Apagar os dados deste celular* (pede uma confirmação para adultos) apaga tudo na hora.
+- **Levar para uma conta:** se depois você criar uma conta ou entrar em uma neste aparelho, o app mostra os nomes dos perfis guardados no aparelho e pergunta se deseja levá-los para essa conta. Eles só são levados se você confirmar, após uma confirmação para adultos; então saem do aparelho e passam a ser tratados como dados da conta, conforme esta Política. Se você recusar, continuam só no aparelho.
 
 ## 3. A câmera é só um espelho
 

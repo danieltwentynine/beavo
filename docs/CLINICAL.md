@@ -37,5 +37,11 @@ Beavo is a children's health-adjacent app. Anything that reads as dental or medi
 - **Decision needed:** with the 1 or 1.5 min setting, a run that reaches the chosen length is saved as `completed` and counts for the streak, while the hint says dentists recommend 2 min. Should sub-2-minute runs count as complete?
 - Not clinical: `more.premiumBody` / `premium.body` are placeholders and must be replaced before release.
 
+## Needs clinical review (2026-11-11, device-only mode, Spanish, cheers)
+- Brushing cheers `cheer.0`–`cheer.9` (pt-BR, en, es), one per step of the guide: pure encouragement, no technique.
+- Guide hints `zone.*`, closing messages `coach.*` and results titles `results.*`: previously English only, now also pt-BR and es.
+- The whole Spanish table in `lib/i18n.ts` was machine-written and has not been read by a native speaker; the health wording (`category.*`, `tooth.*`, `event.*`, `arch.*`, `settings.durationHint`) needs the same review as the pt-BR and English versions above.
+- Device-only copy (`local.*`, `more.device*`, `more.erase*`, `move.*`) and Privacy Policy section 2.6 / Terms section 3: parent-facing, not clinical, but needs the legal review.
+
 ## Approved wording
 _None recorded yet. The advisor should add approved coach templates here (EN and PT-BR)._

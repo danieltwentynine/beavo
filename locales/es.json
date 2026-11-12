@@ -1,0 +1,5 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Beavo usa la cámara frontal solo como espejo, para que tu peque se vea mientras se cepilla. No se graba, guarda ni envía nada."
+  }
+}

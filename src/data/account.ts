@@ -23,7 +23,7 @@ export const userRef = (db: Firestore, uid: string) => doc(db, 'users', uid);
 
 const userSchema = z.object({
   displayName: z.string(),
-  locale: z.enum(['pt-BR', 'en']),
+  locale: z.enum(['pt-BR', 'en', 'es']),
   createdAt: date,
   consent: z
     .object({ termsVersion: z.string(), privacyVersion: z.string(), acceptedAt: date })

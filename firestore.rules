@@ -70,7 +70,7 @@ service cloud.firestore {
     function validUser() {
       return shape(['displayName', 'locale', 'createdAt'], ['consent'])
         && str(data().displayName, 100)
-        && data().locale in ['pt-BR', 'en']
+        && data().locale in ['pt-BR', 'en', 'es']
         && data().createdAt is timestamp
         && (!('consent' in data()) || (
           data().consent is map
