@@ -49,7 +49,7 @@ Status confirmed by the owner on 2026-10-06 (previously inferred from the repo: 
 
 ## Phase 2 — Camera and AI (not started)
 - [~] Face/mouth detection — **ruled out** by [ADR 0003](decisions/0003-camera-mirror-only.md) (camera is a mirror only)
-- [~] Gemini coach — client exists in `lib/gemini.ts`, **disabled** (ADR 0003); re-enable only with a Privacy Policy update
+- [~] Gemini coach — **not in the app** (ADR 0003); the old client is in git history (`lib/gemini.ts`, removed 2026-11-12). Bring it back only with a Privacy Policy update
 - [ ] Clinical advisor review of all coach templates
 
 ## Phase 3 — Subscriptions (not started): RevenueCat

@@ -12,7 +12,7 @@ interface CoachCardProps {
 
 /**
  * CoachCard — the post-session coaching message from Beavo. Warm, playful,
- * never clinical (CLAUDE.md > Gemini Coach). Optional score chip.
+ * never clinical (docs/CLINICAL.md). Optional score chip.
  */
 export function CoachCard({ message, score = null, style }: CoachCardProps) {
   return (

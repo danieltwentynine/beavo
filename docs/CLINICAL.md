@@ -41,7 +41,6 @@ Beavo is a children's health-adjacent app. Anything that reads as dental or medi
 - Brushing cheers `cheer.0`–`cheer.9` (pt-BR, en, es), one per step of the guide: pure encouragement, no technique.
 - Guide hints `zone.*`, closing messages `coach.*` and results titles `results.*`: previously English only, now also pt-BR and es.
 - The whole Spanish table in `lib/i18n.ts` was machine-written and has not been read by a native speaker; the health wording (`category.*`, `tooth.*`, `event.*`, `arch.*`, `settings.durationHint`) needs the same review as the pt-BR and English versions above.
-- The Spanish and Portuguese terms added to the `BANNED` filter in `lib/gemini.ts` (caries, enfermedad, infec…, diagnóstic…, placa, gengivite, doutor). The client is still not called (ADR 0003).
 - Device-only copy (`local.*`, `more.device*`, `more.erase*`, `move.*`) and Privacy Policy section 2.6 / Terms section 3: parent-facing, not clinical, but needs the legal review.
 
 ## Approved wording

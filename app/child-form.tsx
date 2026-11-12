@@ -14,7 +14,7 @@ import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { radius, tokens } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
-import { MAX_CHILDREN, createChild, updateChild } from '@/src/data/children';
+import { createChild, updateChild } from '@/src/data/children';
 import { background } from '@/src/data/firestore';
 
 const thisYear = new Date().getFullYear();
@@ -65,10 +65,6 @@ export default function ChildFormScreen() {
     if (existing) {
       background(updateChild(db, uid, existing.id, input));
       leave();
-      return;
-    }
-    if (children.length >= MAX_CHILDREN) {
-      setError(t('childForm.limit'));
       return;
     }
     // Not awaited: works offline, and the listener shows the child at once.

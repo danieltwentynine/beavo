@@ -12,7 +12,7 @@ import { childrenRef, createChild, deleteChild, updateChild, watchChildren } fro
 import { localDate, slotsActiveOn } from '../src/data/schedule.ts';
 import { hasSessionsForSlot, writeSession } from '../src/data/sessions.ts';
 import { addSlot, removeSlot, slotsRef, watchSlots } from '../src/data/slots.ts';
-import { addToothEvent, addToothEvents, categoriesRef, seedDefaultCategories, toothEventsRef } from '../src/data/toothEvents.ts';
+import { addToothEvents, categoriesRef, seedDefaultCategories, toothEventsRef } from '../src/data/toothEvents.ts';
 import type { BrushingSlot, Child } from '../types/index.ts';
 
 import { dbAs, startEmulator } from './emulator.ts';
@@ -132,7 +132,7 @@ test('removeSlot archives a slot that has sessions, and past days still see it',
 test('deleteChild removes the child and every subcollection', async () => {
   const id = await newChild();
   await writeSession(db, UID, id, { id: 's1', slotId: 'x', date: '2026-10-31', startedAt: new Date(), durationSec: 60, completed: false });
-  await addToothEvent(db, UID, id, { fdi: 55, type: 'symptom', categoryId: 'pain', note: '', date: '2026-10-31' }).written;
+  await addToothEvents(db, UID, id, [{ fdi: 55, type: 'symptom', categoryId: 'pain', note: '', date: '2026-10-31' }]);
   const keep = await newChild('Bia');
 
   await deleteChild(db, UID, id);
@@ -203,7 +203,7 @@ test('export → delete everything → import restores the same data', async () 
   await seedDefaultCategories(db, UID, { pain: 'Dor' });
   const id = await newChild();
   await writeSession(db, UID, id, { id: 's1', slotId: 'x', date: '2026-10-31', startedAt: new Date('2026-10-31T10:00:00Z'), durationSec: 120, completed: true });
-  await addToothEvent(db, UID, id, { fdi: 55, type: 'symptom', categoryId: 'pain', note: 'molar', date: '2026-10-31' }).written;
+  await addToothEvents(db, UID, id, [{ fdi: 55, type: 'symptom', categoryId: 'pain', note: 'molar', date: '2026-10-31' }]);
   const before = await exportAllData(db, UID);
 
   await deleteAllUserData(db, UID);

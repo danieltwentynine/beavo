@@ -1,12 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 /** Brushing length choices (seconds). 2 minutes is the default dentists recommend. */
 export const BRUSHING_DURATIONS = [60, 90, 120, 150, 180] as const;
 export type BrushingDuration = (typeof BRUSHING_DURATIONS)[number];
 export const DEFAULT_BRUSHING_DURATION: BrushingDuration = 120;
-
-const KEY = 'beavo.settings.v1';
 
 interface SettingsState {
   brushingDurationSec: BrushingDuration;
@@ -16,43 +15,38 @@ interface SettingsState {
   loaded: boolean;
   markIntroSeen: () => void;
   setBrushingDuration: (sec: BrushingDuration) => void;
-  load: () => Promise<void>;
 }
 
 const isDuration = (v: unknown): v is BrushingDuration => BRUSHING_DURATIONS.some((d) => d === v);
 
 /**
  * App settings for this device (not synced: they describe how this phone is
- * used, and hold no personal data). Loaded once in app/_layout.tsx.
+ * used, and hold no personal data). Read from storage on first use.
  */
-export const useSettingsStore = create<SettingsState>((set, get) => {
-  const save = () => {
-    const { brushingDurationSec, introSeen } = get();
-    void AsyncStorage.setItem(KEY, JSON.stringify({ brushingDurationSec, introSeen })).catch(() => undefined);
-  };
-  return {
-    brushingDurationSec: DEFAULT_BRUSHING_DURATION,
-    introSeen: false,
-    loaded: false,
-    setBrushingDuration: (brushingDurationSec) => {
-      set({ brushingDurationSec });
-      save();
+export const useSettingsStore = create<SettingsState>()(
+  persist(
+    (set) => ({
+      brushingDurationSec: DEFAULT_BRUSHING_DURATION,
+      introSeen: false,
+      loaded: false,
+      setBrushingDuration: (brushingDurationSec) => set({ brushingDurationSec }),
+      markIntroSeen: () => set({ introSeen: true }),
+    }),
+    {
+      name: 'beavo.settings.v2',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: ({ brushingDurationSec, introSeen }) => ({ brushingDurationSec, introSeen }),
+      // Storage is untrusted input: anything unexpected keeps the default.
+      merge: (saved, current) => {
+        const s = (saved ?? {}) as { brushingDurationSec?: unknown; introSeen?: unknown };
+        return {
+          ...current,
+          introSeen: s.introSeen === true,
+          brushingDurationSec: isDuration(s.brushingDurationSec) ? s.brushingDurationSec : current.brushingDurationSec,
+        };
+      },
+      // Runs after a read that failed too: the defaults stay.
+      onRehydrateStorage: () => () => useSettingsStore.setState({ loaded: true }),
     },
-    markIntroSeen: () => {
-      set({ introSeen: true });
-      save();
-    },
-    load: async () => {
-      try {
-        const raw = await AsyncStorage.getItem(KEY);
-        const parsed: unknown = raw ? JSON.parse(raw) : null;
-        const saved = parsed && typeof parsed === 'object' ? (parsed as { brushingDurationSec?: unknown; introSeen?: unknown }) : {};
-        if (isDuration(saved.brushingDurationSec)) set({ brushingDurationSec: saved.brushingDurationSec });
-        if (saved.introSeen === true) set({ introSeen: true });
-      } catch {
-        // Defaults stay.
-      }
-      set({ loaded: true });
-    },
-  };
-});
+  ),
+);

@@ -8,8 +8,7 @@ npx expo lint                            # ESLint incl. camera guardrail rules
 node scripts/check-camera-guardrail.mjs  # no mic permission, no capture/frame-processor packages
 npm test                                 # node --test src/data/*.test.ts (Node ≥ 23.6)
 npm run test:emulator                    # Firestore rules + repository tests (needs Java)
-for f in lib/*.check.mjs; do node "$f"; done
-TZ=America/New_York node lib/streak.check.mjs   # exercises the DST boundary cases
+TZ=America/New_York npm test             # exercises the DST boundary cases
 npm run build:legal                      # legal/*.md → public/legal/*.html; fails on version mismatch
 ```
 Tests use `node:test` + `node:assert` (no framework). New pure repository logic goes in `src/data/` with a sibling `*.test.ts`.

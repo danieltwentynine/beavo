@@ -63,7 +63,6 @@ const ptBR = {
   'childForm.back': 'Voltar',
   'childForm.errName': 'Digite o nome da criança.',
   'childForm.errBirthYear': 'Digite um ano entre {min} e {max}, ou deixe em branco.',
-  'childForm.limit': 'Você atingiu o limite de perfis.',
   'childForm.deleteTitle': 'Excluir o perfil de {name}?',
   'childForm.deleteBody':
     'Todas as escovações e registros dentários de {name} serão apagados. Isso não pode ser desfeito.',
@@ -459,7 +458,6 @@ const en: Record<StringKey, string> = {
   'childForm.back': 'Go back',
   'childForm.errName': "Please add the child's name.",
   'childForm.errBirthYear': 'Enter a year between {min} and {max}, or leave it blank.',
-  'childForm.limit': "You've reached the profile limit.",
   'childForm.deleteTitle': "Delete {name}'s profile?",
   'childForm.deleteBody': "All of {name}'s brushing sessions and dental records will be erased. This can't be undone.",
   'childForm.deleteConfirm': 'Delete forever',
@@ -852,7 +850,6 @@ const es: Record<StringKey, string> = {
   'childForm.back': 'Volver',
   'childForm.errName': 'Escribe el nombre de tu peque.',
   'childForm.errBirthYear': 'Escribe un año entre {min} y {max}, o déjalo en blanco.',
-  'childForm.limit': 'Llegaste al límite de perfiles.',
   'childForm.deleteTitle': '¿Eliminar el perfil de {name}?',
   'childForm.deleteBody': 'Se borrarán todos los cepillados y registros dentales de {name}. No se puede deshacer.',
   'childForm.deleteConfirm': 'Eliminar para siempre',

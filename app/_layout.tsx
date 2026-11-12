@@ -18,7 +18,6 @@ import { flushOutbox } from '@/lib/sync';
 import { tokens } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { clearSnapshot } from '@/stores/childStore';
-import { useSettingsStore } from '@/stores/settingsStore';
 
 // The native splash stays up until the logo screen has drawn the same image in the same spot.
 void SplashScreen.preventAutoHideAsync();
@@ -29,14 +28,12 @@ export default function RootLayout() {
   const setUser = useAuthStore((state) => state.setUser);
   const setConsent = useAuthStore((state) => state.setConsent);
   const setLocal = useAuthStore((state) => state.setLocal);
-  const loadSettings = useSettingsStore((state) => state.load);
   useEffect(() => {
-    void loadSettings();
     cleanupBackupFiles();
     // Device-only mode (ADR 0005): the data kept on this phone, and whether it is in use.
     void startLocalStore();
     void isLocalMode().then(setLocal);
-  }, [loadSettings, setLocal]);
+  }, [setLocal]);
   // The signed-in parent, or this device when Beavo is used without an account.
   const uid = useAuthStore((state) => (state.isLoading ? null : ownerIdOf(state)));
   useChildDataSync(uid);

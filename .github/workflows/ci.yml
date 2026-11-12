@@ -27,9 +27,8 @@ jobs:
         run: node scripts/check-camera-guardrail.mjs
       - name: Unit tests
         run: npm test
-      - name: Self-checks
+      - name: Unit tests in DST zones
         run: |
-          for f in lib/*.check.mjs; do node "$f"; done
           TZ=America/New_York npm test   # DST boundaries (progress/streak day math)
           TZ=America/Sao_Paulo npm test
       - name: Firestore rules + repository tests (emulator)

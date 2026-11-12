@@ -11,7 +11,7 @@ ADR 0002 kept react-native-vision-camera v5 for a future on-device zone-detectio
 2. **No microphone permission.** VisionCamera v5 has no Expo config plugin, so only `NSCameraUsageDescription` is set (pt-BR + English via `locales/`).
 3. **Enforced mechanically:** ESLint `no-restricted-imports` / `no-restricted-properties` ("Camera guardrail") and `scripts/check-camera-guardrail.mjs` in CI (no mic permission in config, no capture/media/frame-processor packages).
 4. **No zone detection.** The session stays timer-guided; copy must not claim detection.
-5. **Gemini not called.** `lib/gemini.ts` stays in the repo for later; `app/session.tsx` uses the local templates in `lib/coach.ts`.
+5. **Gemini not called.** `app/session.tsx` uses the local templates in `lib/coach.ts`. (The unused client `lib/gemini.ts` was removed on 2026-11-12; it is in git history.)
 
 ## Alternatives considered
 - **Switch to expo-camera `CameraView`:** also preview-capable, but the owner chose not to swap libraries now. The guardrail bans `expo-camera` to avoid two camera stacks.

@@ -99,8 +99,7 @@ export default function SessionScreen() {
       router.back();
       return;
     }
-    // Local, reviewed templates only. AI tips (lib/gemini.ts) are off: re-enabling
-    // them needs a privacy-policy update first (CLAUDE.md > Gemini).
+    // Local, reviewed templates only: AI tips need a privacy-policy update first (ADR 0003).
     const coachMessage = buildCoachMessage(child.name, missed, score);
 
     setLastResult({

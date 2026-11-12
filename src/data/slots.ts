@@ -39,10 +39,9 @@ export function watchSlots(
   uid: string,
   childId: string,
   onChange: (slots: BrushingSlot[]) => void,
-  onError?: (error: Error) => void,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalSlots(childId, onChange);
-  return onSnapshot(slotsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, slotSchema)), onError);
+  return onSnapshot(slotsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, slotSchema)));
 }
 
 export function addSlot(db: Firestore, uid: string, childId: string, slot: NewSlot): { id: string; written: Promise<void> } {

@@ -50,10 +50,9 @@ export function watchAllSessions(
   uid: string,
   childId: string,
   onChange: (sessions: BrushingSession[]) => void,
-  onError?: (error: Error) => void,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalSessions(childId, onChange);
-  return onSnapshot(sessionsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, sessionSchema)), onError);
+  return onSnapshot(sessionsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, sessionSchema)));
 }
 
 /** Whether any session uses the slot — asked of the server. Null when it can't be reached. */

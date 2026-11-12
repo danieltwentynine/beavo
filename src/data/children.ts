@@ -17,9 +17,6 @@ import { deleteCollection, optionalDate, date, parseDocs } from './firestore.ts'
 import { LOCAL_UID, localCreateChild, localDeleteChild, localUpdateChild, watchLocalChildren } from './local.ts';
 import { defaultSlots, type DefaultSlotLabels } from './schedule.ts';
 
-/** Profile limit per parent. Infinity = unlimited. */
-export const MAX_CHILDREN = Infinity;
-
 export const CHILD_SUBCOLLECTIONS = ['brushingSlots', 'brushingSessions', 'toothEvents'] as const;
 
 export const childrenRef = (db: Firestore, uid: string) => collection(db, 'users', uid, 'children');
@@ -100,7 +97,6 @@ export function watchChildren(
   db: Firestore,
   uid: string,
   onChange: (children: Child[], fromCache: boolean) => void,
-  onError?: (error: Error) => void,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalChildren((children) => onChange(children, false));
   return onSnapshot(
@@ -111,7 +107,6 @@ export function watchChildren(
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       onChange(children, snap.metadata.fromCache);
     },
-    onError,
   );
 }
 

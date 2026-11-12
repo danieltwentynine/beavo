@@ -13,7 +13,7 @@ Check each item and report PASS / FAIL / N/A with file:line evidence:
 3. Camera guardrail (CLAUDE.md): no capture/record/frame-processing APIs, no mic permission, camera inactive when unfocused/backgrounded; ESLint guardrail rules not disabled.
 4. No `console.log` of tokens, emails, or child names.
 5. No analytics or third-party SDK that identifies an individual child.
-6. Gemini stays uncalled unless the Privacy Policy was updated (CLAUDE.md > Gemini Coach); if called, no name/last name/school/location in prompts.
+6. No AI service is called (ADR 0003). A diff that adds one needs a Privacy Policy update first (CLAUDE.md > Gemini Coach), and no name/last name/school/location in prompts.
 7. No API keys hardcoded; env access via `expo-constants` / `EXPO_PUBLIC_*` only.
 8. Child-facing UI shows no stack traces or technical errors, and no red.
 9. New or changed copy: no clinical or medical-advice language; listed for advisor review.

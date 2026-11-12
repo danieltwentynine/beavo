@@ -28,7 +28,7 @@ Beavo is an iOS-first mobile app (Brazil first, pt-BR default; English and Spani
 | Navigation | Expo Router (file-based) | App directory structure |
 | Backend | Firebase JS SDK v12 (Firestore + Auth + Storage) | Free tier sufficient for MVP |
 | Camera | react-native-vision-camera v5, **preview only** (ADR 0003; needs a development build) | Live mirror; no capture, no frame processing |
-| AI Coach (text) | Gemini client kept in `lib/gemini.ts` but **not called** (ADR 0003) | Re-enable only with a privacy-policy update |
+| AI Coach (text) | None: local reviewed messages in `lib/coach.ts` (ADR 0003) | AI tips need a privacy-policy update first |
 | i18n | `lib/i18n.ts` (`t()`, pt-BR default, English or Spanish if that is the device language) + `expo-localization` | No i18n library needed |
 | Subscriptions | RevenueCat | Free until $2,500 MRR |
 | Styling | NativeWind (Tailwind for RN) | Consistent design system |
@@ -63,10 +63,10 @@ app/                              # Expo Router screens
 components/
 ├── brand/ BeavoBrand.tsx (generated), LogoScreen.tsx
 ├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
-├── kids/ Avatar, BadgeCard, StreakDisplay, Sticker, ProfilePill
+├── kids/ Avatar, BadgeCard, Sticker, ProfilePill
 ├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
 └── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate (+ useParentalGate), TabHeader, ListRow, GlassSurface
-hooks/ useActiveChild.ts, useChildDataSync.ts, useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts
+hooks/ useActiveChild.ts, useChildDataSync.ts, useChildWatch.ts (shared by the next two), useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts
 src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
 ├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
 ├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
@@ -84,8 +84,7 @@ lib/
 ├── localData.ts                  # Device-only mode glue: load/save the store, enter/leave, move to account, erase
 ├── sync.ts                       # AsyncStorage outbox: sessions survive app kill offline, retried on launch/foreground
 ├── i18n.ts                       # t(), pt-BR + en + es strings
-├── coach.ts, gemini.ts (not called), constants.ts, tokens.ts
-└── *.check.mjs                   # Plain-node self-checks
+└── coach.ts, constants.ts, tokens.ts
 stores/ authStore.ts (user, device-only flag, consent; `ownerIdOf`), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length, intro seen)
 tests/ rules.test.ts, repository.test.ts   # Firestore emulator tests
 legal/                            # Terms + Privacy Policy drafts (pt-BR, en) → public/legal/*.html on Firebase Hosting
@@ -100,7 +99,7 @@ Not built yet: `useBrushingSession`, `ZoneAlert`, `assets/characters|sounds`.
 
 ## Core Types
 
-All shared types live in `types/index.ts` — `Child`, `BrushingSlot`, `BrushingSession`, `ToothEvent`, `Category`, `UserProfile`, `Consent`, `ToothZone`, `Badge`. Use them; do not create parallel definitions. Zod schemas for reads live next to each repository in `src/data/`.
+All shared types live in `types/index.ts` — `Child`, `BrushingSlot`, `BrushingSession`, `ToothEvent`, `Category`, `UserProfile`, `Consent`, `ToothZone`, `BadgeType`. Use them; do not create parallel definitions. Zod schemas for reads live next to each repository in `src/data/`.
 
 ---
 
@@ -135,9 +134,9 @@ NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/
 
 ---
 
-## Gemini Coach (disabled — ADR 0003)
+## Gemini Coach (removed — ADR 0003)
 
-`lib/gemini.ts` (+ `node lib/gemini.check.mjs`) is kept for later use but **nothing calls it**; `app/session.tsx` uses the local, clinically reviewed messages in `lib/coach.ts`. The Privacy Policy says Beavo sends no data to AI services. **Before re-enabling:** update the Privacy Policy (bump `LEGAL_VERSIONS.privacy` so parents re-consent), use a paid tier or a Firebase Function proxy + App Check (the free tier may use prompts for product improvement, and `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle), and keep the existing rules: the child's name never leaves the device (`{NAME}` token), only age/missed zones/score/streak are sent.
+There is no AI client in the app (the unused `lib/gemini.ts` was removed on 2026-11-12; it is in git history). `app/session.tsx` uses the local, clinically reviewed messages in `lib/coach.ts`. The Privacy Policy says Beavo sends no data to AI services. **Before bringing it back:** update the Privacy Policy (bump `LEGAL_VERSIONS.privacy` so parents re-consent), use a paid tier or a Firebase Function proxy + App Check (the free tier may use prompts for product improvement, and `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle), and keep these rules: the child's name never leaves the device (`{NAME}` token), only age/missed zones/score/streak are sent.
 
 ---
 
@@ -238,7 +237,7 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 - Show error stack traces or technical messages to the child user
 - Request camera permissions without explaining why first (parent sees the prompt)
 - Store, capture, record, upload or analyze camera frames, video, images or audio (Camera guardrail)
-- Call Gemini at all without the steps in "Gemini Coach (disabled)"; never with the child's real name
+- Call Gemini at all without the steps in "Gemini Coach (removed)"; never with the child's real name
 - Use `console.log` with sensitive data (auth tokens, child names)
 - Create new TypeScript types that duplicate the ones in `types/index.ts`
 - Use `useEffect` with missing dependencies — fix the dep array properly
@@ -286,7 +285,6 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 EXPO_PUBLIC_FIREBASE_APP_ID=
-EXPO_PUBLIC_GEMINI_API_KEY=        # unused while Gemini is disabled
 EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
 EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
 ```
@@ -312,10 +310,10 @@ npm run test:emulator   # Firestore rules + repository against the emulator (nee
 npx expo lint           # ESLint incl. the camera guardrail rules
 node scripts/check-camera-guardrail.mjs
 npm run build:legal     # legal/*.md → public/legal/*.html (also Hosting predeploy; checks versions)
-npm run check           # tsc + lint + unit tests + self-checks + guardrail
+npm run check           # tsc + lint + unit tests + guardrail
 ```
 
-Self-check: `node lib/gemini.check.mjs`. Run the unit tests under a DST zone too: `TZ=America/New_York npm test`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
+Run the unit tests under a DST zone too: `TZ=America/New_York npm test`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
 
 Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://zing-dental-app.web.app/legal/…`.
 

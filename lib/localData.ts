@@ -67,11 +67,6 @@ export async function leaveLocalMode(): Promise<void> {
   useAuthStore.getState().setLocal(false);
 }
 
-/** First names of the children kept on this device (empty when there are none). */
-export async function localChildNames(): Promise<string[]> {
-  return (await localBackup()).children.map((c) => c.name);
-}
-
 async function forgetLocalData(): Promise<void> {
   await localClear();
   await clearConsentRecord(LOCAL_UID);

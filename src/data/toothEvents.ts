@@ -41,26 +41,14 @@ const toothEventSchema = z.object({
   date: z.string(),
 });
 
-export function addToothEvent(
-  db: Firestore,
-  uid: string,
-  childId: string,
-  event: Omit<ToothEvent, 'id'>,
-): { id: string; written: Promise<void> } {
-  const ref = doc(toothEventsRef(db, uid, childId));
-  if (uid === LOCAL_UID) return { id: ref.id, written: localAddToothEvents(childId, [{ ...event, id: ref.id }]) };
-  return { id: ref.id, written: setDoc(ref, event) };
-}
-
 export function watchToothEvents(
   db: Firestore,
   uid: string,
   childId: string,
   onChange: (events: ToothEvent[]) => void,
-  onError?: (error: Error) => void,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalToothEvents(childId, onChange);
-  return onSnapshot(toothEventsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, toothEventSchema)), onError);
+  return onSnapshot(toothEventsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, toothEventSchema)));
 }
 
 /** One event per tooth in a single atomic batch (multi-select logging). */
@@ -135,8 +123,7 @@ export function watchCategories(
   db: Firestore,
   uid: string,
   onChange: (categories: Category[], fromCache: boolean) => void,
-  onError?: (error: Error) => void,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalCategories((categories) => onChange(categories, false));
-  return onSnapshot(categoriesRef(db, uid), (snap) => onChange(parseDocs(snap, categorySchema), snap.metadata.fromCache), onError);
+  return onSnapshot(categoriesRef(db, uid), (snap) => onChange(parseDocs(snap, categorySchema), snap.metadata.fromCache));
 }

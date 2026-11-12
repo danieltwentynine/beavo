@@ -10,12 +10,7 @@ export type ToothZone =
   | 'bottom-back-left'
   | 'bottom-back-right';
 
-export interface Badge {
-  id: string;
-  name: string;
-  earnedAt: Date;
-  type: 'streak' | 'perfect' | 'firstSession' | 'weeklyGoal';
-}
+export type BadgeType = 'streak' | 'perfect' | 'firstSession' | 'weeklyGoal';
 
 export type Locale = 'pt-BR' | 'en' | 'es';
 

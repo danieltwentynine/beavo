@@ -3,10 +3,8 @@ import type { ComponentType } from 'react';
 import { Text, View, type ViewStyle } from 'react-native';
 
 import { t } from '@/lib/i18n';
-import type { Badge } from '@/types';
+import type { BadgeType } from '@/types';
 import { cardShadow, radius, tokens } from '@/lib/tokens';
-
-type BadgeType = Badge['type'];
 
 // Each fill is paired with its on-colour (white on primary, reward and ink; ink-green on secondary).
 const BADGE_META: Record<BadgeType, { Icon: ComponentType<IconProps>; color: string; fg: string; label: string }> = {
