@@ -10,7 +10,7 @@ import { useActiveChild } from '@/hooks/useActiveChild';
 import { t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
 
-/** Form sheet opened by the ProfilePill: switch child, edit one, or add one (gated in child-form). */
+/** Form sheet opened by the ProfilePill: switch child, edit one, or add one (gated here). */
 export default function ChildPickerScreen() {
   const { child: active, children, setActiveChild } = useActiveChild();
   // Kid mode: switching child stays possible; editing and adding are parent things.
@@ -65,7 +65,7 @@ export default function ChildPickerScreen() {
         {kidMode ? null : (
           <Card
             padding={14}
-            onPress={() => openForm()}
+            onPress={() => requireParent(() => openForm())}
             accessibilityLabel={t('picker.add')}
             style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}
           >

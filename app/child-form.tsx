@@ -33,8 +33,8 @@ const formSchema = z.object({
 
 /**
  * Add (no `id`) or edit (`?id=`) a child profile. The first child is created
- * right after consent; adding any later child, or deleting one, sits behind
- * the parental gate.
+ * right after consent; adding a later child is gated in the child picker (the
+ * only way here), and deleting one is gated on this screen.
  */
 export default function ChildFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -50,9 +50,7 @@ export default function ChildFormScreen() {
   const [birthYear, setBirthYear] = useState(existing?.birthYear ? String(existing.birthYear) : '');
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  // Adding a further child starts behind the gate; deleting opens it on demand.
-  const [gate, setGate] = useState<'add' | 'delete' | null>(!id && !isFirst ? 'add' : null);
-  const [addUnlocked, setAddUnlocked] = useState(Boolean(id) || isFirst);
+  const [gate, setGate] = useState<'delete' | null>(null);
 
   const leave = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/overview'));
 
@@ -105,21 +103,6 @@ export default function ChildFormScreen() {
 
   // Deep links reach every route: no child before consent (the rules enforce it too).
   if (consent === 'needed' || consent === 'updated') return <Redirect href="/consent" />;
-
-  if (!addUnlocked) {
-    return (
-      <SafeScreen>
-        <ParentalGate
-          visible={gate === 'add'}
-          onPass={() => {
-            setGate(null);
-            setAddUnlocked(true);
-          }}
-          onCancel={leave}
-        />
-      </SafeScreen>
-    );
-  }
 
   return (
     <SafeScreen>
