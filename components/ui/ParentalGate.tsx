@@ -1,3 +1,4 @@
+import * as LocalAuthentication from 'expo-local-authentication';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Text, View } from 'react-native';
 
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { t, type StringKey } from '@/lib/i18n';
 import { cardShadow, radius, tokens } from '@/lib/tokens';
+import { isLocked } from '@/src/data/pinLock';
 import { isPin, useSettingsStore } from '@/stores/settingsStore';
 
 const factor = () => 6 + Math.floor(Math.random() * 4); // 6–9: beyond a young child's times tables
@@ -16,21 +18,23 @@ interface ParentalGateProps {
   onCancel: () => void;
 }
 
-type Step = 'pin' | 'math' | 'create' | 'confirm';
+type Step = 'pin' | 'owner' | 'math' | 'create' | 'confirm';
 const PROMPT = { pin: 'gate.pinPrompt', create: 'gate.pinCreate', confirm: 'gate.pinConfirm' } as const;
 
 /**
- * Grown-ups-only check: the parent's 4-digit PIN (kept on this phone). The PIN
- * is chosen the first time, after one written multiplication question that
- * young children can't read or solve; the same question resets a forgotten
- * PIN. A wrong answer or PIN just asks again (no lockout, no red).
+ * Grown-ups-only check: the parent's 4-digit PIN (Keychain, this phone only).
+ * Choosing the PIN, the first time or after forgetting it, needs the phone's
+ * own Face ID / passcode. Only a phone with no passcode falls back to a written
+ * multiplication question. Wrong tries make the next one wait (src/data/pinLock);
+ * never red.
  */
 export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
   const pin = useSettingsStore((s) => s.parentPin);
   const setParentPin = useSettingsStore((s) => s.setParentPin);
-  // null: start from the PIN when there is one, else from the question.
+  const recordPinTry = useSettingsStore((s) => s.recordPinTry);
+  // null: start from the PIN when there is one, else from confirming the phone's owner.
   const [chosenStep, setChosenStep] = useState<Step | null>(null);
-  const step: Step = chosenStep ?? (pin ? 'pin' : 'math');
+  const step: Step = chosenStep ?? (pin ? 'pin' : 'owner');
   const [question, setQuestion] = useState(newQuestion);
   const [value, setValue] = useState('');
   const [firstPin, setFirstPin] = useState('');
@@ -65,24 +69,45 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
     }
   };
 
-  const submitAnswer = () => {
-    if (Number(value) === question.a * question.b) goTo('create');
-    else goTo('math', 'gate.wrong');
+  // Read at the moment of a try, so a wait that has just ended is over.
+  const waiting = () => isLocked(useSettingsStore.getState().pinLock, Date.now());
+  // Checks one answer (a PIN or the question) against the wrong-try wait.
+  const attempt = (right: boolean, onRight: () => void, wrongMessage: StringKey) => {
+    if (waiting()) return goTo(step, 'gate.locked');
+    recordPinTry(!right);
+    if (right) onRight();
+    else goTo(step, waiting() ? 'gate.locked' : wrongMessage);
   };
+
+  const confirmOwner = async () => {
+    try {
+      // A phone with no passcode can't confirm its owner: the question is all there is.
+      if ((await LocalAuthentication.getEnrolledLevelAsync()) === LocalAuthentication.SecurityLevel.NONE) return goTo('math');
+      const result = await LocalAuthentication.authenticateAsync({ promptMessage: t('gate.ownerPrompt'), cancelLabel: t('gate.back') });
+      if (result.success) goTo('create');
+    } catch {
+      goTo('math');
+    }
+  };
+
+  const submitAnswer = () => attempt(Number(value) === question.a * question.b, () => goTo('create'), 'gate.wrong');
 
   const onDigits = (text: string) => {
     const digits = text.replace(/\D/g, '');
     setValue(digits);
     if (step === 'math' || !isPin(digits)) return;
     if (step === 'pin') {
-      if (digits === pin) pass();
-      else goTo('pin', 'gate.pinWrong');
+      attempt(digits === pin, pass, 'gate.pinWrong');
     } else if (step === 'create') {
       setFirstPin(digits);
       goTo('confirm');
     } else if (digits === firstPin) {
-      setParentPin(digits);
-      pass();
+      try {
+        setParentPin(digits);
+        pass();
+      } catch {
+        goTo('create', 'gate.pinMismatch'); // not saved: choose again rather than pass without a PIN
+      }
     } else {
       goTo('create', 'gate.pinMismatch');
     }
@@ -115,34 +140,33 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
           <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary }}>
             {t('gate.title')}
           </Text>
-          {step === 'math' && !pin ? (
-            <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
-              {t('gate.setupHint')}
-            </Text>
-          ) : null}
           <Text className="font-body-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
-            {step === 'math' ? t('gate.question', question) : t(PROMPT[step])}
+            {step === 'owner' ? t('gate.ownerHint') : step === 'math' ? t('gate.question', question) : t(PROMPT[step])}
           </Text>
-          <Input
-            key={step === 'math' ? 'math' : 'pin'}
-            label={t(step === 'math' ? 'gate.answer' : 'gate.pinLabel')}
-            value={value}
-            onChangeText={onDigits}
-            keyboardType="number-pad"
-            maxLength={step === 'math' ? 3 : 4}
-            secureTextEntry={step !== 'math'}
-            textContentType="none"
-            autoComplete="off"
-            autoFocus
-            onSubmitEditing={step === 'math' ? submitAnswer : undefined}
-          />
+          {step === 'owner' ? (
+            <Button label={t('gate.ownerConfirm')} onPress={() => void confirmOwner()} />
+          ) : (
+            <Input
+              key={step === 'math' ? 'math' : 'pin'}
+              label={t(step === 'math' ? 'gate.answer' : 'gate.pinLabel')}
+              value={value}
+              onChangeText={onDigits}
+              keyboardType="number-pad"
+              maxLength={step === 'math' ? 3 : 4}
+              secureTextEntry={step !== 'math'}
+              textContentType="none"
+              autoComplete="off"
+              autoFocus
+              onSubmitEditing={step === 'math' ? submitAnswer : undefined}
+            />
+          )}
           {message ? (
             <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
               {t(message)}
             </Text>
           ) : null}
           {step === 'math' ? <Button label={t('gate.continue')} onPress={submitAnswer} disabled={value.length === 0} /> : null}
-          {step === 'pin' ? <Button label={t('gate.forgot')} variant="ghost" onPress={() => goTo('math')} /> : null}
+          {step === 'pin' ? <Button label={t('gate.forgot')} variant="ghost" onPress={() => goTo('owner')} /> : null}
           <Button label={t('gate.back')} variant="ghost" onPress={cancel} />
         </View>
       </KeyboardAvoidingView>

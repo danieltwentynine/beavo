@@ -1,5 +1,6 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "Beavo uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
+    "NSCameraUsageDescription": "Beavo uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent.",
+    "NSFaceIDUsageDescription": "Beavo uses Face ID only to confirm a grown-up before the parental PIN is created or changed."
   }
 }

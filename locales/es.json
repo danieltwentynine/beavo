@@ -1,5 +1,6 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "Beavo usa la cámara frontal solo como espejo, para que tu peque se vea mientras se cepilla. No se graba, guarda ni envía nada."
+    "NSCameraUsageDescription": "Beavo usa la cámara frontal solo como espejo, para que tu peque se vea mientras se cepilla. No se graba, guarda ni envía nada.",
+    "NSFaceIDUsageDescription": "Beavo usa Face ID solo para confirmar que es un adulto antes de crear o cambiar el PIN de los padres."
   }
 }

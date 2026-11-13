@@ -1,5 +1,6 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "O Beavo usa a câmera frontal apenas como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado."
+    "NSCameraUsageDescription": "O Beavo usa a câmera frontal apenas como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado.",
+    "NSFaceIDUsageDescription": "O Beavo usa o Face ID apenas para confirmar que é um adulto antes de criar ou trocar o PIN dos pais."
   }
 }

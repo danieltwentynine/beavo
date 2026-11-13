@@ -55,7 +55,8 @@
       ],
       "./plugins/withSceneLifecycle",
       "expo-localization",
-      "expo-sharing"
+      "expo-sharing",
+      ["expo-secure-store", { "faceIDPermission": "Beavo uses Face ID only to confirm a grown-up before the parental PIN is created or changed." }]
     ],
     "extra": {
       "router": {},
