@@ -4,7 +4,7 @@ rules_version = '2';
 // users/{uid} and only that signed-in parent can read or write it. Children
 // never authenticate. Every write is type-checked; anything not matched below
 // (including the legacy top-level /children and /sessions) is denied.
-// Tests: npm run test:rules (Firestore emulator).
+// Tests: npm run test:emulator (Firestore emulator).
 service cloud.firestore {
   match /databases/{database}/documents {
     function isOwner(uid) {

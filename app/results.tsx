@@ -42,7 +42,7 @@ export default function ResultsScreen() {
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginVertical: 4 }}>
-          <Text className="font-numeric" style={{ fontSize: 88, color: tokens.textPrimary, lineHeight: 92 }}>
+          <Text className="font-numeric" style={{ fontSize: 88, color: tokens.textPrimary, lineHeight: 116 }}>
             {result.score}
           </Text>
           <Text className="font-numeric" style={{ fontSize: 34, color: tokens.textSecondary, marginBottom: 10 }}>

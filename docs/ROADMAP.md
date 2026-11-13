@@ -10,13 +10,16 @@ In dependency order.
 
 - [ ] Deploy `firestore.rules` (now accepts `locale: 'es'`) **before** a Spanish device signs in — the deployed rules refuse the consent write otherwise
 - [ ] Wipe legacy top-level `/children` and `/sessions` test data in the console
-- [ ] Rebuild the dev client (native modules were added in foundation steps 1–3)
+- [x] Rebuild the dev client (native modules were added in foundation steps 1–3) — rebuilt for the simulator on 2026-11-13
 - [ ] Simulator/device pass:
-  - signed-in flow: register → consent → child → session → results
-  - Overview tooth chart, tooth sheet, Dental History
-  - device-only flows: use without an account → child → session; create account → move data; erase
-- [ ] Firestore rules reviewed against the privacy checklist
-- [ ] Test and CI baseline (see RUNBOOK; `.github/workflows/ci.yml` exists) — started
+  - [x] without an account (2026-11-13, iPhone 17 simulator, English): tooth chart, tooth sheet add/delete, session (stopped early and full), results, Progress, Brushing History, Settings, Edit routine, grown-ups check
+  - [ ] signed-in flow: register → consent → child → session → results
+  - [ ] create account → move data; erase data on this phone
+  - [ ] kid mode on/off (the automation tool could not flip the switch; needs a hand)
+  - [ ] onboarding intro, add/edit child, Categories, backup export/import
+  - [ ] pt-BR and Spanish devices; a real phone with the camera mirror
+- [x] Firestore rules reviewed against the privacy checklist (2026-11-13): owner-only, typed writes, default deny; Storage is unused and has no bucket rules to review
+- [x] Test and CI baseline: `.github/workflows/ci.yml` runs every check in RUNBOOK and is green on `step1-foundation`
 
 ## Next: TestFlight release
 

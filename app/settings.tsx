@@ -5,7 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { SafeScreen } from '@/components/ui/SafeScreen';
-import { t } from '@/lib/i18n';
+import { locale, t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
 import { BRUSHING_DURATIONS, useSettingsStore } from '@/stores/settingsStore';
 
@@ -34,7 +34,7 @@ export default function SettingsScreen() {
             {BRUSHING_DURATIONS.map((sec) => (
               <Chip
                 key={sec}
-                label={t('settings.minutes', { value: (sec / 60).toLocaleString(undefined, { maximumFractionDigits: 1 }) })}
+                label={t('settings.minutes', { value: (sec / 60).toLocaleString(locale, { maximumFractionDigits: 1 }) })}
                 selected={duration === sec}
                 onPress={() => setDuration(sec)}
                 style={{ flexGrow: 1 }}

@@ -88,6 +88,9 @@ function SlotRow({ slot, isFirst, isLast, canRemove, onChange, onMove, onRemove 
           <SlotIcon icon={slot.icon} size={24} color={tokens.brandPrimary} weight="fill" />
         </Pressable>
         <Input value={label} onChangeText={setLabel} onBlur={commitLabel} maxLength={40} accessibilityLabel={t('slots.label')} containerStyle={{ flex: 1 }} />
+        <IconButton label={t('slots.remove', { label: slot.label })} disabled={!canRemove} onPress={onRemove}>
+          <Trash size={22} color={tokens.textSecondary} weight="bold" />
+        </IconButton>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', columnGap: 8 }}>
         <Input label={t('slots.start')} value={start} onChangeText={setStart} onBlur={commitWindow} maxLength={5} keyboardType="numbers-and-punctuation" containerStyle={{ flex: 1 }} />
@@ -97,9 +100,6 @@ function SlotRow({ slot, isFirst, isLast, canRemove, onChange, onMove, onRemove 
         </IconButton>
         <IconButton label={t('slots.moveDown', { label: slot.label })} disabled={isLast} onPress={() => onMove(1)}>
           <ArrowDown size={22} color={tokens.textPrimary} weight="bold" />
-        </IconButton>
-        <IconButton label={t('slots.remove', { label: slot.label })} disabled={!canRemove} onPress={onRemove}>
-          <Trash size={22} color={tokens.textSecondary} weight="bold" />
         </IconButton>
       </View>
       {timeError ? (

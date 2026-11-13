@@ -160,6 +160,8 @@ export default function MoreTab() {
       },
     ]);
 
+  const reviewUrl = REVIEW_URL;
+
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 24 }}>
@@ -197,8 +199,10 @@ export default function MoreTab() {
         </Section>
 
         <Section title={t('more.app')}>
-          <ListRow Icon={Gear} label={t('more.settings')} onPress={() => requireParent(() => router.push('/settings'))} />
-          <ListRow Icon={Star} label={t('more.review')} external onPress={() => requireParent(() => void openExternal(REVIEW_URL))} last />
+          <ListRow Icon={Gear} label={t('more.settings')} onPress={() => requireParent(() => router.push('/settings'))} last={!reviewUrl} />
+          {reviewUrl ? (
+            <ListRow Icon={Star} label={t('more.review')} external onPress={() => requireParent(() => void openExternal(reviewUrl))} last />
+          ) : null}
         </Section>
 
         <Section title={t('more.legal')}>

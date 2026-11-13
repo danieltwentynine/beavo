@@ -18,6 +18,6 @@ export const LEGAL_URLS = {
   privacy: `${LEGAL_BASE_URL}/privacy-policy.${legalLocale}.html`,
 } as const;
 
-/** App Store id — fill in once the app exists in App Store Connect (until then the review link fails gracefully). */
-const APP_STORE_ID = '[APP_STORE_ID]';
-export const REVIEW_URL = `https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`;
+/** App Store id — fill in once the app exists in App Store Connect (until then More hides the review row). */
+const APP_STORE_ID: string = '[APP_STORE_ID]';
+export const REVIEW_URL = /^\d+$/.test(APP_STORE_ID) ? `https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review` : null;

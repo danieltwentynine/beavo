@@ -88,7 +88,7 @@ const ptBR = {
   'overview.symptoms': 'Sintomas',
   'overview.treatments': 'Tratamentos',
   'overview.history': 'Histórico dental',
-  'overview.historyCount': '{count} registros',
+  'overview.historyCount': '{count} registro|{count} registros',
 
   'arch.pick': 'Escolha um dente',
   'arch.selectedCount': '{count} dentes escolhidos',
@@ -153,7 +153,7 @@ const ptBR = {
   'today.editRoutine': 'Editar rotina',
 
   'progress.streak': 'Sequência',
-  'progress.days': '{count} dias',
+  'progress.days': '{count} dia|{count} dias',
   'progress.best': 'Recorde: {count}',
   'progress.rate': 'Escovações completas',
   'progress.rateHint': 'últimos 30 dias',
@@ -163,7 +163,7 @@ const ptBR = {
   'progress.today': 'hoje',
   'progress.badges': 'Conquistas',
   'progress.history': 'Histórico de escovação',
-  'progress.historyCount': '{count} escovações',
+  'progress.historyCount': '{count} escovação|{count} escovações',
   'progress.weekdays': 'S,T,Q,Q,S,S,D',
 
   'badge.firstSession': 'Primeira escovação',
@@ -193,7 +193,7 @@ const ptBR = {
   'more.importBody': '{children} crianças e {records} registros. Itens com o mesmo identificador serão substituídos; nada será apagado.',
   'more.importConfirm': 'Importar',
   'more.importCancel': 'Não importar',
-  'more.importDone': '{count} itens importados.',
+  'more.importDone': '{count} item importado.|{count} itens importados.',
   'more.importInvalid': 'Este arquivo não é um backup do Beavo válido.',
   'more.importFail': 'A importação não terminou: parte dos dados pode ter sido salva. Verifique a internet e importe de novo (itens repetidos são substituídos, não duplicados).',
   'more.openFail': 'Não foi possível abrir o link.',
@@ -482,7 +482,7 @@ const en: Record<StringKey, string> = {
   'overview.symptoms': 'Symptoms',
   'overview.treatments': 'Treatments',
   'overview.history': 'Dental History',
-  'overview.historyCount': '{count} records',
+  'overview.historyCount': '{count} record|{count} records',
 
   'arch.pick': 'Pick a tooth',
   'arch.selectedCount': '{count} teeth picked',
@@ -547,7 +547,7 @@ const en: Record<StringKey, string> = {
   'today.editRoutine': 'Edit routine',
 
   'progress.streak': 'Streak',
-  'progress.days': '{count} days',
+  'progress.days': '{count} day|{count} days',
   'progress.best': 'Best: {count}',
   'progress.rate': 'Completed brushings',
   'progress.rateHint': 'last 30 days',
@@ -557,7 +557,7 @@ const en: Record<StringKey, string> = {
   'progress.today': 'today',
   'progress.badges': 'Badges',
   'progress.history': 'Brushing History',
-  'progress.historyCount': '{count} brushings',
+  'progress.historyCount': '{count} brushing|{count} brushings',
   'progress.weekdays': 'M,T,W,T,F,S,S',
 
   'badge.firstSession': 'First Brush',
@@ -587,7 +587,7 @@ const en: Record<StringKey, string> = {
   'more.importBody': '{children} children and {records} records. Items with the same ID will be replaced; nothing is deleted.',
   'more.importConfirm': 'Import',
   'more.importCancel': "Don't import",
-  'more.importDone': '{count} items imported.',
+  'more.importDone': '{count} item imported.|{count} items imported.',
   'more.importInvalid': "This file isn't a valid Beavo backup.",
   'more.importFail': "The import didn't finish: some data may already be saved. Check your connection and import again (repeated items are replaced, not duplicated).",
   'more.openFail': "We couldn't open the link.",
@@ -873,7 +873,7 @@ const es: Record<StringKey, string> = {
   'overview.symptoms': 'Síntomas',
   'overview.treatments': 'Tratamientos',
   'overview.history': 'Historial dental',
-  'overview.historyCount': '{count} registros',
+  'overview.historyCount': '{count} registro|{count} registros',
 
   'arch.pick': 'Elige un diente',
   'arch.selectedCount': '{count} dientes elegidos',
@@ -938,7 +938,7 @@ const es: Record<StringKey, string> = {
   'today.editRoutine': 'Editar rutina',
 
   'progress.streak': 'Racha',
-  'progress.days': '{count} días',
+  'progress.days': '{count} día|{count} días',
   'progress.best': 'Récord: {count}',
   'progress.rate': 'Cepillados completos',
   'progress.rateHint': 'últimos 30 días',
@@ -948,7 +948,7 @@ const es: Record<StringKey, string> = {
   'progress.today': 'hoy',
   'progress.badges': 'Logros',
   'progress.history': 'Historial de cepillado',
-  'progress.historyCount': '{count} cepillados',
+  'progress.historyCount': '{count} cepillado|{count} cepillados',
   'progress.weekdays': 'L,M,X,J,V,S,D',
 
   'badge.firstSession': 'Primer cepillado',
@@ -978,7 +978,7 @@ const es: Record<StringKey, string> = {
   'more.importBody': '{children} peques y {records} registros. Los elementos con el mismo identificador se reemplazan; no se borra nada.',
   'more.importConfirm': 'Importar',
   'more.importCancel': 'No importar',
-  'more.importDone': '{count} elementos importados.',
+  'more.importDone': '{count} elemento importado.|{count} elementos importados.',
   'more.importInvalid': 'Este archivo no es una copia de seguridad válida de Beavo.',
   'more.importFail': 'La importación no terminó: parte de los datos puede haberse guardado. Revisa tu conexión e importa de nuevo (los elementos repetidos se reemplazan, no se duplican).',
   'more.openFail': 'No se pudo abrir el enlace.',
@@ -1190,8 +1190,9 @@ export const locale: Locale = deviceLanguage === 'en' ? 'en' : deviceLanguage ==
 
 const strings: Record<StringKey, string> = { 'pt-BR': ptBR, en, es }[locale];
 
-/** Translate `key`, filling `{param}` placeholders. */
+/** Translate `key`, filling `{param}` placeholders. A string written as "one|other" picks by `count`. */
 export function t(key: StringKey, params?: Record<string, string | number>): string {
-  const s = strings[key];
+  const [one, other] = strings[key].split('|');
+  const s = other === undefined || params?.count === 1 ? one : other;
   return params ? s.replace(/\{(\w+)\}/g, (m, p: string) => (p in params ? String(params[p]) : m)) : s;
 }

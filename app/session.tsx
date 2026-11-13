@@ -169,7 +169,7 @@ export default function SessionScreen() {
           <CameraGate onAllow={() => void camera.requestPermission()} onSkip={() => setSkipCamera(true)} />
         ) : phase === 'countdown' ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 10 }}>
-            <Text className="font-numeric" style={{ fontSize: 140, color: tokens.brandPrimary, lineHeight: 150 }}>
+            <Text className="font-numeric" style={{ fontSize: 140, color: tokens.brandPrimary, lineHeight: 184, paddingHorizontal: 24 }}>
               {count <= 0 ? t('session.go') : count}
             </Text>
             <Text className="font-body-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
