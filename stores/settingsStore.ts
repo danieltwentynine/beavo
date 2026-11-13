@@ -16,6 +16,8 @@ interface SettingsState {
   introSeen: boolean;
   /** The 4-digit PIN for the grown-ups check (kept in the Keychain); null until a parent has chosen one. */
   parentPin: string | null;
+  /** A PIN was chosen on this install. The Keychain outlives the app, so a PIN without this mark is from an earlier install and is dropped. */
+  hasPin: boolean;
   /** Wrong PINs in a row and the wait they caused. */
   pinLock: PinLock;
   /** False until the saved settings have been read. */
@@ -30,7 +32,7 @@ interface SettingsState {
 export const isPin = (v: unknown): v is string => typeof v === 'string' && /^\d{4}$/.test(v);
 
 // The PIN lives in the Keychain, not with the other settings: this device only,
-// never in a backup. The Keychain outlives the app, so a fresh install clears it.
+// never in a backup.
 const PIN_KEY = 'beavo.parentPin';
 const PIN_OPTIONS = { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY };
 function readPin(): string | null {
@@ -54,35 +56,38 @@ export const useSettingsStore = create<SettingsState>()(
       brushingDurationSec: DEFAULT_BRUSHING_DURATION,
       introSeen: false,
       parentPin: readPin(),
+      hasPin: false,
       pinLock: NO_LOCK,
       loaded: false,
       setBrushingDuration: (brushingDurationSec) => set({ brushingDurationSec }),
       markIntroSeen: () => set({ introSeen: true }),
       setParentPin: (parentPin) => {
         SecureStore.setItem(PIN_KEY, parentPin, PIN_OPTIONS); // throws if it can't be saved: the gate stays closed
-        set({ parentPin, pinLock: NO_LOCK });
+        set({ parentPin, hasPin: true, pinLock: NO_LOCK });
       },
       recordPinTry: (wrong) => set((s) => ({ pinLock: wrong ? afterWrongPin(s.pinLock, Date.now()) : NO_LOCK })),
     }),
     {
       name: 'beavo.settings.v2',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: ({ brushingDurationSec, introSeen, pinLock }) => ({ brushingDurationSec, introSeen, pinLock }),
+      partialize: ({ brushingDurationSec, introSeen, hasPin, pinLock }) => ({ brushingDurationSec, introSeen, hasPin, pinLock }),
       // Storage is untrusted input: anything unexpected keeps the default.
       merge: (saved, current) => {
-        const s = (saved ?? {}) as { brushingDurationSec?: unknown; introSeen?: unknown; pinLock?: unknown };
-        const firstLaunch = s.introSeen !== true;
-        if (firstLaunch) void SecureStore.deleteItemAsync(PIN_KEY, PIN_OPTIONS).catch(() => undefined);
+        const s = (saved ?? {}) as { brushingDurationSec?: unknown; introSeen?: unknown; hasPin?: unknown; pinLock?: unknown };
         return {
           ...current,
           introSeen: s.introSeen === true,
-          parentPin: firstLaunch ? null : current.parentPin,
+          hasPin: s.hasPin === true,
           pinLock: isPinLock(s.pinLock) ? s.pinLock : NO_LOCK,
           brushingDurationSec: isDuration(s.brushingDurationSec) ? s.brushingDurationSec : current.brushingDurationSec,
         };
       },
       // Runs after a read that failed too: the defaults stay.
-      onRehydrateStorage: () => () => useSettingsStore.setState({ loaded: true }),
+      onRehydrateStorage: () => () => {
+        const { hasPin, parentPin } = useSettingsStore.getState();
+        if (!hasPin && parentPin) void SecureStore.deleteItemAsync(PIN_KEY, PIN_OPTIONS).catch(() => undefined);
+        useSettingsStore.setState({ loaded: true, parentPin: hasPin ? parentPin : null });
+      },
     },
   ),
 );
