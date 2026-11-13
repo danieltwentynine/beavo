@@ -260,11 +260,9 @@ Progress lives in `docs/ROADMAP.md`, decisions in `docs/decisions/`, copy rules 
 
 ---
 
-## Current Phase: Foundation rebuild — steps 1–3 done (data, privacy, legal, nav; Overview + tooth chart; Brushing, Progress, More)
+## Current Phase: verify the foundation on a device, then TestFlight
 
-Step 1 shipped the nested Firestore model + repository layer, multiple children with a switcher, meal-based brushing slots, consent + legal drafts, account export/delete, the camera guardrail and the NativeTabs shell (Overview, Brushing, Progress, More — Brushing/Progress are placeholders). See `docs/ROADMAP.md`.
-
-**Next:** deploy the rules, rebuild the dev client (native modules added in steps 1–3), simulator/device pass, legal review of `legal/`.
+The foundation rebuild (steps 1–3), device-only mode, Spanish and the Beavo rebrand are built but not yet verified on a device. Open tasks, in order, are in `docs/ROADMAP.md` ("Now", then "Next: TestFlight release").
 
 **What NOT to build yet:**
 - Zone detection AI / any frame processing (ruled out by the Camera guardrail)
