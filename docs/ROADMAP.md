@@ -8,13 +8,13 @@ Last revised 2026-11-13. Open work comes first; finished work is under [Done](#d
 
 In dependency order.
 
-- [ ] Deploy `firestore.rules` (now accepts `locale: 'es'`) **before** a Spanish device signs in — the deployed rules refuse the consent write otherwise
-- [ ] Wipe legacy top-level `/children` and `/sessions` test data in the console
+- [x] Deploy `firestore.rules` (accepts `locale: 'es'`) — deployed 2026-11-13
+- [x] Wipe legacy top-level `/children` and `/sessions` test data — deleted 2026-11-13 (4 children, 9 sessions)
 - [x] Rebuild the dev client (native modules were added in foundation steps 1–3) — rebuilt for the simulator on 2026-11-13
 - [ ] Simulator/device pass:
   - [x] without an account (2026-11-13, iPhone 17 simulator, English): tooth chart, tooth sheet add/delete, session (stopped early and full), results, Progress, Brushing History, Settings, Edit routine, grown-ups check
-  - [ ] signed-in flow: register → consent → child → session → results
-  - [ ] create account → move data; erase data on this phone
+  - [x] create account from device-only mode → consent → move data to the account (2026-11-13, pt-BR; data checked in Firestore)
+  - [ ] signed in: a session saved to the account, sign out, sign in again, delete account; erase data on this phone
   - [ ] kid mode on/off (the automation tool could not flip the switch; needs a hand)
   - [x] add, edit and delete a child; Categories; backup export (2026-11-13)
   - [x] pt-BR launch: Overview, Brushing, Progress (2026-11-13)

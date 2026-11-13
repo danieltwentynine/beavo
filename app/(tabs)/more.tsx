@@ -17,7 +17,6 @@ import { useState, type ReactNode } from 'react';
 import { Alert, Linking, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ListRow } from '@/components/ui/ListRow';
 import { useParentalGate } from '@/components/ui/ParentalGate';
@@ -166,16 +165,6 @@ export default function MoreTab() {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 24 }}>
         <TabHeader title={t('more.title')} showProfile={false} />
-
-        <Card tone="primary" padding={20} style={{ rowGap: 10 }}>
-          <Text className="font-display" style={{ fontSize: 24, color: tokens.textOnBrand }}>
-            {t('more.premiumTitle')}
-          </Text>
-          <Text className="font-body" style={{ fontSize: 16, color: tokens.textOnBrand }}>
-            {t('more.premiumBody')}
-          </Text>
-          <Button label={t('more.premiumCta')} variant="outline" onPress={() => requireParent(() => router.push('/premium'))} />
-        </Card>
 
         <Section title={t('more.children')}>
           <ListRow Icon={UsersThree} label={t('more.profiles')} onPress={() => router.push('/child-picker')} last />

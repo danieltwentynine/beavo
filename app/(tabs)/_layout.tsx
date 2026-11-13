@@ -30,7 +30,13 @@ export default function TabsLayout() {
   if (consent === 'unknown') return null;
   if (consent !== 'ok') return <Redirect href="/consent" />;
   if (signedIn && !moveDeclined && localNames && localNames.length > 0) return <Redirect href="/move-data" />;
-  if (needsFirstChild) return <Redirect href="/child-form" />;
+  if (needsFirstChild) {
+    // The device profiles arrive a moment after the first render: wait for them, or a
+    // parent with profiles to move is sent to "add a child" and never offered the move.
+    // ponytail: waits forever if device storage can't be read (retried on foreground); add a timeout if that shows up.
+    if (signedIn && !moveDeclined && localNames === null) return null;
+    return <Redirect href="/child-form" />;
+  };
 
   return (
     <NativeTabs tintColor={tokens.brandPrimary}>
