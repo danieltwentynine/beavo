@@ -16,8 +16,11 @@ In dependency order.
   - [ ] signed-in flow: register → consent → child → session → results
   - [ ] create account → move data; erase data on this phone
   - [ ] kid mode on/off (the automation tool could not flip the switch; needs a hand)
-  - [ ] onboarding intro, add/edit child, Categories, backup export/import
-  - [ ] pt-BR and Spanish devices; a real phone with the camera mirror
+  - [x] add, edit and delete a child; Categories; backup export (2026-11-13)
+  - [x] pt-BR launch: Overview, Brushing, Progress (2026-11-13)
+  - [ ] onboarding intro (needs a fresh install); backup import
+  - [ ] Spanish device; a real phone with the camera mirror
+  - [ ] VoiceOver: the edit pencil in the child picker is nested inside the row button and can't be reached; avatar colour swatches are announced as hex codes
 - [x] Firestore rules reviewed against the privacy checklist (2026-11-13): owner-only, typed writes, default deny; Storage is unused and has no bucket rules to review
 - [x] Test and CI baseline: `.github/workflows/ci.yml` runs every check in RUNBOOK and is green on `step1-foundation`
 

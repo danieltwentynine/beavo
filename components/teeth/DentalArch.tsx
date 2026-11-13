@@ -167,8 +167,8 @@ export function DentalArch({ size, selected, onSelect, multiSelect = false, stat
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ position: 'absolute', inset: 0 }}>
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center' }}>{label(t('arch.top'))}</View>
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center' }}>{label(t('arch.bottom'))}</View>
-        <View style={{ position: 'absolute', top: ARCH_CENTER_Y * scale - 32, left: 0 }}>{label(sideLabels[0])}</View>
-        <View style={{ position: 'absolute', top: ARCH_CENTER_Y * scale - 32, right: 0 }}>{label(sideLabels[1])}</View>
+        <View style={{ position: 'absolute', top: ARCH_CENTER_Y * scale - 9, left: 0 }}>{label(sideLabels[0])}</View>
+        <View style={{ position: 'absolute', top: ARCH_CENTER_Y * scale - 9, right: 0 }}>{label(sideLabels[1])}</View>
       </View>
 
       {/* Center label: announced politely when it changes. */}
