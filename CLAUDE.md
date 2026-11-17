@@ -146,8 +146,8 @@ The camera is a **live mirror only**. It must never capture, record, save, uploa
 
 - Only `components/brushing/CameraBackdrop.tsx` renders `<Camera>` (react-native-vision-camera), with **no outputs** — no photo, video, frame, depth or object output, no frame processors, no `takePhoto`/`startRecording`/`capturePhoto*`.
 - The camera runs only while the session screen is focused and the app is in the foreground (`isActive` is false otherwise).
-- No microphone permission: VisionCamera v5 has no Expo config plugin, and only `NSCameraUsageDescription` is set (app.json + `locales/*.json`, pt-BR and English: "only a mirror; nothing is recorded, saved or sent").
-- Enforced by `eslint.config.js` (`no-restricted-imports` / `no-restricted-properties`, "Camera guardrail" message) and `scripts/check-camera-guardrail.mjs` (no mic permission in config; no `expo-media-library`, `expo-image-picker`, `expo-camera`, frame-processor or MediaPipe packages). Never disable these inline.
+- No microphone permission: VisionCamera v5 has no Expo config plugin, and only `NSCameraUsageDescription` is set (app.json + `locales/*.json`, pt-BR and English: "only a mirror; nothing is recorded, saved or sent"). On Android, `android.permissions` is `CAMERA` only and `android.blockedPermissions` removes `RECORD_AUDIO` (ADR 0006).
+- Enforced by `eslint.config.js` (`no-restricted-imports` / `no-restricted-properties`, "Camera guardrail" message) and `scripts/check-camera-guardrail.mjs` (no mic permission in config, Android mic blocked; no `expo-media-library`, `expo-image-picker`, `expo-camera`, frame-processor or MediaPipe packages). Never disable these inline.
 - The parent sees `CameraGate` (what the camera does) before the system prompt; brushing works without the camera.
 - Changing any of this needs the owner, the clinical advisor, and a Privacy Policy update first.
 
@@ -267,7 +267,7 @@ The foundation rebuild (steps 1–3), device-only mode, Spanish and the Beavo re
 **What NOT to build yet:**
 - Zone detection AI / any frame processing (ruled out by the Camera guardrail)
 - Subscriptions/RevenueCat (Phase 3)
-- Android-specific code (Phase 4)
+- Android-specific code beyond the groundwork in ADR 0006 (iOS ships first; Play tasks are in `docs/ROADMAP.md`)
 - Apple Sign-In (not now — note App Store guideline 4.8 before release)
 
 ---
@@ -313,7 +313,7 @@ npm run check           # tsc + lint + unit tests + guardrail
 
 Run the unit tests under a DST zone too: `TZ=America/New_York npm test`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
 
-Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://zing-dental-app.web.app/legal/…`.
+Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://beavo-dental.web.app/legal/…`.
 
 **Simulator:** this is a dev-client project — use `npx expo run:ios`, never `expo start --ios` or `--go` (Expo Go can't load the native modules).
 

@@ -13,6 +13,14 @@ for (const file of configFiles) {
   assert.ok(!/enableMicrophonePermission"\s*:\s*true/.test(read(file)), `${file}: microphone permission must stay off`);
 }
 
+// Android: libraries can merge permissions into the build, so the microphone is blocked, not just left out.
+const android = JSON.parse(read('app.json')).expo.android ?? {};
+const MIC = 'android.permission.RECORD_AUDIO';
+assert.deepEqual(android.permissions, ['android.permission.CAMERA'], 'app.json: android.permissions must be the camera only');
+assert.ok((android.blockedPermissions ?? []).includes(MIC), `app.json: android.blockedPermissions must include ${MIC}`);
+// Device-only data must not reach Google's cloud backup (ADR 0005, ADR 0006).
+assert.equal(android.allowBackup, false, 'app.json: android.allowBackup must stay false');
+
 const pkg = JSON.parse(read('package.json'));
 const installed = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
 const banned = [

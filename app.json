@@ -20,12 +20,23 @@
       }
     },
     "android": {
+      "package": "com.zingdentalai.zing",
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#0A746E",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
+      "allowBackup": false
     },
     "plugins": [
       "expo-router",
@@ -56,7 +67,12 @@
       "./plugins/withSceneLifecycle",
       "expo-localization",
       "expo-sharing",
-      ["expo-secure-store", { "faceIDPermission": "Beavo uses Face ID only to confirm a grown-up before the parental PIN is created or changed." }]
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Beavo uses Face ID only to confirm a grown-up before the parental PIN is created or changed."
+        }
+      ]
     ],
     "extra": {
       "router": {},

@@ -2,7 +2,7 @@
 
 Source of truth for progress. Keep `CLAUDE.md` pointing here rather than ticking items there.
 
-Last revised 2026-11-13. Open work comes first; finished work is under [Done](#done).
+Last revised 2026-11-17. Open work comes first; finished work is under [Done](#done).
 
 ## Now: verify the foundation on a device
 
@@ -20,23 +20,34 @@ In dependency order.
   - [x] pt-BR launch: Overview, Brushing, Progress (2026-11-13)
   - [ ] onboarding intro (needs a fresh install); backup import
   - [ ] Spanish device; a real phone with the camera mirror
+  - [ ] Parental gate PIN: choose a PIN (Face ID / passcode), the gate on each gated action, "I forgot the PIN", the multiplication fallback on a phone with no passcode, the wait after 5 wrong tries
   - [ ] VoiceOver: the edit pencil in the child picker is nested inside the row button and can't be reached; avatar colour swatches are announced as hex codes
 - [x] Firestore rules reviewed against the privacy checklist (2026-11-13): owner-only, typed writes, default deny; Storage is unused and has no bucket rules to review
 - [x] Test and CI baseline: `.github/workflows/ci.yml` runs every check in RUNBOOK and is green on `step1-foundation`
 
 ## Next: TestFlight release
 
-- [ ] Legal review of `legal/`; fill the two placeholders in the Terms (paid plan, liability); confirm Firestore region; `firebase deploy --only hosting`
+- [ ] Legal review of `legal/`; decide whether the Privacy Policy should mention the parental-gate PIN (kept in this phone's Keychain) and the Face ID check (the app only learns yes or no) — neither is mentioned today; fill the two placeholders in the Terms (paid plan, liability); confirm Firestore region; `firebase deploy --only hosting`
+- [ ] iOS backups: device-only data in AsyncStorage is probably included in iCloud and phone-to-phone backups (nothing opts it out), which contradicts ADR 0005 and Privacy Policy 2.6. Confirm on a device, then either exclude it from backup or correct the policy (bump `LEGAL_VERSIONS.privacy`)
 - [ ] Clinical advisor review of the coach messages and cheers (`docs/CLINICAL.md` has none approved yet)
 - [ ] Native-speaker review of the Spanish strings and of the pt-BR strings added on 2026-11-11
 - [ ] Decide on Apple Sign-In (App Store guideline 4.8) before submitting
 - [ ] Create the app in App Store Connect; fill `APP_STORE_ID` (`lib/legal.ts`)
 - [ ] First TestFlight build (`release-testflight` skill)
 
+## After iOS: Google Play release
+
+Groundwork done on 2026-11-17 ([ADR 0006](decisions/0006-android-groundwork.md)): package name, camera-only permissions with the microphone blocked (guardrail checks it), backup off, `expo-system-ui`. Prebuild and the Android bundle succeed; nothing has run on Android yet.
+
+- [ ] Register the Android SHA-1 fingerprints (debug, EAS, Play App Signing) in Firebase / Google Cloud for Google sign-in
+- [ ] EAS Android development build; device pass on an Android phone (sign-in, PIN gate with fingerprint or face unlock, camera mirror, back button, glass fallback, keyboard on forms)
+- [ ] Legal: name Android and Google Play in the Privacy Policy and Terms (bump `LEGAL_VERSIONS`)
+- [ ] Google Play Console: app, Families Policy / target audience, Data safety form, content rating, store listing in pt-BR, en, es
+- [ ] First internal-testing build on Google Play
+
 ## Later
 
 - Subscriptions: RevenueCat (needs the Terms paid-plan section first)
-- Android
 - Session state machine hook (`useBrushingSession`), sounds
 
 ## Ruled out or parked
@@ -45,6 +56,10 @@ In dependency order.
 - Gemini coach — **not in the app** (ADR 0003); the old client is in git history (`lib/gemini.ts`, removed 2026-11-12). Bring it back only with the steps in `CLAUDE.md` (Privacy Policy update first)
 
 ## Done
+
+### Parental gate PIN (2026-11-13)
+- [x] `ParentalGate` asks for a 4-digit PIN kept in the Keychain (`expo-secure-store`); choosing it needs Face ID / passcode (`expo-local-authentication`), with a multiplication fallback on a phone with no passcode
+- [x] Growing wait from the 5th wrong try in a row (`src/data/pinLock.ts` + unit tests)
 
 ### Device-only mode, Spanish, brushing cheers (2026-11-11)
 - [x] Use without an account: device store in `src/data/local.ts`, move-to-account screen, erase, legal update (ADR 0005)
