@@ -28,16 +28,26 @@ In dependency order.
 ## Next: TestFlight release
 
 - [ ] Legal review of `legal/`; decide whether the Privacy Policy should mention the parental-gate PIN (kept in this phone's Keychain) and the Face ID check (the app only learns yes or no) — neither is mentioned today; fill the two placeholders in the Terms (paid plan, liability); confirm Firestore region; `firebase deploy --only hosting`
+- [ ] iOS backups: device-only data in AsyncStorage is probably included in iCloud and phone-to-phone backups (nothing opts it out), which contradicts ADR 0005 and Privacy Policy 2.6. Confirm on a device, then either exclude it from backup or correct the policy (bump `LEGAL_VERSIONS.privacy`)
 - [ ] Clinical advisor review of the coach messages and cheers (`docs/CLINICAL.md` has none approved yet)
 - [ ] Native-speaker review of the Spanish strings and of the pt-BR strings added on 2026-11-11
 - [ ] Decide on Apple Sign-In (App Store guideline 4.8) before submitting
 - [ ] Create the app in App Store Connect; fill `APP_STORE_ID` (`lib/legal.ts`)
 - [ ] First TestFlight build (`release-testflight` skill)
 
+## After iOS: Google Play release
+
+Groundwork done on 2026-11-17 ([ADR 0006](decisions/0006-android-groundwork.md)): package name, camera-only permissions with the microphone blocked (guardrail checks it), backup off, `expo-system-ui`. Prebuild and the Android bundle succeed; nothing has run on Android yet.
+
+- [ ] Register the Android SHA-1 fingerprints (debug, EAS, Play App Signing) in Firebase / Google Cloud for Google sign-in
+- [ ] EAS Android development build; device pass on an Android phone (sign-in, PIN gate with fingerprint or face unlock, camera mirror, back button, glass fallback, keyboard on forms)
+- [ ] Legal: name Android and Google Play in the Privacy Policy and Terms (bump `LEGAL_VERSIONS`)
+- [ ] Google Play Console: app, Families Policy / target audience, Data safety form, content rating, store listing in pt-BR, en, es
+- [ ] First internal-testing build on Google Play
+
 ## Later
 
 - Subscriptions: RevenueCat (needs the Terms paid-plan section first)
-- Android
 - Session state machine hook (`useBrushingSession`), sounds
 
 ## Ruled out or parked
