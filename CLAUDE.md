@@ -313,7 +313,7 @@ npm run check           # tsc + lint + unit tests + guardrail
 
 Run the unit tests under a DST zone too: `TZ=America/New_York npm test`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
 
-Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://zing-dental-app.web.app/legal/…`.
+Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://beavo-dental.web.app/legal/…`.
 
 **Simulator:** this is a dev-client project — use `npx expo run:ios`, never `expo start --ios` or `--go` (Expo Go can't load the native modules).
 

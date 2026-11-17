@@ -14,7 +14,7 @@ npm run build:legal                      # legal/*.md → public/legal/*.html; f
 Tests use `node:test` + `node:assert` (no framework). New pure repository logic goes in `src/data/` with a sibling `*.test.ts`.
 
 ## Legal pages (Firebase Hosting)
-`npx firebase login` once, then `npx firebase deploy --only hosting` (predeploy builds the pages). URLs: `https://zing-dental-app.web.app/legal/{terms,privacy-policy}.{pt-BR,en}.html` — these go in App Store Connect. When a document changes in substance, bump `LEGAL_VERSIONS` in `lib/legal.ts` and the version line in each file; parents are asked to accept again.
+`npx firebase login` once, then `npx firebase deploy --only hosting` (predeploy builds the pages). URLs: `https://beavo-dental.web.app/legal/{terms,privacy-policy}.{pt-BR,en}.html` — these go in App Store Connect. When a document changes in substance, bump `LEGAL_VERSIONS` in `lib/legal.ts` and the version line in each file; parents are asked to accept again.
 
 ## Expo version
 `package.json` is the authority (currently SDK 57). Before using any Expo API, read the docs for the **installed** SDK version (see `AGENTS.md`). Upgrade by SDK, not by package: `npx expo install expo@latest --fix`, then the checks above and `npx expo export --platform ios --output-dir <tmp>`. Stay on the SDK-pinned versions of react, react-native, reanimated, screens, etc.; don't bump them individually.

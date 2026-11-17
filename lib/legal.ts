@@ -7,8 +7,8 @@ import { locale } from '@/lib/i18n';
  */
 export const LEGAL_VERSIONS = { terms: '2026-11-11', privacy: '2026-11-11' } as const;
 
-/** Firebase Hosting default domain for project `zing-dental-app` (see firebase.json > hosting). */
-const LEGAL_BASE_URL = 'https://zing-dental-app.web.app/legal';
+/** Firebase Hosting default domain for project `beavo-dental` (see firebase.json > hosting). */
+const LEGAL_BASE_URL = 'https://beavo-dental.web.app/legal';
 
 // The documents exist in Portuguese and English only; Spanish devices get the English ones.
 const legalLocale = locale === 'pt-BR' ? 'pt-BR' : 'en';
