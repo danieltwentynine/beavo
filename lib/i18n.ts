@@ -11,7 +11,7 @@ const ptBR = {
   'tabs.overview': 'Visão geral',
   'tabs.brushing': 'Escovação',
   'tabs.progress': 'Progresso',
-  'tabs.more': 'Mais',
+  'tabs.more': 'Família',
 
   'slots.breakfast': 'Depois do café da manhã',
   'slots.lunch': 'Depois do almoço',
@@ -187,6 +187,11 @@ const ptBR = {
   'brushHistory.completed': 'Completa',
   'brushHistory.stopped': 'Parou antes',
   'brushHistory.unknownSlot': 'Horário removido',
+  'brushHistory.open': 'Ver o resumo de {label}, {when}',
+  'sessionReview.duration': 'Tempo escovando',
+  'sessionReview.completedBody': 'Escovou até o fim do tempo.',
+  'sessionReview.stoppedBody': 'Parou antes do fim do tempo.',
+  'sessionReview.missing': 'Não encontramos esta escovação.',
 
   'more.premiumTitle': 'Beavo Premium',
   'more.premiumBody': '[TEXTO PROVISÓRIO] Mais personagens, conquistas e relatórios para a família.',
@@ -216,6 +221,12 @@ const ptBR = {
   'settings.duration': 'Tempo de escovação',
   'settings.durationHint': 'Dentistas recomendam 2 minutos.',
   'settings.minutes': '{value} min',
+  'settings.pin': 'PIN dos adultos',
+  'settings.pinSet': 'Pedido antes das áreas dos adultos neste celular.',
+  'settings.pinNone': 'Ainda não há PIN neste celular. Escolha um para proteger as áreas dos adultos.',
+  'settings.pinCreate': 'Escolher um PIN',
+  'settings.pinChange': 'Trocar o PIN',
+  'settings.pinSaved': 'PIN salvo.',
 
   'categories.title': 'Categorias',
   'categories.symptoms': 'Sintomas',
@@ -233,7 +244,7 @@ const ptBR = {
 
   'progress.title': 'Progresso',
 
-  'more.title': 'Mais',
+  'more.title': 'Família',
   'more.children': 'Crianças',
   'more.account': 'Conta',
   'more.signOut': 'Sair',
@@ -417,7 +428,7 @@ const en: Record<StringKey, string> = {
   'tabs.overview': 'Overview',
   'tabs.brushing': 'Brushing',
   'tabs.progress': 'Progress',
-  'tabs.more': 'More',
+  'tabs.more': 'Family',
 
   'slots.breakfast': 'After breakfast',
   'slots.lunch': 'After lunch',
@@ -592,6 +603,11 @@ const en: Record<StringKey, string> = {
   'brushHistory.completed': 'Completed',
   'brushHistory.stopped': 'Stopped early',
   'brushHistory.unknownSlot': 'Removed time',
+  'brushHistory.open': 'See the summary of {label}, {when}',
+  'sessionReview.duration': 'Time brushing',
+  'sessionReview.completedBody': 'Brushed until the time was up.',
+  'sessionReview.stoppedBody': 'Stopped before the time was up.',
+  'sessionReview.missing': "We couldn't find this brushing.",
 
   'more.premiumTitle': 'Beavo Premium',
   'more.premiumBody': '[PLACEHOLDER] More characters, badges and family reports.',
@@ -621,6 +637,12 @@ const en: Record<StringKey, string> = {
   'settings.duration': 'Brushing time',
   'settings.durationHint': 'Dentists recommend 2 minutes.',
   'settings.minutes': '{value} min',
+  'settings.pin': 'Grown-ups PIN',
+  'settings.pinSet': 'Asked before the grown-up areas on this phone.',
+  'settings.pinNone': "There's no PIN on this phone yet. Choose one to protect the grown-up areas.",
+  'settings.pinCreate': 'Choose a PIN',
+  'settings.pinChange': 'Change PIN',
+  'settings.pinSaved': 'PIN saved.',
 
   'categories.title': 'Categories',
   'categories.symptoms': 'Symptoms',
@@ -638,7 +660,7 @@ const en: Record<StringKey, string> = {
 
   'progress.title': 'Progress',
 
-  'more.title': 'More',
+  'more.title': 'Family',
   'more.children': 'Children',
   'more.account': 'Account',
   'more.signOut': 'Log out',
@@ -820,7 +842,7 @@ const es: Record<StringKey, string> = {
   'tabs.overview': 'Resumen',
   'tabs.brushing': 'Cepillado',
   'tabs.progress': 'Progreso',
-  'tabs.more': 'Más',
+  'tabs.more': 'Familia',
 
   'slots.breakfast': 'Después del desayuno',
   'slots.lunch': 'Después del almuerzo',
@@ -994,6 +1016,11 @@ const es: Record<StringKey, string> = {
   'brushHistory.completed': 'Completo',
   'brushHistory.stopped': 'Se detuvo antes',
   'brushHistory.unknownSlot': 'Horario eliminado',
+  'brushHistory.open': 'Ver el resumen de {label}, {when}',
+  'sessionReview.duration': 'Tiempo cepillando',
+  'sessionReview.completedBody': 'Se cepilló hasta que terminó el tiempo.',
+  'sessionReview.stoppedBody': 'Se detuvo antes de que terminara el tiempo.',
+  'sessionReview.missing': 'No encontramos este cepillado.',
 
   'more.premiumTitle': 'Beavo Premium',
   'more.premiumBody': '[TEXTO PROVISIONAL] Más personajes, logros e informes para la familia.',
@@ -1023,6 +1050,12 @@ const es: Record<StringKey, string> = {
   'settings.duration': 'Tiempo de cepillado',
   'settings.durationHint': 'Los dentistas recomiendan 2 minutos.',
   'settings.minutes': '{value} min',
+  'settings.pin': 'PIN de adultos',
+  'settings.pinSet': 'Se pide antes de las áreas de adultos en este teléfono.',
+  'settings.pinNone': 'Aún no hay PIN en este teléfono. Elige uno para proteger las áreas de adultos.',
+  'settings.pinCreate': 'Elegir un PIN',
+  'settings.pinChange': 'Cambiar el PIN',
+  'settings.pinSaved': 'PIN guardado.',
 
   'categories.title': 'Categorías',
   'categories.symptoms': 'Síntomas',
@@ -1039,7 +1072,7 @@ const es: Record<StringKey, string> = {
 
   'progress.title': 'Progreso',
 
-  'more.title': 'Más',
+  'more.title': 'Familia',
   'more.children': 'Peques',
   'more.account': 'Cuenta',
   'more.signOut': 'Cerrar sesión',

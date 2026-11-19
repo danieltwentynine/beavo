@@ -12,10 +12,19 @@ import { isPin, useSettingsStore } from '@/stores/settingsStore';
 const factor = () => 6 + Math.floor(Math.random() * 4); // 6–9: beyond a young child's times tables
 const newQuestion = () => ({ a: factor(), b: factor() });
 
+/**
+ * - `check` (default): the PIN; a phone without one chooses it first.
+ * - `noNewPin`: the PIN if there is one, else the written question. Never asks
+ *   to choose a PIN (reading the Terms before consent).
+ * - `choosePin`: confirm the phone's owner, then choose a new PIN (Settings).
+ */
+export type GateMode = 'check' | 'noNewPin' | 'choosePin';
+
 interface ParentalGateProps {
   visible: boolean;
   onPass: () => void;
   onCancel: () => void;
+  mode?: GateMode;
 }
 
 type Step = 'pin' | 'owner' | 'math' | 'create' | 'confirm';
@@ -28,17 +37,25 @@ const PROMPT = { pin: 'gate.pinPrompt', create: 'gate.pinCreate', confirm: 'gate
  * multiplication question. Wrong tries make the next one wait (src/data/pinLock);
  * never red.
  */
-export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
+export function ParentalGate({ visible, onPass, onCancel, mode = 'check' }: ParentalGateProps) {
   const pin = useSettingsStore((s) => s.parentPin);
   const setParentPin = useSettingsStore((s) => s.setParentPin);
   const recordPinTry = useSettingsStore((s) => s.recordPinTry);
-  // null: start from the PIN when there is one, else from confirming the phone's owner.
+  // null: start from the PIN when there is one, else from confirming the phone's owner
+  // (or from the question, when this check must not create a PIN).
   const [chosenStep, setChosenStep] = useState<Step | null>(null);
-  const step: Step = chosenStep ?? (pin ? 'pin' : 'owner');
+  const firstStep: Step = mode === 'choosePin' ? 'owner' : pin ? 'pin' : mode === 'noNewPin' ? 'math' : 'owner';
+  const step: Step = chosenStep ?? firstStep;
+  // The question alone passes only when no PIN is being chosen.
+  const questionPasses = mode === 'noNewPin' && !pin;
   const [question, setQuestion] = useState(newQuestion);
   const [value, setValue] = useState('');
   const [firstPin, setFirstPin] = useState('');
   const [message, setMessage] = useState<StringKey | null>(null);
+  // Remounts the field on every step or reset. Clearing a controlled iOS field
+  // while digits are still arriving can leave the old digits on screen and
+  // maxLength then blocks typing, so a new, empty field is used instead.
+  const [fieldKey, setFieldKey] = useState(0);
   // iOS can't present an Alert or sheet while this modal is still animating out,
   // so a pass hides the modal first and calls onPass once it has dismissed.
   const [passed, setPassed] = useState(false);
@@ -55,6 +72,7 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
   const goTo = (next: Step | null, nextMessage: StringKey | null = null) => {
     setChosenStep(next);
     setValue('');
+    setFieldKey((k) => k + 1);
     setMessage(nextMessage);
     setQuestion(newQuestion());
   };
@@ -90,7 +108,8 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
     }
   };
 
-  const submitAnswer = () => attempt(Number(value) === question.a * question.b, () => goTo('create'), 'gate.wrong');
+  const submitAnswer = () =>
+    attempt(Number(value) === question.a * question.b, questionPasses ? pass : () => goTo('create'), 'gate.wrong');
 
   const onDigits = (text: string) => {
     const digits = text.replace(/\D/g, '');
@@ -147,7 +166,7 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
             <Button label={t('gate.ownerConfirm')} onPress={() => void confirmOwner()} />
           ) : (
             <Input
-              key={step === 'math' ? 'math' : 'pin'}
+              key={fieldKey}
               label={t(step === 'math' ? 'gate.answer' : 'gate.pinLabel')}
               value={value}
               onChangeText={onDigits}
@@ -178,10 +197,11 @@ export function ParentalGate({ visible, onPass, onCancel }: ParentalGateProps) {
  * `requireParent(action)` runs `action` after the grown-ups check passes.
  * Render `gate` once in the screen.
  */
-export function useParentalGate() {
+export function useParentalGate(mode?: GateMode) {
   const [pending, setPending] = useState<(() => void) | null>(null);
   const gate = (
     <ParentalGate
+      mode={mode}
       visible={pending !== null}
       onPass={() => {
         const action = pending;

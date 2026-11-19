@@ -23,7 +23,7 @@ These Terms govern the use of the Beavo app, provided by [COMPANY NAME], CNPJ [C
 
 - Keep your sign-in details secure. You are responsible for activity in your account.
 - You are responsible for the information you record (profiles, brushing times, dental records); keep it accurate.
-- You can export your data and delete your account at any time in the app (*More → Export backup* and *More → Delete account*).
+- You can export your data and delete your account at any time in the app (*Family → Export backup* and *Family → Delete account*).
 - You can also use Beavo **without an account** (*Use without an account*). Your data then stays only on your device, it is lost if the app is removed or the device is reset or replaced, and we cannot recover it (Privacy Policy, section 2.6).
 
 ## 4. The camera

@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { X } from 'phosphor-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeIn, ReduceMotion, ZoomIn, useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCameraPermission } from 'react-native-vision-camera';
 
@@ -31,6 +32,11 @@ export default function SessionScreen() {
   const saveLastResult = useSessionStore((s) => s.saveLastResult);
 
   const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotion();
+  // Each new cheer is pressed on like a sticker; with Reduce Motion it cross-fades in instead.
+  const cheerIn = reduceMotion
+    ? FadeIn.duration(250).reduceMotion(ReduceMotion.Never)
+    : ZoomIn.springify().damping(19).stiffness(180);
   const camera = useCameraPermission();
   const [skipCamera, setSkipCamera] = useState(false);
   // Ask once (with an explainer first); denied or skipped just means guided mode.
@@ -178,21 +184,22 @@ export default function SessionScreen() {
           </View>
         ) : (
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20 }}>
-            {/* A cheer per step of the guide */}
-            <View style={{ marginTop: 8 }}>
+            {/* A cheer per step of the guide, keyed by step so each new one plays its entrance */}
+            <Animated.View key={zonesReached} entering={cheerIn} style={{ marginTop: 8 }}>
               <Sticker label={brushingCheer(zonesReached)} />
-            </View>
+            </Animated.View>
 
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            {/* The map and the instruction for its highlighted zone read as one group */}
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 12 }}>
               <MouthMap states={zoneStates} size={260} />
+              <Text
+                accessibilityLiveRegion="polite"
+                className="font-display"
+                style={{ fontSize: 24, color: tokens.textPrimary, textAlign: 'center', minHeight: 32 }}
+              >
+                {t(`zone.${currentZone}`)}
+              </Text>
             </View>
-
-            <Text
-              className="font-display"
-              style={{ fontSize: 24, color: tokens.textPrimary, textAlign: 'center', minHeight: 32 }}
-            >
-              {t(`zone.${currentZone}`)}
-            </Text>
 
             <View style={{ marginVertical: 18 }}>
               <BrushTimer remaining={remaining} total={total} size={150} />

@@ -30,6 +30,8 @@ import { localDate, slotAt, slotsActiveOn } from '@/src/data/schedule';
 import type { BrushingSession, BrushingSlot } from '@/types';
 
 const GAP = 10;
+/** Fits the 212 pt halo at its largest breath (×1.06 ≈ 225 pt). */
+const HALO_BOX = 230;
 const formatTime = (date: Date) => date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
 /** 1–3 slots: one row. 4: 2×2. 5–6: rows of 3. Never overflows. */
@@ -112,34 +114,37 @@ function StartButton({ label, disabled, onPress }: { label: string; disabled: bo
   }, [breath, reduceMotion, disabled]);
   const haloStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + breath.value * 0.06 }] }));
 
+  // Halo and button share one square so they stay concentric (the halo's 6% breath still fits);
+  // the caption sits below that square, never under the halo.
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', height: 230 }}>
-      <Animated.View
-        pointerEvents="none"
-        style={[{ position: 'absolute', width: 212, height: 212, borderRadius: 106, backgroundColor: tokens.primarySoft, opacity: disabled ? 0.4 : 1 }, haloStyle]}
-      />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        accessibilityState={{ disabled }}
-        disabled={disabled}
-        onPress={onPress}
-        style={[
-          {
-            width: 164,
-            height: 164,
-            borderRadius: 82,
-            alignItems: 'center',
-            justifyContent: 'center',
-            rowGap: 4,
-            backgroundColor: disabled ? tokens.sessionTrack : tokens.brandPrimary,
-          },
-          pressShadow(disabled),
-        ]}
-      >
-        <Play size={52} color={tokens.textOnBrand} weight="fill" />
-      </Pressable>
-      <Text className="font-display" style={{ fontSize: 20, color: tokens.textPrimary, marginTop: 14, textAlign: 'center' }}>
+    <View style={{ alignItems: 'center' }}>
+      <View style={{ width: HALO_BOX, height: HALO_BOX, alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View
+          pointerEvents="none"
+          style={[{ position: 'absolute', width: 212, height: 212, borderRadius: 106, backgroundColor: tokens.primarySoft, opacity: disabled ? 0.4 : 1 }, haloStyle]}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          accessibilityState={{ disabled }}
+          disabled={disabled}
+          onPress={onPress}
+          style={[
+            {
+              width: 164,
+              height: 164,
+              borderRadius: 82,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: disabled ? tokens.sessionTrack : tokens.brandPrimary,
+            },
+            pressShadow(disabled),
+          ]}
+        >
+          <Play size={52} color={tokens.textOnBrand} weight="fill" />
+        </Pressable>
+      </View>
+      <Text className="font-display" style={{ fontSize: 20, color: tokens.textPrimary, marginTop: 8, textAlign: 'center' }}>
         {label}
       </Text>
     </View>

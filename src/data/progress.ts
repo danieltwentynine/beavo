@@ -135,3 +135,10 @@ export function summarizeProgress(
 /** Newest first, by start time. */
 export const sessionsNewestFirst = (sessions: readonly BrushingSession[]): BrushingSession[] =>
   [...sessions].sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
+
+/** "Wed, 18 Nov · 13:00" in the device's language. */
+export const formatWhen = (d: Date): string =>
+  `${d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} · ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+
+/** Seconds as m:ss ("0:51"). */
+export const formatDuration = (sec: number): string => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;

@@ -4,7 +4,7 @@ import { test } from 'node:test';
 
 import type { BrushingSession, BrushingSlot } from '@/types';
 
-import { addDays, dayStatus, sessionsNewestFirst, summarizeProgress, weekOf } from './progress.ts';
+import { addDays, dayStatus, formatDuration, sessionsNewestFirst, summarizeProgress, weekOf } from './progress.ts';
 
 const at = (iso: string) => new Date(iso); // local time
 const slot = (id: string, over: Partial<BrushingSlot> = {}): BrushingSlot => ({
@@ -103,4 +103,8 @@ test('sessionsNewestFirst orders by start time', () => {
   const a = brushed('b', '2026-10-30');
   const b = brushed('d', '2026-10-31');
   assert.deepEqual(sessionsNewestFirst([a, b]).map((s) => s.id), [b.id, a.id]);
+});
+
+test('formatDuration shows m:ss', () => {
+  assert.deepEqual([0, 51, 60, 108, 125].map(formatDuration), ['0:00', '0:51', '1:00', '1:48', '2:05']);
 });

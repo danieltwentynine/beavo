@@ -10,11 +10,8 @@ import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessions } from '@/hooks/useSessions';
 import { t } from '@/lib/i18n';
 import { tokens } from '@/lib/tokens';
-import { sessionsNewestFirst } from '@/src/data/progress';
+import { formatDuration, formatWhen, sessionsNewestFirst } from '@/src/data/progress';
 
-const formatWhen = (d: Date) =>
-  `${d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} · ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
-const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 
 /** Every brushing session of the active child, newest first. Archived slots keep their names. */
 export default function BrushingHistoryScreen() {
@@ -50,7 +47,8 @@ export default function BrushingHistoryScreen() {
             <Card
               padding={14}
               style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}
-              accessibilityLabel={`${slot?.label ?? t('brushHistory.unknownSlot')}, ${formatWhen(s.startedAt)}, ${formatDuration(s.durationSec)}, ${status}`}
+              onPress={() => router.push({ pathname: '/session-review', params: { id: s.id } })}
+              accessibilityLabel={`${t('brushHistory.open', { label: slot?.label ?? t('brushHistory.unknownSlot'), when: formatWhen(s.startedAt) })}, ${formatDuration(s.durationSec)}, ${status}`}
             >
               <SlotIcon icon={slot?.icon ?? 'tooth'} size={26} color={tokens.textPrimary} weight="fill" />
               <View style={{ flex: 1, rowGap: 2 }}>

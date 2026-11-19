@@ -47,7 +47,7 @@ app/                              # Expo Router screens
 ├── _layout.tsx                   # Fonts, auth → consent check, child data sync, outbox flush, child-picker sheet
 ├── index.tsx                     # Redirect: an owner (signed in, or device-only) → (tabs)/overview, else onboarding/intro (first launch) or onboarding/welcome
 ├── (auth)/ login.tsx, register.tsx
-├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more
+├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more (shown as "Family")
 ├── onboarding/ intro.tsx (first launch only), welcome.tsx
 ├── consent.tsx                   # Terms + Privacy acceptance (unchecked box, re-prompt on version change)
 ├── move-data.tsx                 # Signed-in parent: move the profiles left on this phone into the account? (gated)
@@ -57,6 +57,7 @@ app/                              # Expo Router screens
 ├── tooth-sheet.tsx               # Form sheet: one tooth's records + add, or log for several teeth
 ├── dental-history.tsx            # All tooth events, newest first
 ├── brushing-history.tsx          # All brushing sessions, newest first
+├── session-review.tsx            # One saved session (opened from Brushing History)
 ├── categories.tsx, settings.tsx, premium.tsx   # Parent-only (reached through the gate in More)
 ├── session.tsx                   # Brushing session
 └── results.tsx                   # Score, local message, save status
@@ -247,8 +248,8 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 - No analytics that track individual children by name
 - All data lives under `users/{uid}` — the security rules enforce owner-only access
 - Camera frames are never processed, stored or uploaded (mirror only)
-- **Parental gate (Apple Kids Category):** every external link (legal, review), purchase/Premium, backup export/import, moving or erasing device-only data, creating an account from device-only mode, settings, categories, kid-mode change, routine editing, adding/deleting a child or tooth event, sign-out and account deletion goes through `ParentalGate` / `useParentalGate` (viewing the chart and records is open). The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal). The gate asks for the parent's 4-digit PIN, kept in the Keychain (`expo-secure-store`, this device only, cleared on a fresh install). Choosing the PIN — at the first gate or after "I forgot the PIN" — needs the phone's Face ID / passcode (`expo-local-authentication`; the app only learns yes or no); a phone with no passcode falls back to one multiplication question. From the 5th wrong try in a row the next try has to wait, doubling from 1 minute (`src/data/pinLock.ts`).
-- **Kid mode** (`children.kidMode`, off for new children, toggled behind the gate on Brushing): hides the More tab, makes the Overview chart view-only (no tooth sheet, no Dental History) and hides edit/add in the child picker. first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
+- **Parental gate (Apple Kids Category):** every external link (legal, review), purchase/Premium, backup export/import, moving or erasing device-only data, creating an account from device-only mode, settings, categories, kid-mode change, routine editing, adding/deleting a child or tooth event, sign-out and account deletion goes through `ParentalGate` / `useParentalGate` (viewing the chart and records is open). The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal). The gate asks for the parent's 4-digit PIN, kept in the Keychain (`expo-secure-store`, this device only, cleared on a fresh install). Choosing the PIN — at the first gate or after "I forgot the PIN" — needs the phone's Face ID / passcode (`expo-local-authentication`; the app only learns yes or no); a phone with no passcode falls back to one multiplication question. Gate modes: `check` (default), `noNewPin` (consent screen: the PIN if there is one, else the question; never makes a first-time parent choose a PIN), `choosePin` (Settings → Change PIN). From the 5th wrong try in a row the next try has to wait, doubling from 1 minute (`src/data/pinLock.ts`).
+- **Kid mode** (`children.kidMode`, off for new children, toggled behind the gate on Brushing): hides the Family tab (`more.tsx`), makes the Overview chart view-only (no tooth sheet, no Dental History) and hides edit/add in the child picker. first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
 - Legal docs (`legal/`) must describe what the code actually does — change them (and `LEGAL_VERSIONS`) whenever data handling changes
 - The Gemini prompt must never include the child's last name, school, or location
 

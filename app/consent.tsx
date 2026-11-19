@@ -27,7 +27,8 @@ export default function ConsentScreen() {
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
   // Apple Kids Category: external links sit behind the grown-ups check, even here.
-  const { gate, requireParent } = useParentalGate();
+  // A first-time parent has no PIN yet: the written question, never "choose a PIN".
+  const { gate, requireParent } = useParentalGate('noNewPin');
 
   const onAccept = async () => {
     if (!ownerId || !checked) return;

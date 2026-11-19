@@ -106,7 +106,7 @@ export default function ResultsScreen() {
 
         <View style={{ width: '100%', rowGap: 12, marginTop: 'auto', paddingTop: 22 }}>
           <Button label={t('results.seeProgress')} size="lg" onPress={() => router.replace('/(tabs)/progress')} />
-          <Button label={t('results.again')} variant="soft" onPress={() => router.replace('/session')} />
+          <Button label={t('results.again')} variant="soft" onPress={() => router.replace({ pathname: '/session', params: result.slotId ? { slotId: result.slotId } : {} })} />
         </View>
       </ScrollView>
     </SafeAreaView>

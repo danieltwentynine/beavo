@@ -44,8 +44,8 @@ So the app works offline, your device keeps: your sign-in session, a copy of the
 ### 2.6 Using Beavo without an account
 You can use Beavo without creating an account (*Use without an account*). In that case the children's profiles, brushing times, brushing sessions, dental records, categories and the record of your consent are stored **only on your device**. We do not receive them, they are not sent to our servers, and section 5 does not apply to them.
 
-- **Keeping the data is up to you.** It is lost if the app is deleted or the device is reset, lost or replaced, and we cannot recover it. *More → Export backup* creates a copy you can keep.
-- **Erasing it:** *More → Erase data on this phone* (asks for a grown-ups-only check) deletes everything immediately.
+- **Keeping the data is up to you.** It is lost if the app is deleted or the device is reset, lost or replaced, and we cannot recover it. *Family → Export backup* creates a copy you can keep.
+- **Erasing it:** *Family → Erase data on this phone* (asks for a grown-ups-only check) deletes everything immediately.
 - **Moving it to an account:** if you later create or sign in to an account on this device, the app shows the names of the profiles kept on the device and asks whether to move them into that account. They are moved only if you confirm, after a grown-ups-only check; they are then removed from the device and treated as account data under this Policy. If you decline, they stay on the device only; the same screen also lets you erase them.
 
 ## 3. The camera is only a mirror
@@ -90,12 +90,12 @@ Google acts as our **processor**, following our instructions and the Google Clou
 Under the LGPD (art. 18) you may request: confirmation that we process your data, access, correction, anonymization, blocking or deletion of unnecessary data, portability, information about who we share data with, information about the option not to consent, and withdrawal of consent.
 
 In the app:
-- **Access and take your data (portability):** *More → Export backup* (asks for a grown-ups-only check). Creates a `.json` file with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
-- **Restore a backup:** *More → Import backup* (asks for a grown-ups-only check). You pick a Beavo backup file; its data is checked and merged into your account (items with the same ID are replaced; nothing is deleted).
+- **Access and take your data (portability):** *Family → Export backup* (asks for a grown-ups-only check). Creates a `.json` file with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
+- **Restore a backup:** *Family → Import backup* (asks for a grown-ups-only check). You pick a Beavo backup file; its data is checked and merged into your account (items with the same ID are replaced; nothing is deleted).
 - **Correct:** for the profile, tap the child switcher at the top right, then *Edit*. For a dental record, tap the tooth on *Overview*, delete the record and add it again.
 - **Delete a child:** *Edit profile → Delete profile* (asks for a grown-ups-only check).
-- **Without an account (section 2.6):** export and import act on the data kept on your device, and *More → Erase data on this phone* replaces *Delete account*. Erasing that data also withdraws your consent.
-- **Delete your account and all data:** *More → Delete account* (asks for a grown-ups-only check and for you to sign in again).
+- **Without an account (section 2.6):** export and import act on the data kept on your device, and *Family → Erase data on this phone* replaces *Delete account*. Erasing that data also withdraws your consent.
+- **Delete your account and all data:** *Family → Delete account* (asks for a grown-ups-only check and for you to sign in again).
 
 For other requests, email [DPO EMAIL]. We reply within [DEADLINE] days. You may also complain to Brazil's **National Data Protection Authority (ANPD)**.
 
