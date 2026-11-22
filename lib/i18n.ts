@@ -46,19 +46,19 @@ const ptBR = {
   'consent.privacy': 'Política de Privacidade',
   'consent.continue': 'Aceitar e continuar',
   'consent.signOut': 'Sair da conta',
-  'consent.retry': "Tentar de novo agora", // TODO(quill) Forge fix sprint v1 r2
-  'gate.ownerRetry': "Não foi possível confirmar. Tente de novo.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.willFinish': "Isso ainda não terminou. O Beavo termina sozinho quando houver internet.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.finished': "Pronto: o que ficou pendente foi concluído.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.importInterrupted': "A importação não terminou. Importe de novo quando houver internet; nada será duplicado.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.signInToFinish': "Os dados foram apagados. Entre de novo para terminar de excluir a conta.", // TODO(quill) Forge fix sprint v1 r2
+  'consent.retry': "Tentar de novo agora",
+  'gate.ownerRetry': 'Não conseguimos confirmar que é você. Tente de novo.',
+  'notice.willFinish': 'Isso ainda não terminou. O Beavo conclui assim que houver internet.',
+  'notice.finished': 'Pronto! O que estava pendente foi concluído.',
+  'notice.importInterrupted': "A importação não terminou. Importe de novo quando houver internet; nada será duplicado.",
+  'notice.signInToFinish': "Os dados foram apagados. Entre de novo para terminar de excluir a conta.",
   'consent.checkTerms': 'Sou mãe, pai ou responsável legal, tenho 18 anos ou mais e aceito os Termos de Uso e a Política de Privacidade.',
   'consent.checkHealth': 'Autorizo o Beavo a guardar os dados de escovação e de saúde bucal (incluindo os registros dos dentes) das crianças que eu cadastrar.',
   'consent.required': 'Marque os dois itens para continuar.',
   'consent.pendingOnline': 'Seu aceite foi guardado neste celular e será enviado quando houver internet.',
   'consent.saveFailed': 'Não foi possível salvar seu aceite. Tente de novo.',
   'notice.notSaved': 'Uma alteração não foi salva. Verifique a internet e tente de novo.',
-  'notice.notLoaded': 'Não foi possível atualizar os dados. Vamos tentar de novo sozinhos.',
+  'notice.notLoaded': 'Não foi possível atualizar os dados. Vamos tentar de novo em instantes.',
   'notice.needsConnection': 'Isso precisa de internet. Conecte-se e tente de novo.',
   'notice.dismiss': 'Fechar aviso',
   'gate.ownerNeeded': 'Para trocar o PIN, este celular precisa confirmar que é você com Face ID, Touch ID ou código. Ative um código nos Ajustes do iPhone.',
@@ -171,7 +171,7 @@ const ptBR = {
   'today.now': 'Agora',
   'today.noTime': '--:--',
   'today.slotA11y': '{label}, {state}',
-  'today.doneAt': 'feito às {time}',
+  'today.doneAt': 'feito · {time}',
   'today.notYet': 'ainda não',
   'today.startFor': 'Escovar: {label}',
   'today.pickSlot': 'Toque em um horário para escolher',
@@ -238,7 +238,7 @@ const ptBR = {
   'settings.durationHint': 'A American Dental Association (ADA) recomenda escovar duas vezes ao dia, por dois minutos. Tempos menores contam como completos, mas a pontuação máxima pede 2 minutos.',
   'settings.minutes': '{value} min',
   'settings.pin': 'PIN dos adultos',
-  'settings.pinSet': 'Pedido antes das áreas dos adultos neste celular.',
+  'settings.pinSet': 'O PIN é pedido antes de abrir as áreas dos adultos neste celular.',
   'settings.pinNone': 'Ainda não há PIN neste celular. Escolha um para proteger as áreas dos adultos.',
   'settings.pinCreate': 'Escolher um PIN',
   'settings.pinChange': 'Trocar o PIN',
@@ -284,8 +284,7 @@ const ptBR = {
   'more.wrongPassword': 'Senha incorreta. Tente de novo.',
 
   'camera.title': 'Um espelho para escovar',
-  'camera.body':
-    'Pais: a câmera frontal funciona só como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado.',
+  'camera.body': 'Pais e responsáveis: a câmera frontal funciona só como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado.',
   'camera.allow': 'Ligar o espelho',
   'camera.skip': 'Escovar sem câmera',
 
@@ -307,12 +306,12 @@ const ptBR = {
   'intro.rewardsBody': 'Sequências e figurinhas comemoram o hábito. Se faltar um dia, o Beavo só convida para tentar de novo.',
   'intro.rewardsNext': 'Conhecer a área dos adultos',
   'intro.parentsArt': 'Cadeado: área só para adultos',
-  'intro.parentsTitle': 'Os pais no controle',
+  'intro.parentsTitle': 'Adultos no controle',
   'intro.parentsBody': 'Você cria a conta, adiciona as crianças e decide os horários. Elas só escovam.',
   'intro.trustGate': 'Ajustes e dados só para adultos',
   'intro.trustAds': 'Sem anúncios',
   'intro.trustCamera': 'Câmera só como espelho, nada é gravado',
-  'intro.createAccount': 'Criar conta dos pais',
+  'intro.createAccount': 'Criar conta de responsável',
   'intro.signIn': 'Entrar na minha conta',
 
   'local.use': 'Usar sem conta',
@@ -432,7 +431,7 @@ const ptBR = {
   'results.missed': 'Na próxima',
   'results.saving': 'Salvando sua escovação…',
   'results.pending': 'Guardada neste celular — entra no seu progresso quando a internet voltar.',
-  'results.failed': 'Esta ainda não chegou ao seu progresso.',
+  'results.failed': 'Esta escovação ainda não chegou ao seu progresso.',
   'results.retry': 'Tentar salvar de novo',
   'results.seeProgress': 'Ver meu progresso',
   'results.again': 'Escovar de novo',
@@ -496,12 +495,12 @@ const en: Record<StringKey, string> = {
   'consent.privacy': 'Privacy Policy',
   'consent.continue': 'Accept and continue',
   'consent.signOut': 'Sign out',
-  'consent.retry': "Try again now", // TODO(quill) Forge fix sprint v1 r2
-  'gate.ownerRetry': "We couldn't confirm it's you. Please try again.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.willFinish': "This didn't finish yet. Beavo will finish it when you're back online.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.finished': "Done: the step that was waiting has finished.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.importInterrupted': "The import didn't finish. Import again when you're online; nothing will be duplicated.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.signInToFinish': "Your data was deleted. Sign in again to finish deleting the account.", // TODO(quill) Forge fix sprint v1 r2
+  'consent.retry': "Try again now",
+  'gate.ownerRetry': "We couldn't confirm it's you. Please try again.",
+  'notice.willFinish': "This didn't finish yet. Beavo will finish it when you're back online.",
+  'notice.finished': 'Done! What was waiting has finished.',
+  'notice.importInterrupted': "The import didn't finish. Import again when you're online; nothing will be duplicated.",
+  'notice.signInToFinish': "Your data was deleted. Sign in again to finish deleting the account.",
   'consent.checkTerms': "I'm a parent or legal guardian, I'm 18 or older, and I accept the Terms of Service and the Privacy Policy.",
   'consent.checkHealth': 'I allow Beavo to keep the brushing and dental health data (including tooth records) of the children I add.',
   'consent.required': 'Check both boxes to continue.',
@@ -944,12 +943,12 @@ const es: Record<StringKey, string> = {
   'consent.privacy': 'Política de Privacidad',
   'consent.continue': 'Aceptar y continuar',
   'consent.signOut': 'Cerrar sesión',
-  'consent.retry': "Intentar de nuevo ahora", // TODO(quill) Forge fix sprint v1 r2
-  'gate.ownerRetry': "No pudimos confirmar que eres tú. Inténtalo de nuevo.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.willFinish': "Esto aún no terminó. Beavo lo terminará cuando vuelva la conexión.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.finished': "Listo: lo que estaba pendiente terminó.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.importInterrupted': "La importación no terminó. Vuelve a importar cuando haya internet; no se duplicará nada.", // TODO(quill) Forge fix sprint v1 r2
-  'notice.signInToFinish': "Tus datos se borraron. Vuelve a iniciar sesión para terminar de eliminar la cuenta.", // TODO(quill) Forge fix sprint v1 r2
+  'consent.retry': "Intentar de nuevo ahora",
+  'gate.ownerRetry': "No pudimos confirmar que eres tú. Inténtalo de nuevo.",
+  'notice.willFinish': "Esto aún no terminó. Beavo lo terminará cuando vuelva la conexión.",
+  'notice.finished': '¡Listo! Lo que estaba pendiente terminó.',
+  'notice.importInterrupted': "La importación no terminó. Vuelve a importar cuando haya internet; no se duplicará nada.",
+  'notice.signInToFinish': "Tus datos se borraron. Vuelve a iniciar sesión para terminar de eliminar la cuenta.",
   'consent.checkTerms': 'Soy madre, padre o tutor legal, tengo 18 años o más y acepto los Términos de Uso y la Política de Privacidad.',
   'consent.checkHealth': 'Autorizo a Beavo a guardar los datos de cepillado y de salud bucal (incluidos los registros de los dientes) de los niños que agregue.',
   'consent.required': 'Marca las dos casillas para continuar.',
