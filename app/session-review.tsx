@@ -53,7 +53,7 @@ export default function SessionReviewScreen() {
               </Text>
               <Badge
                 label={session.completed ? t('brushHistory.completed') : t('brushHistory.stopped')}
-                tone={session.completed ? 'primary' : 'warning'}
+                tone={session.completed ? 'primary' : 'neutral'}
                 solid={session.completed}
               />
               <Text className="font-body" style={{ fontSize: 16, color: tokens.textPrimary, textAlign: 'center' }}>

@@ -23,14 +23,23 @@ export const tokens = {
   /** Stickers, badges and streaks only. */
   reward: '#B83A75',
   onReward: '#FFFFFF',
-  /** Warm honey yellow, never red. Always paired with the retry glyph. */
+  /** Honey is reserved for missed brushing zones. */
   warning: '#F6C447',
   onWarning: '#3A2A00',
   warningLine: '#9C7000',
   /** Parent screens only; never in kid mode. */
   danger: '#B3261E',
 
+  symptom: '#B45309',
+  onSymptom: '#FFFFFF',
+  symptomSoft: '#FCE9D4',
+  symptomInk: '#7A3A06',
+
   // Brushing session
+  cameraScrim: 'rgba(15,30,29,0.62)',
+  onCamera: '#FFFFFF',
+  sessionPill: 'rgba(255,255,255,0.88)',
+  pauseVeil: 'rgba(15,30,29,0.72)',
   sessionBg: '#E4F1F7',
   sessionTrack: '#C9DCE5',
   zoneEmpty: '#C9DCE5',

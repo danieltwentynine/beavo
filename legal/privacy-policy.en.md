@@ -2,9 +2,19 @@
 
 # Beavo Privacy Policy
 
-**Version:** 2026-11-11 · **Effective:** [PUBLICATION DATE]
+**Version:** 2026-11-22 · **Effective:** [PUBLICATION DATE]
 
-This Policy explains how the Beavo app ("Beavo", "we") processes personal data under Brazil's General Data Protection Law (Law No. 13,709/2018, "LGPD"). Beavo helps children aged 4 to 12 build a tooth-brushing habit. **The account always belongs to an adult (a parent or legal guardian). Children never create an account or sign in.** The Portuguese version prevails if the two versions differ.
+This Policy explains how the Beavo app ("Beavo", "we") processes personal data under Brazil's General Data Protection Law (Law No. 13,709/2018, "LGPD"). Beavo helps children aged 4 to 12 build a tooth-brushing habit. **The account always belongs to an adult (a parent or legal guardian). Children never create an account or sign in.** The Portuguese version prevails if the versions differ.
+
+## In short
+
+- A parent or legal guardian creates the account. Children never create an account or sign in.
+- We keep your child's first name or nickname, an optional birth year, and the brushing times, sessions and dental records you enter. Dental records are health data.
+- The camera is only a mirror. Nothing is recorded, saved or sent.
+- No ads, no analytics, no tracking. We do not sell or rent data, or share it with advertisers or other companies.
+- The grownups-only areas of the app are protected by a PIN you choose. It stays on your phone.
+- In the app you can export, correct and delete your data, or use Beavo without an account so that data stays only on your phone.
+- This summary does not replace the full text below.
 
 ## 1. Data controller
 
@@ -27,14 +37,22 @@ This Policy explains how the Beavo app ("Beavo", "we") processes personal data u
 
 ### 2.3 Brushing and dental health data (sensitive data)
 - **Brushing times** you set up (for example "after lunch", 11:00–15:00).
-- **Brushing sessions:** date, start time, duration, and whether the full 2 minutes were completed.
+- **Brushing sessions:** date, start time, duration, and whether the session reached the brushing time you chose (2 minutes by default).
 - **Dental records** you add: the tooth (FDI number), whether it is a symptom or a treatment, the category (for example "pain" or "filling"), an optional note, and the date.
 - **Categories** for those records (the defaults and any you create).
 
 Brushing and dental records are **health-related data** and therefore **sensitive personal data** (LGPD, art. 5, II).
 
 ### 2.4 Data kept only on your device
-So the app works offline, your device keeps: your sign-in session, a copy of the children's profiles and brushing times, which child is selected, brushing sessions not yet uploaded, a local record of your consent, and app settings (such as brushing time). The profile copy is deleted when you log out. The backup file created by an export is temporary: it is removed from the app as soon as the share sheet closes (or at the next launch if the app was closed first); the temporary copy of an imported backup is also deleted right after it is read; any copy you save or send is under your control. Pending sessions are uploaded to your account once you're online.
+So the app works offline, your device keeps:
+
+- your sign-in session;
+- a copy of the children's profiles and brushing times, and which child is selected. The profile copy is deleted when you sign out;
+- brushing sessions not yet uploaded. They are uploaded to your account once you're online;
+- a local record of your consent, and app settings (such as brushing time);
+- **your grownups PIN.** It is stored only in this phone's Keychain (the iOS secure storage), on this phone only: it is not synced through iCloud and does not move to another phone, for example when you restore a backup. We never receive it. You choose it yourself. To choose or change it, the app asks you to confirm with Face ID, Touch ID or the phone passcode. Only when you set a PIN for the first time on a phone that has no passcode does it ask a multiplication question instead; that question can never replace a PIN that already exists. Face ID and Touch ID work only on the phone: Beavo learns only whether the check succeeded, never your face or fingerprint. After several wrong PIN tries in a row, the app makes you wait before the next try.
+
+The backup file created by an export is temporary: it is removed from the app as soon as the share sheet closes (or at the next launch if the app was closed first). The temporary copy of an imported backup is also deleted right after it is read. Any copy you save or send is under your control.
 
 ### 2.5 What we do NOT collect
 - **No** analytics, crash reporting, advertising or tracking of any kind.
@@ -44,9 +62,9 @@ So the app works offline, your device keeps: your sign-in session, a copy of the
 ### 2.6 Using Beavo without an account
 You can use Beavo without creating an account (*Use without an account*). In that case the children's profiles, brushing times, brushing sessions, dental records, categories and the record of your consent are stored **only on your device**. We do not receive them, they are not sent to our servers, and section 5 does not apply to them.
 
-- **Keeping the data is up to you.** It is lost if the app is deleted or the device is reset, lost or replaced, and we cannot recover it. *Family → Export backup* creates a copy you can keep.
-- **Erasing it:** *Family → Erase data on this phone* (asks for a grown-ups-only check) deletes everything immediately.
-- **Moving it to an account:** if you later create or sign in to an account on this device, the app shows the names of the profiles kept on the device and asks whether to move them into that account. They are moved only if you confirm, after a grown-ups-only check; they are then removed from the device and treated as account data under this Policy. If you decline, they stay on the device only; the same screen also lets you erase them.
+- **Keeping the data is up to you.** It is lost if the app is deleted or the device is reset, lost or replaced, and we cannot recover it. *Grownups → Export backup* creates a copy you can keep.
+- **Erasing it:** *Grownups → Erase data on this phone* (asks for a grownups-only check) deletes everything immediately.
+- **Moving it to an account:** if you later create or sign in to an account on this device, the app shows the names of the profiles kept on the device and asks whether to move them into that account. They are moved only if you confirm, after a grownups-only check; they are then removed from the device and treated as account data under this Policy. If you decline, they stay on the device only; the same screen also lets you erase them.
 
 ## 3. The camera is only a mirror
 
@@ -90,18 +108,18 @@ Google acts as our **processor**, following our instructions and the Google Clou
 Under the LGPD (art. 18) you may request: confirmation that we process your data, access, correction, anonymization, blocking or deletion of unnecessary data, portability, information about who we share data with, information about the option not to consent, and withdrawal of consent.
 
 In the app:
-- **Access and take your data (portability):** *Family → Export backup* (asks for a grown-ups-only check). Creates a `.json` file with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
-- **Restore a backup:** *Family → Import backup* (asks for a grown-ups-only check). You pick a Beavo backup file; its data is checked and merged into your account (items with the same ID are replaced; nothing is deleted).
+- **Access and take your data (portability):** *Grownups → Export backup* (asks for a grownups-only check). Creates a `.json` file with all data in your account (including your sign-in name and email) and your children's data, which you can save or share through your device's share sheet.
+- **Restore a backup:** *Grownups → Import backup* (asks for a grownups-only check). You pick a Beavo backup file; its data is checked and merged into your account (items with the same ID are replaced; nothing is deleted).
 - **Correct:** for the profile, tap the child switcher at the top right, then *Edit*. For a dental record, tap the tooth on *Overview*, delete the record and add it again.
-- **Delete a child:** *Edit profile → Delete profile* (asks for a grown-ups-only check).
-- **Without an account (section 2.6):** export and import act on the data kept on your device, and *Family → Erase data on this phone* replaces *Delete account*. Erasing that data also withdraws your consent.
-- **Delete your account and all data:** *Family → Delete account* (asks for a grown-ups-only check and for you to sign in again).
+- **Delete a child:** *Edit profile → Delete profile* (asks for a grownups-only check).
+- **Without an account (section 2.6):** export and import act on the data kept on your device, and *Grownups → Erase data on this phone* replaces *Delete account*. Erasing that data also withdraws your consent.
+- **Delete your account and all data:** *Grownups → Delete account* (asks for a grownups-only check and for you to sign in again).
 
 For other requests, email [DPO EMAIL]. We reply within [DEADLINE] days. You may also complain to Brazil's **National Data Protection Authority (ANPD)**.
 
 ## 8. Security
 
-Data travels encrypted (HTTPS/TLS). Database security rules let each account read and change only its own data. Sensitive actions in the app (adding or deleting a child, adding or deleting dental records, exporting data, deleting the account) sit behind a grown-ups-only check. No system is 100% secure; if a relevant security incident happens, we will notify you and the ANPD as the LGPD requires.
+Data travels encrypted (HTTPS/TLS). Database security rules let each account read and change only its own data. Sensitive actions in the app (for example adding or deleting a child, adding or deleting dental records, exporting data, deleting the account) sit behind a grownups-only check, which asks for your PIN (section 2.4). No system is 100% secure; if a relevant security incident happens, we will notify you and the ANPD as the LGPD requires.
 
 ## 9. Children
 

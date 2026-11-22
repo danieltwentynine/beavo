@@ -1,7 +1,9 @@
 import { useIsFocused } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera, type CameraDevice } from 'react-native-vision-camera';
+
+import { tokens } from '@/lib/tokens';
 
 /**
  * Live front-camera MIRROR behind the session UI — see CLAUDE.md > Camera
@@ -11,10 +13,9 @@ import { Camera, useCameraDevice } from 'react-native-vision-camera';
  *
  * The camera runs only while this screen is focused and the app is in the
  * foreground; otherwise `isActive` is false and the session is released.
- * Renders nothing without a front camera (e.g. the iOS simulator).
+ * The session mounts this only when a front camera is available.
  */
-export function CameraBackdrop() {
-  const device = useCameraDevice('front');
+export function CameraBackdrop({ device }: { device: CameraDevice }) {
   const focused = useIsFocused();
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
 
@@ -22,8 +23,6 @@ export function CameraBackdrop() {
     const sub = AppState.addEventListener('change', (state) => setForeground(state === 'active'));
     return () => sub.remove();
   }, []);
-
-  if (!device) return null;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -34,7 +33,7 @@ export function CameraBackdrop() {
         resizeMode="cover"
         orientationSource="interface"
       />
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(18,31,94,0.55)' }]} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: tokens.cameraScrim }]} />
     </View>
   );
 }

@@ -2,9 +2,19 @@
 
 # Política de Privacidade do Beavo
 
-**Versão:** 2026-11-11 · **Vigência:** [DATA DE PUBLICAÇÃO]
+**Versão:** 2026-11-22 · **Vigência:** [DATA DE PUBLICAÇÃO]
 
 Esta Política explica como o aplicativo Beavo ("Beavo", "nós") trata dados pessoais, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, "LGPD"). O Beavo é um app para ajudar crianças de 4 a 12 anos a criar o hábito de escovar os dentes. **A conta é sempre de um adulto (mãe, pai ou responsável legal). Crianças não criam conta nem fazem login.**
+
+## Em resumo
+
+- Quem cria a conta é a mãe, o pai ou o responsável legal. Crianças não criam conta nem fazem login.
+- Guardamos o primeiro nome ou apelido da criança, o ano de nascimento (opcional) e os horários, as sessões e os registros dentários que você informar. Os registros dentários são dados de saúde.
+- A câmera é só um espelho. Nada é gravado, salvo ou enviado.
+- Sem anúncios, sem análise de uso, sem rastreamento. Não vendemos nem alugamos dados, nem os compartilhamos com anunciantes ou outras empresas.
+- As áreas só para adultos do app são protegidas por um PIN que você escolhe. Ele fica só no seu celular.
+- No app você pode exportar, corrigir e excluir seus dados, ou usar o Beavo sem conta, e então os dados ficam só no seu celular.
+- Este resumo não substitui o texto completo abaixo.
 
 ## 1. Quem é o controlador
 
@@ -27,14 +37,22 @@ Esta Política explica como o aplicativo Beavo ("Beavo", "nós") trata dados pes
 
 ### 2.3 Dados de escovação e de saúde bucal (dados sensíveis)
 - **Horários de escovação** que você configurar (por exemplo, "depois do almoço", 11:00–15:00).
-- **Sessões de escovação:** data, horário de início, duração e se os 2 minutos foram completados.
+- **Sessões de escovação:** data, horário de início, duração e se a escovação chegou ao tempo escolhido por você (2 minutos por padrão).
 - **Registros dentários** que você fizer: o dente (numeração FDI), se é um sintoma ou um tratamento, a categoria (por exemplo, "dor" ou "restauração"), uma anotação opcional e a data.
 - **Categorias** desses registros (as padrão e as que você criar).
 
 Os registros de escovação e os registros dentários são **dados referentes à saúde** e, por isso, **dados pessoais sensíveis** (LGPD, art. 5º, II).
 
 ### 2.4 Dados guardados só no seu aparelho
-Para o app funcionar sem internet, o aparelho guarda: sua sessão de login, uma cópia dos perfis e horários das crianças, a criança selecionada, sessões de escovação ainda não enviadas, o registro local do seu consentimento e os ajustes do app (como o tempo de escovação). A cópia dos perfis é apagada quando você sai da conta. O arquivo de backup criado ao exportar é temporário: é apagado do app assim que a folha de compartilhamento fecha (ou na próxima abertura, se o app tiver sido fechado antes); a cópia temporária de um backup importado também é apagada logo após a leitura; a cópia que você salvar ou enviar fica sob sua responsabilidade. As sessões pendentes são enviadas à sua conta quando houver internet.
+Para o app funcionar sem internet, o aparelho guarda:
+
+- sua sessão de login;
+- uma cópia dos perfis e horários das crianças e qual criança está selecionada. A cópia dos perfis é apagada quando você sai da conta;
+- sessões de escovação ainda não enviadas. Elas são enviadas à sua conta quando houver internet;
+- o registro local do seu consentimento e os ajustes do app (como o tempo de escovação);
+- **o PIN dos adultos.** Ele fica guardado só no Keychain (o armazenamento seguro do iOS) deste celular, e só nele: não é sincronizado pelo iCloud e não vai para outro celular, por exemplo ao restaurar um backup. Nós nunca o recebemos. Você mesmo o escolhe. Para escolher ou trocar o PIN, o app pede que você confirme com o Face ID, o Touch ID ou o código do celular. Só quando você cria o PIN pela primeira vez em um celular sem código é que o app faz uma pergunta de multiplicação; essa pergunta nunca pode substituir um PIN que já existe. O Face ID e o Touch ID funcionam só no celular: o Beavo fica sabendo apenas se a verificação deu certo, nunca o seu rosto ou a sua digital. Depois de várias tentativas erradas seguidas, o app faz você esperar antes da próxima.
+
+O arquivo de backup criado ao exportar é temporário: é apagado do app assim que a folha de compartilhamento fecha (ou na próxima abertura, se o app tiver sido fechado antes). A cópia temporária de um backup importado também é apagada logo após a leitura. A cópia que você salvar ou enviar fica sob sua responsabilidade.
 
 ### 2.5 O que NÃO coletamos
 - **Não** usamos ferramentas de análise (analytics), relatórios de falhas, publicidade ou rastreamento de qualquer tipo.
@@ -44,8 +62,8 @@ Para o app funcionar sem internet, o aparelho guarda: sua sessão de login, uma 
 ### 2.6 Usar o Beavo sem conta
 Você pode usar o Beavo sem criar uma conta (*Usar sem conta*). Nesse caso, os perfis das crianças, os horários, as sessões de escovação, os registros dentários, as categorias e o registro do seu consentimento ficam guardados **só no seu aparelho**. Nós não os recebemos, eles não são enviados aos nossos servidores, e a seção 5 não se aplica a eles.
 
-- **Guardar esses dados depende de você.** Eles se perdem se o app for apagado ou se o aparelho for restaurado, perdido ou trocado, e não temos como recuperá-los. *Família → Exportar backup* cria uma cópia que você pode guardar.
-- **Apagar:** *Família → Apagar os dados deste celular* (pede uma confirmação para adultos) apaga tudo na hora.
+- **Guardar esses dados depende de você.** Eles se perdem se o app for apagado ou se o aparelho for restaurado, perdido ou trocado, e não temos como recuperá-los. *Adultos → Exportar backup* cria uma cópia que você pode guardar.
+- **Apagar:** *Adultos → Apagar os dados deste celular* (pede uma confirmação para adultos) apaga tudo na hora.
 - **Levar para uma conta:** se depois você criar uma conta ou entrar em uma neste aparelho, o app mostra os nomes dos perfis guardados no aparelho e pergunta se deseja levá-los para essa conta. Eles só são levados se você confirmar, após uma confirmação para adultos; então saem do aparelho e passam a ser tratados como dados da conta, conforme esta Política. Se você recusar, continuam só no aparelho; a mesma tela também permite apagá-los.
 
 ## 3. A câmera é só um espelho
@@ -90,18 +108,18 @@ O Google atua como **operador**, seguindo nossas instruções e os termos de tra
 Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados, acesso, correção, anonimização, bloqueio ou eliminação de dados desnecessários, portabilidade, informação sobre com quem compartilhamos, informação sobre não consentir e revogação do consentimento.
 
 No próprio app:
-- **Acessar e levar seus dados (portabilidade):** *Família → Exportar backup* (pede uma confirmação para adultos). Gera um arquivo `.json` com todos os dados da sua conta (incluindo nome e e-mail de login) e das crianças, que você pode salvar ou compartilhar pela folha de compartilhamento do aparelho.
-- **Restaurar um backup:** *Família → Importar backup* (pede uma confirmação para adultos). Você escolhe um arquivo de backup do Beavo; os dados são conferidos e juntados à sua conta (itens com o mesmo identificador são substituídos; nada é apagado).
+- **Acessar e levar seus dados (portabilidade):** *Adultos → Exportar backup* (pede uma confirmação para adultos). Gera um arquivo `.json` com todos os dados da sua conta (incluindo nome e e-mail de login) e das crianças, que você pode salvar ou compartilhar pela folha de compartilhamento do aparelho.
+- **Restaurar um backup:** *Adultos → Importar backup* (pede uma confirmação para adultos). Você escolhe um arquivo de backup do Beavo; os dados são conferidos e juntados à sua conta (itens com o mesmo identificador são substituídos; nada é apagado).
 - **Corrigir:** para o perfil, toque no seletor de criança, no canto superior direito, e depois em *Editar*. Para um registro dentário, toque no dente em *Visão geral*, apague o registro e registre de novo.
 - **Excluir uma criança:** *Editar perfil → Excluir perfil* (pede uma confirmação para adultos).
-- **Sem conta (seção 2.6):** exportar e importar valem para os dados guardados no seu aparelho, e *Família → Apagar os dados deste celular* substitui *Excluir conta*. Apagar esses dados também retira o seu consentimento.
-- **Excluir sua conta e todos os dados:** *Família → Excluir conta* (pede uma confirmação para adultos e uma nova confirmação de login).
+- **Sem conta (seção 2.6):** exportar e importar valem para os dados guardados no seu aparelho, e *Adultos → Apagar os dados deste celular* substitui *Excluir conta*. Apagar esses dados também retira o seu consentimento.
+- **Excluir sua conta e todos os dados:** *Adultos → Excluir conta* (pede uma confirmação para adultos e uma nova confirmação de login).
 
 Para os outros direitos, escreva para [E-MAIL DO ENCARREGADO]. Respondemos em até [PRAZO] dias. Você também pode apresentar reclamação à **Autoridade Nacional de Proteção de Dados (ANPD)**.
 
 ## 8. Segurança
 
-Os dados viajam criptografados (HTTPS/TLS). As regras de segurança do banco de dados só deixam cada conta ler e alterar os próprios dados. Ações sensíveis no app (adicionar ou excluir criança, adicionar ou apagar registros dentários, exportar dados, excluir conta) ficam atrás de uma verificação para adultos. Nenhum sistema é 100% seguro; se ocorrer um incidente de segurança relevante, avisaremos você e a ANPD conforme a LGPD.
+Os dados viajam criptografados (HTTPS/TLS). As regras de segurança do banco de dados só deixam cada conta ler e alterar os próprios dados. Ações sensíveis no app (por exemplo, adicionar ou excluir criança, adicionar ou apagar registros dentários, exportar dados, excluir conta) ficam atrás de uma verificação para adultos, que pede o seu PIN (seção 2.4). Nenhum sistema é 100% seguro; se ocorrer um incidente de segurança relevante, avisaremos você e a ANPD conforme a LGPD.
 
 ## 9. Crianças
 

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { clearConsentRecord } from '@/lib/consent';
+import { noteImportFailure } from '@/lib/errors';
 import { db } from '@/lib/firebase';
 import { dropOutboxForUser } from '@/lib/sync';
 import { useAuthStore } from '@/stores/authStore';
@@ -98,7 +99,9 @@ export async function moveLocalDataToAccount(uid: string): Promise<boolean> {
     await importBackup(db, uid, await localBackup());
     await forgetLocalData();
     return true;
-  } catch {
+  } catch (error) {
+    // The device copy stays until a full move is confirmed; a re-run merges by id.
+    noteImportFailure(error);
     return false;
   }
 }

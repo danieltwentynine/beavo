@@ -6,6 +6,7 @@ import {
   updateDoc,
   writeBatch,
   deleteDoc,
+  getDocFromServer,
   type Firestore,
   type Unsubscribe,
 } from 'firebase/firestore';
@@ -13,7 +14,7 @@ import { z } from 'zod';
 
 import type { Child } from '@/types';
 
-import { deleteCollection, optionalDate, date, parseDocs } from './firestore.ts';
+import { deleteCollection, optionalDate, date, parseDocs, withTimeout, SERVER_TIMEOUT_MS, type WatchErrorHandler } from './firestore.ts';
 import { LOCAL_UID, localCreateChild, localDeleteChild, localUpdateChild, watchLocalChildren } from './local.ts';
 import { defaultSlots, type DefaultSlotLabels } from './schedule.ts';
 
@@ -97,6 +98,7 @@ export function watchChildren(
   db: Firestore,
   uid: string,
   onChange: (children: Child[], fromCache: boolean) => void,
+  onError?: WatchErrorHandler,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalChildren((children) => onChange(children, false));
   return onSnapshot(
@@ -107,21 +109,28 @@ export function watchChildren(
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       onChange(children, snap.metadata.fromCache);
     },
+    onError,
   );
 }
 
 /**
- * Delete a child and everything under it. Needs a connection: subcollections
- * are listed from the server (Firestore does not cascade deletes).
+ * Delete a child and everything under it. Needs a connection: checked first,
+ * and every step gives up after `timeoutMs` (ServerTimeoutError) instead of
+ * waiting forever offline. Subcollections are listed from the server
+ * (Firestore does not cascade deletes).
  * Archives the child first: the rules then refuse new subcollection writes
  * (e.g. another device flushing its outbox), so nothing lands after the
- * listing. If this fails midway the archived child still exists, so a retry
- * or account deletion still finds it.
+ * listing, and only an archived child can be deleted, so a live child can't
+ * be removed with its records still under it. If this fails midway the
+ * archived child still exists, so a retry or account deletion still finds it.
  */
-export async function deleteChild(db: Firestore, uid: string, childId: string): Promise<void> {
+export async function deleteChild(db: Firestore, uid: string, childId: string, timeoutMs: number = SERVER_TIMEOUT_MS): Promise<void> {
   if (uid === LOCAL_UID) return localDeleteChild(childId);
   const ref = childRef(db, uid, childId);
-  await updateDoc(ref, { archivedAt: Timestamp.now() });
-  for (const sub of CHILD_SUBCOLLECTIONS) await deleteCollection(db, collection(ref, sub));
-  await deleteDoc(ref);
+  const snap = await withTimeout(getDocFromServer(ref), 'connection check', timeoutMs);
+  // Idempotent: a child already gone (an earlier run finished its last step, or
+  // its document was removed early) still has its subcollections emptied.
+  if (snap.exists()) await withTimeout(updateDoc(ref, { archivedAt: Timestamp.now() }), 'archive child', timeoutMs);
+  for (const sub of CHILD_SUBCOLLECTIONS) await deleteCollection(db, collection(ref, sub), timeoutMs);
+  if (snap.exists()) await withTimeout(deleteDoc(ref), 'delete child', timeoutMs);
 }

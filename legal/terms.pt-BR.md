@@ -2,9 +2,19 @@
 
 # Termos de Uso do Beavo
 
-**Versão:** 2026-11-11 · **Vigência:** [DATA DE PUBLICAÇÃO]
+**Versão:** 2026-11-22 · **Vigência:** [DATA DE PUBLICAÇÃO]
 
 Estes Termos regem o uso do aplicativo Beavo, oferecido por [RAZÃO SOCIAL], CNPJ [CNPJ], com sede em [ENDEREÇO] ("nós"). Ao marcar a caixa de aceite no app, você concorda com estes Termos e com a [Política de Privacidade](privacy-policy.pt-BR.html).
+
+## Em resumo
+
+- A conta é criada por mãe, pai ou responsável legal com 18 anos ou mais. As crianças usam o Beavo sob a sua supervisão.
+- O Beavo incentiva o hábito de escovar. Ele não é aconselhamento médico e não substitui o dentista.
+- Em caso de dor, sangramento, trauma ou qualquer urgência, procure um dentista ou um serviço de saúde imediatamente.
+- Você pode usar o Beavo sem conta. Seus dados ficam então só no seu celular.
+- Você pode exportar seus dados e excluir sua conta a qualquer momento pelo app.
+- Hoje não há recursos pagos.
+- Este resumo não substitui o texto completo abaixo.
 
 ## 1. Quem pode usar
 
@@ -23,7 +33,8 @@ Estes Termos regem o uso do aplicativo Beavo, oferecido por [RAZÃO SOCIAL], CNP
 
 - Mantenha seus dados de acesso em segurança. Você responde pelo que for feito na sua conta.
 - As informações que você registra (perfis, horários, registros dentários) são de sua responsabilidade; mantenha-as corretas.
-- Você pode exportar seus dados e excluir sua conta a qualquer momento pelo app (*Família → Exportar backup* e *Família → Excluir conta*).
+- Você pode exportar seus dados e excluir sua conta a qualquer momento pelo app (*Adultos → Exportar backup* e *Adultos → Excluir conta*).
+- As áreas só para adultos são protegidas por um PIN de 4 dígitos que você escolhe e que fica só no seu celular (Política de Privacidade, seção 2.4). Mantenha-o em segredo para que as crianças não abram essas áreas.
 - Você também pode usar o Beavo **sem conta** (*Usar sem conta*). Nesse caso seus dados ficam só no seu aparelho, perdem-se se o app for removido ou se o aparelho for restaurado ou trocado, e não temos como recuperá-los (Política de Privacidade, seção 2.6).
 
 ## 4. A câmera
@@ -35,7 +46,7 @@ A câmera frontal funciona **apenas como espelho** durante a escovação. Nada �
 Você concorda em não:
 - usar o Beavo para fins ilegais ou que violem direitos de terceiros;
 - cadastrar dados de crianças sem a devida autorização;
-- tentar acessar dados de outras contas, burlar mecanismos de segurança ou a verificação para adultos;
+- tentar acessar dados de outras contas, burlar mecanismos de segurança ou a confirmação para adultos;
 - copiar, modificar, descompilar ou fazer engenharia reversa do app, exceto onde a lei permitir;
 - usar o app de forma que prejudique seu funcionamento ou o de seus serviços.
 
@@ -47,7 +58,7 @@ O app funciona sem internet e envia os dados para a sua conta quando a conexão 
 
 ## 7. Beavo Premium
 
-[ESPAÇO RESERVADO — recursos pagos ainda não existem. Antes de lançar, descrever: o que o plano inclui, preço, período de teste, renovação automática, como cancelar (pela App Store), política de reembolso e direito de arrependimento previsto no Código de Defesa do Consumidor.]
+O Beavo Premium ainda não está disponível, e hoje o app não tem recursos pagos. Se um dia for oferecido, os detalhes serão incluídos nestes Termos.
 
 ## 8. Propriedade intelectual
 

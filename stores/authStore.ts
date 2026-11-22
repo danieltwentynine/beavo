@@ -5,9 +5,11 @@ import { LOCAL_UID } from '@/src/data/local';
 
 /**
  * unknown: still checking · needed: never accepted · updated: accepted an older
- * version of a document · ok: current versions accepted.
+ * version of a document · pending: accepted on this phone, the server hasn't
+ * confirmed yet (offline) — the app stays on the consent screen, nothing about
+ * a child can be entered · ok: the server confirmed the current versions.
  */
-export type ConsentStatus = 'unknown' | 'needed' | 'updated' | 'ok';
+export type ConsentStatus = 'unknown' | 'needed' | 'updated' | 'pending' | 'ok';
 
 interface AuthState {
   user: User | null;

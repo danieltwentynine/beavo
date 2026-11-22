@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
-import { CheckCircle, LockSimple, PencilSimple, Play } from 'phosphor-react-native';
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { CheckCircle, LockSimple, Play } from 'phosphor-react-native';
+import { useContext, useEffect, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SlotIcon } from '@/components/brushing/SlotIcon';
 import { Card } from '@/components/ui/Card';
-import { ListRow } from '@/components/ui/ListRow';
+import { GrownupsNavigation } from '@/components/ui/GrownupsNavigation';
 import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
@@ -22,10 +22,9 @@ import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessions } from '@/hooks/useSessions';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { pressShadow, radius, tokens } from '@/lib/tokens';
+import { motion, pressShadow, radius, tokens } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { updateChild } from '@/src/data/children';
-import { background } from '@/src/data/firestore';
 import { localDate, slotAt, slotsActiveOn } from '@/src/data/schedule';
 import type { BrushingSession, BrushingSlot } from '@/types';
 
@@ -151,7 +150,30 @@ function StartButton({ label, disabled, onPress }: { label: string; disabled: bo
   );
 }
 
-/** Today only: the active child's slots, the start button, kid mode and routine editing. */
+function GrownupsChip({ onPress }: { onPress: () => void }) {
+  const [pressed, setPressed] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const label = t('kidLock.chip');
+  const pressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: reduceMotion ? 1 : withTiming(pressed ? motion.pressScale : 1, { duration: 100 }) }],
+  }));
+  return (
+    <Animated.View style={[{ alignSelf: 'center', marginTop: 6 }, pressStyle]}>
+      <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityHint={t('kidLock.hint')}
+        onPress={onPress} onPressIn={() => setPressed(true)} onPressOut={() => setPressed(false)}
+        style={{
+          flexDirection: 'row', alignItems: 'center', columnGap: 8,
+          minHeight: 48, paddingHorizontal: 20, borderRadius: radius.pill,
+          borderWidth: 2, borderColor: tokens.brandPrimary, backgroundColor: tokens.primarySoft,
+        }}>
+        <LockSimple size={20} weight="bold" color={tokens.brandPrimaryPress} />
+        <Text className="font-display" style={{ fontSize: 16, color: tokens.brandPrimaryPress }}>{label}</Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+/** Today only: the active child's slots, the start button and protected access to Grownups. */
 export default function BrushingTab() {
   const uid = useAuthStore(ownerIdOf);
   const { child, slots } = useActiveChild();
@@ -159,9 +181,21 @@ export default function BrushingTab() {
   const now = useNow();
   const today = localDate(now);
   const { gate, requireParent } = useParentalGate();
+  const { unlockingChildId, setUnlockingChildId } = useContext(GrownupsNavigation);
   const [gridWidth, setGridWidth] = useState(0);
   // A tapped card overrides the slot the clock picks (or is the only way to pick, between windows).
   const [picked, setPicked] = useState<{ childId: string | null; slotId: string } | null>(null);
+
+  const openGrownups = () => {
+    if (!child || !uid || unlockingChildId) return;
+    requireParent(() => {
+      setUnlockingChildId(child.id);
+      // The child watcher reflects local writes even while offline.
+      void updateChild(db, uid, child.id, { kidMode: false }).catch(() => {
+        setUnlockingChildId((pending) => pending === child.id ? null : pending);
+      });
+    });
+  };
 
   const todaySlots = slotsActiveOn(slots, today);
   const current = slotAt(todaySlots, now);
@@ -188,7 +222,6 @@ export default function BrushingTab() {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 18 }}>
         <TabHeader title={t('tabs.brushing')} />
-
         <View>
           <SectionTitle>{t('today.title')}</SectionTitle>
           <View
@@ -217,27 +250,7 @@ export default function BrushingTab() {
           onPress={start}
         />
 
-        {child && uid ? (
-          <Card padding={0}>
-            <ListRow
-              Icon={LockSimple}
-              label={t('today.kidMode')}
-              hint={t('today.kidModeHint')}
-              right={
-                <Switch
-                  accessibilityLabel={t('today.kidMode')}
-                  value={child.kidMode}
-                  trackColor={{ true: tokens.brandPrimary, false: tokens.zoneLine }}
-                  // The switch never flips by itself: the gate decides.
-                  onValueChange={(next) =>
-                    requireParent(() => background(updateChild(db, uid, child.id, { kidMode: next })))
-                  }
-                />
-              }
-            />
-            <ListRow Icon={PencilSimple} label={t('today.editRoutine')} onPress={() => requireParent(() => router.push('/slots'))} last />
-          </Card>
-        ) : null}
+        {child?.kidMode && uid ? <GrownupsChip onPress={openGrownups} /> : null}
       </ScrollView>
       {gate}
     </SafeAreaView>

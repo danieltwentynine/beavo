@@ -15,7 +15,7 @@ import { z } from 'zod';
 
 import type { BrushingSession } from '@/types';
 
-import { date, parseDocs } from './firestore.ts';
+import { date, parseDocs, type WatchErrorHandler } from './firestore.ts';
 import { LOCAL_UID, localHasSessionsForSlot, localWriteSession, watchLocalSessions } from './local.ts';
 
 export const sessionsRef = (db: Firestore, uid: string, childId: string) =>
@@ -50,9 +50,10 @@ export function watchAllSessions(
   uid: string,
   childId: string,
   onChange: (sessions: BrushingSession[]) => void,
+  onError?: WatchErrorHandler,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalSessions(childId, onChange);
-  return onSnapshot(sessionsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, sessionSchema)));
+  return onSnapshot(sessionsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, sessionSchema)), onError);
 }
 
 /** Whether any session uses the slot — asked of the server. Null when it can't be reached. */

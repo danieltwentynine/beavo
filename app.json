@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Beavo",
-    "slug": "zing",
+    "slug": "beavo",
     "version": "1.0.0",
     "scheme": "beavo",
     "orientation": "portrait",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zingdentalai.zing",
+      "bundleIdentifier": "com.beavo.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Beavo uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
       },
@@ -25,17 +25,13 @@
         "backgroundColor": "#0A746E",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.beavo.app"
     },
     "plugins": [
       "expo-router",
       "expo-font",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.925227389891-q1qbhnos6l78qchb1ajfn99js33fkml7"
-        }
-      ],
+      "./plugins/withGoogleSignInScheme",
       [
         "expo-build-properties",
         {
@@ -56,15 +52,20 @@
       "./plugins/withSceneLifecycle",
       "expo-localization",
       "expo-sharing",
-      ["expo-secure-store", { "faceIDPermission": "Beavo uses Face ID only to confirm a grown-up before the parental PIN is created or changed." }]
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Beavo uses Face ID only to confirm a grown-up before the parental PIN is created or changed."
+        }
+      ]
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d9d41921-b061-4b1d-9bc8-813ad94f21ed"
+        "projectId": "8e404b74-176b-4f4b-8b9a-54804689fc76"
       }
     },
-    "owner": "zing-dental-ai",
+    "owner": "dnlcrds",
     "locales": {
       "en": "./locales/en.json",
       "pt-BR": "./locales/pt-BR.json",

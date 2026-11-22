@@ -17,6 +17,8 @@ export type Locale = 'pt-BR' | 'en' | 'es';
 export interface Consent {
   termsVersion: string;
   privacyVersion: string;
+  /** The separate consent to children's dental (health) records; missing on records from before 2026-11-22. */
+  healthData?: boolean;
   acceptedAt: Date;
 }
 

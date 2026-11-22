@@ -2,9 +2,19 @@
 
 # Beavo Terms of Service
 
-**Version:** 2026-11-11 · **Effective:** [PUBLICATION DATE]
+**Version:** 2026-11-22 · **Effective:** [PUBLICATION DATE]
 
-These Terms govern the use of the Beavo app, provided by [COMPANY NAME], CNPJ [CNPJ], [ADDRESS] ("we"). By ticking the acceptance box in the app, you agree to these Terms and to the [Privacy Policy](privacy-policy.en.html). The Portuguese version prevails if the two versions differ.
+These Terms govern the use of the Beavo app, provided by [COMPANY NAME], CNPJ [CNPJ], [ADDRESS] ("we"). By ticking the acceptance box in the app, you agree to these Terms and to the [Privacy Policy](privacy-policy.en.html). The Portuguese version prevails if the versions differ.
+
+## In short
+
+- A parent or legal guardian aged 18 or older creates the account. Children use Beavo under your supervision.
+- Beavo encourages a brushing habit. It is not medical advice and does not replace a dentist.
+- For pain, bleeding, injury or any emergency, see a dentist or health service immediately.
+- You can use Beavo without an account. Your data then stays only on your phone.
+- You can export your data and delete your account at any time in the app.
+- There are no paid features today.
+- This summary does not replace the full text below.
 
 ## 1. Who can use Beavo
 
@@ -23,7 +33,8 @@ These Terms govern the use of the Beavo app, provided by [COMPANY NAME], CNPJ [C
 
 - Keep your sign-in details secure. You are responsible for activity in your account.
 - You are responsible for the information you record (profiles, brushing times, dental records); keep it accurate.
-- You can export your data and delete your account at any time in the app (*Family → Export backup* and *Family → Delete account*).
+- You can export your data and delete your account at any time in the app (*Grownups → Export backup* and *Grownups → Delete account*).
+- The grownups-only areas are protected by a 4-digit PIN that you choose and that stays on your phone (Privacy Policy, section 2.4). Keep it private so children cannot open those areas.
 - You can also use Beavo **without an account** (*Use without an account*). Your data then stays only on your device, it is lost if the app is removed or the device is reset or replaced, and we cannot recover it (Privacy Policy, section 2.6).
 
 ## 4. The camera
@@ -35,7 +46,7 @@ The front camera works **only as a mirror** during brushing. Nothing is recorded
 You agree not to:
 - use Beavo for unlawful purposes or in ways that violate others' rights;
 - add children's data without proper authorization;
-- try to access other accounts' data or bypass security measures or the grown-ups-only check;
+- try to access other accounts' data or bypass security measures or the grownups-only check;
 - copy, modify, decompile or reverse-engineer the app, except where the law allows;
 - use the app in a way that harms its operation or its services.
 
@@ -47,7 +58,7 @@ The app works offline and sends data to your account when the connection returns
 
 ## 7. Beavo Premium
 
-[PLACEHOLDER — no paid features exist yet. Before launch, describe: what the plan includes, price, trial period, auto-renewal, how to cancel (via the App Store), refund policy, and the cooling-off right under the Brazilian Consumer Defense Code.]
+Beavo Premium is not available yet, and the app has no paid features today. If it is offered in the future, the details will be added to these Terms.
 
 ## 8. Intellectual property
 

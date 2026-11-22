@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 
+import { useRetryingWatch } from '@/hooks/useRetryingWatch';
 import { seedCategories } from '@/lib/consent';
 import { db } from '@/lib/firebase';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
@@ -9,23 +10,28 @@ import type { Category } from '@/types';
 /**
  * The parent's symptom/treatment categories. Accounts that consented offline
  * never got the defaults; if the SERVER (or, without an account, this device)
- * says there are none, seed them now.
+ * says there are none, seed them now. A failed listener is retried.
  */
 export function useCategories(): Category[] {
   const uid = useAuthStore(ownerIdOf);
   const [categories, setCategories] = useState<Category[]>([]);
+  const seededFor = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (!uid) return;
-    let seeded = false;
-    return watchCategories(db, uid, (list, fromCache) => {
-      setCategories(list);
-      if (list.length === 0 && !fromCache && !seeded) {
-        seeded = true;
-        seedCategories(uid);
-      }
-    });
-  }, [uid]);
+  useRetryingWatch('categories', uid, (onError, onLive) =>
+    watchCategories(
+      db,
+      uid as string,
+      (list, fromCache) => {
+        onLive();
+        setCategories(list);
+        if (list.length === 0 && !fromCache && seededFor.current !== uid) {
+          seededFor.current = uid;
+          seedCategories(uid as string);
+        }
+      },
+      onError,
+    ),
+  );
 
   return categories;
 }

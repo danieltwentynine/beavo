@@ -9,3 +9,4 @@ One short file per non-obvious decision: `NNNN-kebab-title.md`, copied from [000
 | 0003 | [Camera is a mirror only; no AI tips](0003-camera-mirror-only.md) | Accepted |
 | 0004 | [Nested per-parent data model, repository layer, offline strategy](0004-nested-data-model-and-offline.md) | Accepted |
 | 0005 | [Device-only mode (use without an account)](0005-device-only-mode.md) | Accepted |
+| 0007 | [Fix Sprint v1: score, identifiers, tab name, consent hardening](0007-fix-sprint-v1-decisions.md) | Accepted (parent verification open) |

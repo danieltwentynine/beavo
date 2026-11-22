@@ -6,19 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { t, type StringKey } from '@/lib/i18n';
 import { cardShadow, radius, tokens } from '@/lib/tokens';
+import { afterOwnerCheck, afterRightAnswer, firstGateStep, type GateMode, type GateNext, type GateStep, type OwnerCheck } from '@/src/data/gateFlow';
 import { isLocked } from '@/src/data/pinLock';
 import { isPin, useSettingsStore } from '@/stores/settingsStore';
 
 const factor = () => 6 + Math.floor(Math.random() * 4); // 6–9: beyond a young child's times tables
 const newQuestion = () => ({ a: factor(), b: factor() });
 
-/**
- * - `check` (default): the PIN; a phone without one chooses it first.
- * - `noNewPin`: the PIN if there is one, else the written question. Never asks
- *   to choose a PIN (reading the Terms before consent).
- * - `choosePin`: confirm the phone's owner, then choose a new PIN (Settings).
- */
-export type GateMode = 'check' | 'noNewPin' | 'choosePin';
+export type { GateMode } from '@/src/data/gateFlow';
 
 interface ParentalGateProps {
   visible: boolean;
@@ -27,27 +22,28 @@ interface ParentalGateProps {
   mode?: GateMode;
 }
 
-type Step = 'pin' | 'owner' | 'math' | 'create' | 'confirm';
+type Step = GateStep;
 const PROMPT = { pin: 'gate.pinPrompt', create: 'gate.pinCreate', confirm: 'gate.pinConfirm' } as const;
 
 /**
  * Grown-ups-only check: the parent's 4-digit PIN (Keychain, this phone only).
  * Choosing the PIN, the first time or after forgetting it, needs the phone's
- * own Face ID / passcode. Only a phone with no passcode falls back to a written
- * multiplication question. Wrong tries make the next one wait (src/data/pinLock);
- * never red.
+ * own Face ID / passcode. Only FIRST-TIME setup on a phone with no passcode may
+ * fall back to a written multiplication question (an error fails closed); an existing PIN is
+ * replaced only after the owner check (decisions in src/data/gateFlow.ts).
+ * Wrong tries make the next one wait (src/data/pinLock); never red.
  */
 export function ParentalGate({ visible, onPass, onCancel, mode = 'check' }: ParentalGateProps) {
   const pin = useSettingsStore((s) => s.parentPin);
+  // A PIN that is set but can't be read right now still counts: no first-time setup.
+  const pinExists = useSettingsStore((s) => s.parentPin !== null || s.pinUnreadable);
   const setParentPin = useSettingsStore((s) => s.setParentPin);
   const recordPinTry = useSettingsStore((s) => s.recordPinTry);
   // null: start from the PIN when there is one, else from confirming the phone's owner
   // (or from the question, when this check must not create a PIN).
   const [chosenStep, setChosenStep] = useState<Step | null>(null);
-  const firstStep: Step = mode === 'choosePin' ? 'owner' : pin ? 'pin' : mode === 'noNewPin' ? 'math' : 'owner';
+  const firstStep: Step = firstGateStep(mode, pinExists);
   const step: Step = chosenStep ?? firstStep;
-  // The question alone passes only when no PIN is being chosen.
-  const questionPasses = mode === 'noNewPin' && !pin;
   const [question, setQuestion] = useState(newQuestion);
   const [value, setValue] = useState('');
   const [firstPin, setFirstPin] = useState('');
@@ -97,19 +93,31 @@ export function ParentalGate({ visible, onPass, onCancel, mode = 'check' }: Pare
     else goTo(step, waiting() ? 'gate.locked' : wrongMessage);
   };
 
-  const confirmOwner = async () => {
+  const follow = (next: GateNext) => {
+    if (next === 'stay') return;
+    if (next === 'pass') return pass();
+    // Replacing an existing PIN needs the phone's owner: stay there and say why.
+    if (next === 'blocked') return goTo('owner', 'gate.ownerNeeded');
+    // The owner check failed with an error: fail closed, try again (no question).
+    if (next === 'retry') return goTo('owner', 'gate.ownerRetry');
+    goTo(next);
+  };
+
+  const ownerCheck = async (): Promise<OwnerCheck> => {
     try {
-      // A phone with no passcode can't confirm its owner: the question is all there is.
-      if ((await LocalAuthentication.getEnrolledLevelAsync()) === LocalAuthentication.SecurityLevel.NONE) return goTo('math');
+      // A phone with no passcode can't confirm its owner.
+      if ((await LocalAuthentication.getEnrolledLevelAsync()) === LocalAuthentication.SecurityLevel.NONE) return 'noPasscode';
       const result = await LocalAuthentication.authenticateAsync({ promptMessage: t('gate.ownerPrompt'), cancelLabel: t('gate.back') });
-      if (result.success) goTo('create');
+      return result.success ? 'success' : 'cancelled';
     } catch {
-      goTo('math');
+      return 'error';
     }
   };
 
+  const confirmOwner = async () => follow(afterOwnerCheck(await ownerCheck(), pinExists));
+
   const submitAnswer = () =>
-    attempt(Number(value) === question.a * question.b, questionPasses ? pass : () => goTo('create'), 'gate.wrong');
+    attempt(Number(value) === question.a * question.b, () => follow(afterRightAnswer(mode, pinExists)), 'gate.wrong');
 
   const onDigits = (text: string) => {
     const digits = text.replace(/\D/g, '');

@@ -1,20 +1,25 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FirebaseError } from 'firebase/app';
 import { EmailAuthProvider, deleteUser, reauthenticateWithCredential, signOut } from 'firebase/auth';
 import { getDocumentAsync } from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
 
+import { errorCode, noteIfOffline, noteImportFailure } from '@/lib/errors';
 import { auth, db } from '@/lib/firebase';
 import { reauthenticateWithGoogle, signOutGoogle } from '@/lib/socialAuth';
 import { dropOutboxForChild, dropOutboxForUser } from '@/lib/sync';
 import { clearConsentRecord } from '@/lib/consent';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { clearSnapshot, useChildStore } from '@/stores/childStore';
+import { useNoticeStore } from '@/stores/noticeStore';
 import { deleteAllUserData, exportAllData, importBackup } from '@/src/data/account';
 import { MAX_BACKUP_BYTES, parseBackup, type Backup } from '@/src/data/backup';
 import { localDate } from '@/src/data/schedule';
 import { deleteChild } from '@/src/data/children';
+import { SERVER_TIMEOUT_MS } from '@/src/data/firestore';
 import { LOCAL_UID, localBackup, localImport } from '@/src/data/local';
+import { accountOp, createOpCoordinator, endSessionFor } from '@/src/data/pendingOps';
 
 const ownerId = () => ownerIdOf(useAuthStore.getState());
 
@@ -64,7 +69,8 @@ export async function shareDataExport(): Promise<boolean> {
     file.write(JSON.stringify(data, null, 2));
     await shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' });
     return true;
-  } catch {
+  } catch (error) {
+    noteIfOffline(error);
     return false;
   } finally {
     try {
@@ -120,31 +126,110 @@ export async function restoreBackup(backup: Backup): Promise<number | null> {
   if (!uid) return null;
   try {
     return uid === LOCAL_UID ? await localImport(backup) : await importBackup(db, uid, backup);
-  } catch {
+  } catch (error) {
+    noteImportFailure(error);
     return null;
   }
 }
 
-/** Delete one child and everything under it. Needs a connection. */
-export async function deleteChildProfile(childId: string): Promise<boolean> {
-  const uid = ownerId();
-  if (!uid) return false;
-  try {
-    await deleteChild(db, uid, childId);
-  } catch {
-    return false;
-  }
-  await dropOutboxForChild(childId);
-  return true;
+// ---- Operations that must finish (src/data/pendingOps.ts) ----
+// The coordinator (pure, tested) persists each operation before its destructive
+// step, runs it once at a time, pauses it for another signed-in account and
+// re-runs it on launch, foreground and a retry timer. Here: the real storage,
+// Firebase and notices.
+
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+const OP_RETRY_MS = 60_000;
+
+/** Local data keyed to the deleted account `uid` only — never another parent's. */
+async function cleanupAccountData(uid: string): Promise<void> {
+  await clearSnapshot(uid);
+  await clearConsentRecord(uid);
+  await dropOutboxForUser(uid);
 }
 
-export type DeleteAccountResult = 'deleted' | 'cancelled' | 'wrong-password' | 'error';
+/** Session-wide teardown after `uid` was deleted; the coordinator calls it only when nobody or `uid` is signed in. */
+const endSession = (uid: string): Promise<boolean> =>
+  // Owner re-checked before and after the Google sign-out, right before the reset (src/data/pendingOps.ts).
+  endSessionFor(uid, {
+    currentOwner: () => auth.currentUser?.uid ?? null,
+    signOutProvider: signOutGoogle,
+    resetScreens: () => useChildStore.getState().reset(),
+  });
+
+const ops = createOpCoordinator({
+  storage: AsyncStorage,
+  currentOwner: () => auth.currentUser?.uid ?? null,
+  deleteChildData: async (uid, childId) => {
+    await deleteChild(db, uid, childId);
+    await dropOutboxForChild(childId);
+  },
+  eraseAccountData: (uid, childIds) => deleteAllUserData(db, uid, SERVER_TIMEOUT_MS, childIds),
+  deleteAuthUser: async (uid) => {
+    const user = auth.currentUser;
+    if (user?.uid !== uid) return false;
+    await deleteUser(user);
+    return true;
+  },
+  cleanupAccountData,
+  endSession,
+  errorCode,
+  notify: (key, tone) => useNoticeStore.getState().show(key, tone),
+  scheduleRetry,
+});
+
+function scheduleRetry(): void {
+  if (retryTimer) return;
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    const uid = ownerId();
+    if (uid) void reconcilePendingOps(uid);
+  }, OP_RETRY_MS);
+}
+
+/** Finish this owner's cut-off operations and tell the parent the real outcome (launch, foreground, timer). */
+export async function reconcilePendingOps(uid: string): Promise<void> {
+  if (uid === LOCAL_UID) return;
+  await ops.reconcile(uid);
+}
+
+/**
+ * Delete one child and everything under it. Needs a connection. true: done;
+ * 'pending': cut off offline — it finishes by itself once online (the parent is
+ * told then); false: refused or failed before anything was written.
+ */
+export async function deleteChildProfile(childId: string): Promise<boolean | 'pending'> {
+  const uid = ownerId();
+  if (!uid) return false;
+  if (uid === LOCAL_UID) {
+    try {
+      await deleteChild(db, uid, childId);
+    } catch {
+      return false;
+    }
+    await dropOutboxForChild(childId);
+    return true;
+  }
+  const result = await ops.run({ kind: 'deleteChild', uid, childId }).result;
+  if (result === 'done' || result === 'doneQuietly') return true;
+  if (result === 'retrying') {
+    useNoticeStore.getState().show('notice.willFinish', 'info');
+    return 'pending';
+  }
+  // notPersisted: nothing was started, so say it wasn't done rather than promise a retry.
+  if (result === 'notPersisted') useNoticeStore.getState().show('notice.notSaved');
+  return false;
+}
+
+export type DeleteAccountResult = 'deleted' | 'pending' | 'cancelled' | 'wrong-password' | 'error';
 
 /**
  * Delete the account: reauthenticate FIRST (Firebase requires a recent login,
  * and doing it up front means a failure can't leave data half-deleted), then
- * every doc under users/{uid}, then the Auth user, then local copies.
- * Email accounts pass the password the parent just typed.
+ * every doc under users/{uid} (the erasure marker first), then the Auth user,
+ * then local copies. 'pending': cut off offline after it started — the erasure
+ * can't be undone, so it is finished by itself once online (the parent is told
+ * now and when it is done). Email accounts pass the password just typed.
  */
 export async function deleteParentAccount(password?: string): Promise<DeleteAccountResult> {
   const user = auth.currentUser;
@@ -159,20 +244,29 @@ export async function deleteParentAccount(password?: string): Promise<DeleteAcco
       if (!password || !user.email) return 'cancelled';
       await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
     }
-    useChildStore.getState().freeze();
-    await deleteAllUserData(db, user.uid);
-    await deleteUser(user);
   } catch (error) {
-    useChildStore.setState({ frozen: false });
     if (error instanceof FirebaseError && ['auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
       return 'wrong-password';
     }
+    noteIfOffline(error);
     return 'error';
   }
-  await signOutGoogle();
-  await clearSnapshot(user.uid);
-  await clearConsentRecord(user.uid);
-  await dropOutboxForUser(user.uid);
-  useChildStore.getState().reset();
+  // Known child ids are kept with the operation, so a resumed erasure also
+  // empties a child whose document is already gone.
+  const op = accountOp(user.uid, useChildStore.getState().children.map((c) => c.id));
+  useChildStore.getState().freeze();
+  const result = await ops.run(op).result;
+  if (result === 'done' || result === 'doneQuietly') return 'deleted';
+  // Saved and waiting (offline, or another account signed in after it was saved): it finishes later.
+  if (result === 'retrying' || result === 'paused') {
+    // Stays frozen: the profile is being erased; it finishes on reconnect (the parent is told then).
+    useNoticeStore.getState().show('notice.willFinish', 'info');
+    return 'pending';
+  }
+  useChildStore.setState({ frozen: false });
+  if (result === 'signInNeeded') useNoticeStore.getState().show('notice.signInToFinish');
+  // notPersisted / notStarted: nothing was saved or started, so no retry is promised.
+  else useNoticeStore.getState().show('notice.notSaved');
+  return 'error';
   return 'deleted';
 }

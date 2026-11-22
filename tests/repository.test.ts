@@ -4,21 +4,32 @@ import assert from 'node:assert/strict';
 import { after, before, beforeEach, test } from 'node:test';
 
 import type { RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, getDocs, type Firestore } from 'firebase/firestore';
+import { FirebaseError } from 'firebase/app';
+import { collection, deleteDoc, disableNetwork, doc, enableNetwork, getDocFromServer, getDocs, setDoc, updateDoc, waitForPendingWrites, type Firestore } from 'firebase/firestore';
 
 import { deleteAllUserData, exportAllData, fetchUserProfile, importBackup, saveConsent } from '../src/data/account.ts';
 import { parseBackup } from '../src/data/backup.ts';
-import { childrenRef, createChild, deleteChild, updateChild, watchChildren } from '../src/data/children.ts';
+import { childRef, childrenRef, createChild, deleteChild, updateChild, watchChildren } from '../src/data/children.ts';
+import { consentAfterWrite, localConsentRecord, planConsentCheck } from '../src/data/consent.ts';
+import { ServerTimeoutError, withTimeout } from '../src/data/firestore.ts';
 import { localDate, slotsActiveOn } from '../src/data/schedule.ts';
 import { hasSessionsForSlot, writeSession } from '../src/data/sessions.ts';
 import { addSlot, removeSlot, slotsRef, watchSlots } from '../src/data/slots.ts';
 import { addToothEvents, categoriesRef, seedDefaultCategories, toothEventsRef } from '../src/data/toothEvents.ts';
 import type { BrushingSlot, Child } from '../types/index.ts';
 
-import { dbAs, startEmulator } from './emulator.ts';
+import { dbAs, legalVersions, startEmulator } from './emulator.ts';
 
 const LABELS = { breakfast: 'Café', lunch: 'Almoço', dinner: 'Jantar' };
 const UID = 'alice';
+const LEGAL = legalVersions();
+const consentInput = (existing: Awaited<ReturnType<typeof fetchUserProfile>> | undefined) => ({
+  displayName: 'Ana',
+  locale: 'pt-BR' as const,
+  termsVersion: LEGAL.terms,
+  privacyVersion: LEGAL.privacy,
+  existing,
+});
 
 let env: RulesTestEnvironment;
 let db: Firestore;
@@ -32,7 +43,7 @@ beforeEach(async () => {
   await env.clearFirestore();
   db = dbAs(env, UID);
   // Children can only exist after consent (rules).
-  await saveConsent(db, UID, { displayName: 'Ana', locale: 'pt-BR', termsVersion: 't1', privacyVersion: 'p1' });
+  await saveConsent(db, UID, consentInput(null));
 });
 
 /** First listener emission that satisfies `ready`. */
@@ -148,11 +159,43 @@ test('deleteChild removes the child and every subcollection', async () => {
 test('consent round-trips through the user profile', async () => {
   await env.clearFirestore();
   assert.equal(await fetchUserProfile(db, UID), null);
-  await saveConsent(db, UID, { displayName: 'Ana', locale: 'pt-BR', termsVersion: 't1', privacyVersion: 'p1' });
+  await saveConsent(db, UID, consentInput(null));
   const profile = await fetchUserProfile(db, UID);
-  assert.equal(profile?.consent?.termsVersion, 't1');
-  assert.equal(profile?.consent?.privacyVersion, 'p1');
+  assert.equal(profile?.consent?.termsVersion, LEGAL.terms);
+  assert.equal(profile?.consent?.privacyVersion, LEGAL.privacy);
+  assert.equal(profile?.consent?.healthData, true);
   assert.ok(profile?.consent?.acceptedAt instanceof Date);
+});
+
+test('re-consent keeps the account date, known or not (offline merge)', async () => {
+  const first = await fetchUserProfile(db, UID);
+  assert.ok(first);
+  await saveConsent(db, UID, consentInput(first));
+  await saveConsent(db, UID, consentInput(undefined)); // offline: profile unknown
+  assert.equal((await fetchUserProfile(db, UID))?.createdAt.getTime(), first.createdAt.getTime());
+});
+
+test('a consent lost before reaching the server is re-sent, and child writes work again', async () => {
+  // The device kept "accepted here, not confirmed"; the server never got it.
+  await env.clearFirestore();
+  const local = localConsentRecord(LEGAL, false);
+  await assert.rejects(createChild(db, UID, { name: 'Leo', avatarColor: '#1690d2', avatarIcon: 'shark' }, LABELS).written);
+
+  const plan = planConsentCheck(local, { reachable: true, profile: await fetchUserProfile(db, UID) }, LEGAL);
+  // Pending: the app stays on the consent screen (no child data) while it is re-sent.
+  assert.deepEqual(plan, { status: 'pending', action: 'resend' });
+  await saveConsent(db, UID, consentInput(await fetchUserProfile(db, UID)));
+  assert.deepEqual(consentAfterWrite('confirmed', false), { status: 'ok', action: 'markConfirmed' });
+
+  assert.equal(planConsentCheck(local, { reachable: true, profile: await fetchUserProfile(db, UID) }, LEGAL).action, 'markConfirmed');
+  await newChild();
+});
+
+test('an offline consent on a brand-new account is refused, then the re-send creates it', async () => {
+  await env.clearFirestore();
+  await assert.rejects(saveConsent(db, UID, consentInput(undefined)));
+  await saveConsent(db, UID, consentInput(null));
+  assert.equal((await fetchUserProfile(db, UID))?.consent?.healthData, true);
 });
 
 test('exportAllData returns every document as plain JSON', async () => {
@@ -207,13 +250,135 @@ test('export → delete everything → import restores the same data', async () 
   const before = await exportAllData(db, UID);
 
   await deleteAllUserData(db, UID);
-  await saveConsent(db, UID, { displayName: 'Ana', locale: 'pt-BR', termsVersion: 't1', privacyVersion: 'p1' });
+  // An erased account can't be written again (erasure marker): restore into the parent's new account.
+  const fresh = dbAs(env, 'alice-new');
+  await saveConsent(fresh, 'alice-new', consentInput(null));
   const backup = parseBackup(JSON.stringify(before));
   assert.ok(backup);
-  const written = await importBackup(db, UID, backup);
+  const written = await importBackup(fresh, 'alice-new', backup);
   assert.equal(written, 7 + 1 + 3 + 1 + 1);
 
-  const after = await exportAllData(db, UID);
+  const after = await exportAllData(fresh, 'alice-new');
   const strip = (d: typeof before) => ({ categories: d.categories, children: d.children });
   assert.deepEqual(strip(after), strip(before));
 });
+
+// ---- Needs a connection: offline it must fail fast, never hang ----
+
+/** Offline, a "needs a connection" step must fail fast: the probe says unavailable, or the wait times out. */
+const failsFastOffline = (error: unknown) =>
+  error instanceof ServerTimeoutError || (error instanceof FirebaseError && error.code === 'unavailable');
+
+test('offline, delete child / delete account / import / export fail fast instead of hanging', async () => {
+  const id = await newChild();
+  const backup = parseBackup(JSON.stringify(await exportAllData(db, UID)));
+  assert.ok(backup);
+  await disableNetwork(db);
+  try {
+    const started = Date.now();
+    await assert.rejects(deleteChild(db, UID, id, 300), failsFastOffline);
+    await assert.rejects(deleteAllUserData(db, UID, 300), failsFastOffline);
+    await assert.rejects(importBackup(db, UID, backup, 300), failsFastOffline);
+    await assert.rejects(exportAllData(db, UID, 300), failsFastOffline);
+    // A write queued offline never settles on its own; the bound ends the wait.
+    await assert.rejects(withTimeout(updateDoc(childRef(db, UID, id), { archivedAt: new Date() }), 'archive', 300), ServerTimeoutError);
+    assert.ok(Date.now() - started < 10_000, 'each step gave up quickly');
+  } finally {
+    await enableNetwork(db);
+  }
+});
+
+test('deleteChild run again after an offline failure finishes the job', async () => {
+  const id = await newChild();
+  await disableNetwork(db);
+  await assert.rejects(deleteChild(db, UID, id, 300), failsFastOffline);
+  await enableNetwork(db);
+  await deleteChild(db, UID, id);
+  assert.equal((await getDocs(childrenRef(db, UID))).size, 0);
+  assert.equal((await getDocs(slotsRef(db, UID, id))).size, 0);
+});
+
+// ---- Erasure leaves no orphans ----
+
+test('an interrupted child deletion is finished by account deletion: no orphan records', async () => {
+  const id = await newChild();
+  await writeSession(db, UID, id, { id: 's1', slotId: 'x', date: '2026-10-31', startedAt: new Date(), durationSec: 120, completed: true });
+  await addToothEvents(db, UID, id, [{ fdi: 55, type: 'symptom', categoryId: 'pain', note: 'molar', date: '2026-10-31' }]);
+  // deleteChild stopped right after archiving (e.g. the app was killed).
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore() as unknown as Firestore, 'users', UID, 'children', id), { archivedAt: new Date() }, { merge: true });
+  });
+
+  await deleteAllUserData(db, UID);
+
+  for (const sub of ['brushingSlots', 'brushingSessions', 'toothEvents']) {
+    assert.equal((await getDocs(collection(childrenRef(db, UID), id, sub))).size, 0, sub);
+  }
+  assert.equal((await getDocs(childrenRef(db, UID))).size, 0);
+});
+
+test('a second device cannot add records while the account is being erased', async () => {
+  const id = await newChild();
+  const otherDevice = dbAs(env, UID);
+  await deleteAllUserData(db, UID);
+  await assert.rejects(writeSession(otherDevice, UID, id, { id: 'late', slotId: 'x', date: '2026-10-31', startedAt: new Date(), durationSec: 120, completed: true }));
+  await assert.rejects(createChild(otherDevice, UID, { name: 'Bia', avatarColor: '#1690d2', avatarIcon: 'shark' }, LABELS).written);
+  assert.equal((await getDocs(childrenRef(db, UID))).size, 0);
+});
+
+test('a family-size import (hundreds of sessions) fits the rules and batch limits', async () => {
+  const id = await newChild();
+  for (let i = 0; i < 3; i++) {
+    await writeSession(db, UID, id, { id: `seed${i}`, slotId: 'x', date: '2026-10-31', startedAt: new Date(), durationSec: 120, completed: true });
+  }
+  const exported = await exportAllData(db, UID);
+  const sessions = Array.from({ length: 600 }, (_, i) => ({
+    id: `s${i}`, slotId: 'x', date: '2026-10-31', startedAt: '2026-10-31T10:00:00.000Z', durationSec: 120, completed: true,
+  }));
+  const backup = parseBackup(JSON.stringify({ ...exported, children: [{ ...exported.children[0], brushingSessions: sessions }] }));
+  assert.ok(backup);
+  assert.equal(await importBackup(db, UID, backup), 1 + 3 + 600);
+  assert.equal((await getDocs(collection(childrenRef(db, UID), id, 'brushingSessions'))).size, 603);
+});
+
+// ---- Cut-off operations are finished, not reported as failed (lib/account.ts reconcile) ----
+
+test('a delete cut off after its writes were queued: the late write lands, and running it again finishes the job', async () => {
+  const id = await newChild();
+  await writeSession(db, UID, id, { id: 's1', slotId: 'x', date: '2026-10-31', startedAt: new Date(), durationSec: 120, completed: true });
+  // The network drops after the connection check: the archive write is queued and the wait times out.
+  await disableNetwork(db);
+  await assert.rejects(withTimeout(updateDoc(childRef(db, UID, id), { archivedAt: new Date() }), 'archive child', 300), ServerTimeoutError);
+  await enableNetwork(db);
+  // Back online the queued write still lands: the child is hidden but its records remain —
+  // a stale "failed" message would be wrong. The remembered operation runs again:
+  await withTimeout(waitForPendingWrites(db), 'queued archive lands', 10_000);
+  assert.notEqual((await getDocFromServer(childRef(db, UID, id))).get('archivedAt'), null);
+  await deleteChild(db, UID, id);
+  assert.equal((await getDocs(childrenRef(db, UID))).size, 0);
+  assert.equal((await getDocs(collection(childrenRef(db, UID), id, 'brushingSessions'))).size, 0);
+});
+
+test('a resumed account erasure also empties a known child whose document is already gone', async () => {
+  const id = await newChild();
+  await writeSession(db, UID, id, { id: 's1', slotId: 'x', date: '2026-10-31', startedAt: new Date(), durationSec: 120, completed: true });
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const admin = ctx.firestore() as unknown as Firestore;
+    await deleteDoc(doc(admin, 'users', UID, 'children', id)); // orphaned: invisible to child enumeration
+  });
+  await deleteAllUserData(db, UID, 15_000, [id]);
+  assert.equal((await getDocs(collection(childrenRef(db, UID), id, 'brushingSessions'))).size, 0);
+  assert.equal((await getDocs(collection(childrenRef(db, UID), id, 'brushingSlots'))).size, 0);
+});
+
+test('after erasure starts a second device cannot recreate the profile; a retry of the erasure still works', async () => {
+  await newChild();
+  await deleteAllUserData(db, UID);
+  const otherDevice = dbAs(env, UID);
+  await assert.rejects(saveConsent(otherDevice, UID, consentInput(null)));
+  await assert.rejects(saveConsent(otherDevice, UID, consentInput(undefined)));
+  assert.equal(await fetchUserProfile(db, UID), null);
+  await deleteAllUserData(db, UID); // resumable: the marker is rewritten, nothing else to do
+  assert.equal((await getDocs(childrenRef(db, UID))).size, 0);
+});
+

@@ -4,6 +4,8 @@ import {
   DownloadSimple,
   FileText,
   Gear,
+  LockSimple,
+  PencilSimple,
   ShieldCheck,
   SignOut,
   Star,
@@ -14,7 +16,7 @@ import {
   UsersThree,
 } from 'phosphor-react-native';
 import { useState, type ReactNode } from 'react';
-import { Alert, Linking, ScrollView, Text, View } from 'react-native';
+import { Alert, Linking, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/Card';
@@ -22,6 +24,7 @@ import { ListRow } from '@/components/ui/ListRow';
 import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
+import { useActiveChild } from '@/hooks/useActiveChild';
 import {
   deleteParentAccount,
   pickBackup,
@@ -31,11 +34,14 @@ import {
   signOutParent,
   type DeleteAccountResult,
 } from '@/lib/account';
+import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { eraseLocalData } from '@/lib/localData';
 import { LEGAL_URLS, REVIEW_URL } from '@/lib/legal';
 import { tokens } from '@/lib/tokens';
-import { useAuthStore } from '@/stores/authStore';
+import { updateChild } from '@/src/data/children';
+import { background } from '@/src/data/firestore';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 
 async function openExternal(url: string) {
   try {
@@ -62,6 +68,8 @@ export default function MoreTab() {
   const [busy, setBusy] = useState<'export' | 'import' | 'delete' | null>(null);
   // No account: the data is only on this phone (ADR 0005), so the account rows don't apply.
   const signedIn = useAuthStore((s) => s.user !== null);
+  const uid = useAuthStore(ownerIdOf);
+  const { child } = useActiveChild();
   const { gate, requireParent } = useParentalGate();
 
   const confirmSignOut = () =>
@@ -164,7 +172,31 @@ export default function MoreTab() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 24 }}>
-        <TabHeader title={t('more.title')} showProfile={false} />
+        <TabHeader title={t('more.title')} />
+
+        {child && uid ? (
+          <Section title={t('grownups.childSection', { name: child.name })}>
+            <ListRow
+              Icon={LockSimple}
+              label={t('today.kidMode')}
+              hint={t('today.kidModeHint')}
+              right={
+                <Switch
+                  accessibilityLabel={t('today.kidMode')}
+                  accessibilityHint={t('today.kidModeHint')}
+                  value={child.kidMode}
+                  trackColor={{ true: tokens.brandPrimary, false: tokens.zoneLine }}
+                  onValueChange={(next) => {
+                    if (!next) return;
+                    background(updateChild(db, uid, child.id, { kidMode: true }));
+                    router.navigate('/(tabs)/brushing');
+                  }}
+                />
+              }
+            />
+            <ListRow Icon={PencilSimple} label={t('today.editRoutine')} onPress={() => requireParent(() => router.push('/slots'))} last />
+          </Section>
+        ) : null}
 
         <Section title={t('more.children')}>
           <ListRow Icon={UsersThree} label={t('more.profiles')} onPress={() => router.push('/child-picker')} last />

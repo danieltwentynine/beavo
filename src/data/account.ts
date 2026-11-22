@@ -5,10 +5,11 @@ import {
   doc,
   getDocFromServer,
   getDocsFromServer,
+  serverTimestamp,
   setDoc,
-  writeBatch,
   type DocumentReference,
   type Firestore,
+  type WriteBatch,
 } from 'firebase/firestore';
 import { z } from 'zod';
 
@@ -16,7 +17,7 @@ import type { Locale, UserProfile } from '@/types';
 
 import { BACKUP_FORMAT, BACKUP_VERSION, type Backup } from './backup.ts';
 import { CHILD_SUBCOLLECTIONS, childRef, childrenRef, deleteChild } from './children.ts';
-import { date, deleteCollection, toPlain } from './firestore.ts';
+import { SERVER_TIMEOUT_MS, commitInBatches, date, deleteCollection, requireServer, toPlain, withTimeout } from './firestore.ts';
 import { categoriesRef } from './toothEvents.ts';
 
 export const userRef = (db: Firestore, uid: string) => doc(db, 'users', uid);
@@ -26,7 +27,7 @@ const userSchema = z.object({
   locale: z.enum(['pt-BR', 'en', 'es']),
   createdAt: date,
   consent: z
-    .object({ termsVersion: z.string(), privacyVersion: z.string(), acceptedAt: date })
+    .object({ termsVersion: z.string(), privacyVersion: z.string(), healthData: z.boolean().optional(), acceptedAt: date })
     .optional(),
 });
 
@@ -47,22 +48,30 @@ export interface ConsentInput {
   locale: Locale;
   termsVersion: string;
   privacyVersion: string;
-  /** Keep the original account date when re-consenting. */
-  createdAt?: Date;
+  /**
+   * What the app knows about the profile: the stored one (re-consent keeps its
+   * account date), null (confirmed new account), or undefined (offline: can't tell).
+   */
+  existing: UserProfile | null | undefined;
 }
 
 /**
- * Record the accepted document versions. Writes the whole doc (no merge), which
- * also drops fields the schema no longer has (older builds stored the email).
+ * Record the parent's acceptance: both document versions and the separate
+ * children's-health-data item, timed by the server (the rules require
+ * `request.time` and today's versions). Resolves on server confirmation.
+ * - Known profile: the whole doc is rewritten with its own account date, which
+ *   also drops fields the schema no longer has (older builds stored the email).
+ * - Confirmed new account: created with today's date.
+ * - Unknown (offline): merged, so an existing account date is never replaced; on
+ *   a brand-new account the rules refuse it and lib/consent.ts sends it again
+ *   once the server can be asked.
  */
 export function saveConsent(db: Firestore, uid: string, input: ConsentInput): Promise<void> {
-  const now = Timestamp.now();
-  return setDoc(userRef(db, uid), {
-    displayName: input.displayName,
-    locale: input.locale,
-    createdAt: input.createdAt ? Timestamp.fromDate(input.createdAt) : now,
-    consent: { termsVersion: input.termsVersion, privacyVersion: input.privacyVersion, acceptedAt: now },
-  });
+  const consent = { termsVersion: input.termsVersion, privacyVersion: input.privacyVersion, healthData: true, acceptedAt: serverTimestamp() };
+  const profile = { displayName: input.displayName, locale: input.locale, consent };
+  if (input.existing === undefined) return setDoc(userRef(db, uid), profile, { merge: true });
+  const createdAt = input.existing ? Timestamp.fromDate(input.existing.createdAt) : Timestamp.now();
+  return setDoc(userRef(db, uid), { ...profile, createdAt });
 }
 
 type Plain = Record<string, unknown>;
@@ -76,14 +85,14 @@ export interface DataExport {
   children: (Plain & Record<(typeof CHILD_SUBCOLLECTIONS)[number], Plain[]>)[];
 }
 
-/** Everything stored for this parent, as plain JSON. Needs a connection (server reads only). */
-export async function exportAllData(db: Firestore, uid: string): Promise<DataExport> {
+/** Everything stored for this parent, as plain JSON. Needs a connection (server reads only, each bounded by `timeoutMs`). */
+export async function exportAllData(db: Firestore, uid: string, timeoutMs: number = SERVER_TIMEOUT_MS): Promise<DataExport> {
   const plainDocs = async (ref: ReturnType<typeof collection>) =>
-    (await getDocsFromServer(ref)).docs.map((d) => ({ id: d.id, ...(toPlain(d.data()) as Plain) }));
+    (await withTimeout(getDocsFromServer(ref), 'export', timeoutMs)).docs.map((d) => ({ id: d.id, ...(toPlain(d.data()) as Plain) }));
 
-  const userSnap = await getDocFromServer(userRef(db, uid));
+  const userSnap = await withTimeout(getDocFromServer(userRef(db, uid)), 'export', timeoutMs);
   const children = await Promise.all(
-    (await getDocsFromServer(childrenRef(db, uid))).docs.map(async (c) => {
+    (await withTimeout(getDocsFromServer(childrenRef(db, uid)), 'export', timeoutMs)).docs.map(async (c) => {
       const subs = await Promise.all(CHILD_SUBCOLLECTIONS.map((sub) => plainDocs(collection(c.ref, sub))));
       return {
         id: c.id,
@@ -104,54 +113,61 @@ export async function exportAllData(db: Firestore, uid: string): Promise<DataExp
   };
 }
 
-/**
- * Delete everything under users/{uid}: the profile doc, each child with its
- * subcollections, then the categories. Needs a connection. Deleting the Auth
- * user is the caller's job, after this succeeds.
- */
-export async function deleteAllUserData(db: Firestore, uid: string): Promise<void> {
-  // Profile first: without consent the rules refuse new children and categories.
-  await deleteDoc(userRef(db, uid));
-  const children = await getDocsFromServer(childrenRef(db, uid));
-  for (const c of children.docs) await deleteChild(db, uid, c.id);
-  await deleteCollection(db, categoriesRef(db, uid));
-}
+export const erasureRef = (db: Firestore, uid: string) => doc(db, 'erasures', uid);
 
-const BATCH_LIMIT = 450;
+/**
+ * Delete everything under users/{uid}: each child with its subcollections, the
+ * categories and the profile. Needs a connection: checked first, and every step
+ * gives up after `timeoutMs` (ServerTimeoutError). Resumable: run it again
+ * after any failure. Deleting the Auth user is the caller's job, after this
+ * succeeds.
+ * The erasure marker (erasures/{uid}) comes first: from then on the rules
+ * refuse every write under users/{uid} except archiving and deleting — the
+ * profile can't be recreated either — so no device can add records while this
+ * runs or afterwards. Archived children (a delete that failed midway) are
+ * listed too; `knownChildIds` (e.g. a pending child deletion) are cleaned even
+ * if their child document is already gone.
+ */
+export async function deleteAllUserData(
+  db: Firestore,
+  uid: string,
+  timeoutMs: number = SERVER_TIMEOUT_MS,
+  knownChildIds: readonly string[] = [],
+): Promise<void> {
+  await requireServer(userRef(db, uid), timeoutMs);
+  await withTimeout(setDoc(erasureRef(db, uid), { startedAt: serverTimestamp() }), 'mark erasure', timeoutMs);
+  await withTimeout(deleteDoc(userRef(db, uid)), 'delete profile', timeoutMs);
+  const children = await withTimeout(getDocsFromServer(childrenRef(db, uid)), 'list children', timeoutMs);
+  const ids = new Set([...children.docs.map((c) => c.id), ...knownChildIds]);
+  for (const id of ids) await deleteChild(db, uid, id, timeoutMs);
+  await deleteCollection(db, categoriesRef(db, uid), timeoutMs);
+}
 
 /**
  * Restore a parsed backup (see backup.ts) into this account, merging by id:
  * existing docs with the same id are overwritten, nothing is deleted. Children
  * are written before their subcollections (the rules require a live child).
- * Needs a connection. Returns how many documents were written.
+ * Needs a connection: checked first, and each batch gives up after `timeoutMs`
+ * (merge by id makes a retry safe). Returns how many documents were written.
  */
-export async function importBackup(db: Firestore, uid: string, backup: Backup): Promise<number> {
-  // Fail fast offline: batched writes would otherwise wait forever for a connection.
-  await getDocFromServer(userRef(db, uid));
-  const writes: [DocumentReference, Record<string, unknown>][] = [];
-  const commit = async () => {
-    for (let i = 0; i < writes.length; i += BATCH_LIMIT) {
-      const batch = writeBatch(db);
-      for (const [ref, data] of writes.slice(i, i + BATCH_LIMIT)) batch.set(ref, data);
-      await batch.commit();
-    }
-    const count = writes.length;
-    writes.length = 0;
-    return count;
-  };
+export async function importBackup(db: Firestore, uid: string, backup: Backup, timeoutMs: number = SERVER_TIMEOUT_MS): Promise<number> {
+  await requireServer(userRef(db, uid), timeoutMs);
+  const set = (ref: DocumentReference, data: Record<string, unknown>) => (batch: WriteBatch) => batch.set(ref, data);
 
-  for (const { id, ...category } of backup.categories) writes.push([doc(categoriesRef(db, uid), id), category]);
-  for (const { id, brushingSlots: _s, brushingSessions: _x, toothEvents: _e, ...child } of backup.children) {
-    writes.push([childRef(db, uid, id), child]);
-  }
-  let written = await commit();
+  const parents = [
+    ...backup.categories.map(({ id, ...category }) => set(doc(categoriesRef(db, uid), id), category)),
+    ...backup.children.map(({ id, brushingSlots: _s, brushingSessions: _x, toothEvents: _e, ...child }) => set(childRef(db, uid, id), child)),
+  ];
+  let written = await commitInBatches(db, parents, timeoutMs);
 
-  for (const child of backup.children) {
+  const records = backup.children.flatMap((child) => {
     const ref = childRef(db, uid, child.id);
-    for (const { id, ...slot } of child.brushingSlots) writes.push([doc(collection(ref, 'brushingSlots'), id), slot]);
-    for (const { id, ...session } of child.brushingSessions) writes.push([doc(collection(ref, 'brushingSessions'), id), session]);
-    for (const { id, ...event } of child.toothEvents) writes.push([doc(collection(ref, 'toothEvents'), id), event]);
-  }
-  written += await commit();
+    return [
+      ...child.brushingSlots.map(({ id, ...slot }) => set(doc(collection(ref, 'brushingSlots'), id), slot)),
+      ...child.brushingSessions.map(({ id, ...session }) => set(doc(collection(ref, 'brushingSessions'), id), session)),
+      ...child.toothEvents.map(({ id, ...event }) => set(doc(collection(ref, 'toothEvents'), id), event)),
+    ];
+  });
+  written += await commitInBatches(db, records, timeoutMs);
   return written;
 }

@@ -1,5 +1,6 @@
 import type { ToothZone } from '@/types';
 import { t, type StringKey } from '@/lib/i18n';
+import { isPerfectScore } from '@/src/data/score';
 
 /**
  * The closing message after a session, in the app language. Local, reviewed
@@ -8,7 +9,8 @@ import { t, type StringKey } from '@/lib/i18n';
  */
 export function buildCoachMessage(childName: string, missedZones: ToothZone[], score: number): string {
   const name = childName.trim() || t('common.friend');
-  if (missedZones.length === 0 || score >= 100) return t('coach.perfect', { name });
+  // Perfect only for a full score: a short run (under 2 minutes) is capped below 100 (src/data/score.ts).
+  if (isPerfectScore(score) && missedZones.length === 0) return t('coach.perfect', { name });
   if (missedZones.some((z) => z.includes('back'))) return t('coach.backTeeth', { name });
   return t('coach.default', { name });
 }

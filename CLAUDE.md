@@ -47,7 +47,7 @@ app/                              # Expo Router screens
 ├── _layout.tsx                   # Fonts, auth → consent check, child data sync, outbox flush, child-picker sheet
 ├── index.tsx                     # Redirect: an owner (signed in, or device-only) → (tabs)/overview, else onboarding/intro (first launch) or onboarding/welcome
 ├── (auth)/ login.tsx, register.tsx
-├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more (shown as "Family")
+├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more (shown as "Grownups" / "Adultos")
 ├── onboarding/ intro.tsx (first launch only), welcome.tsx
 ├── consent.tsx                   # Terms + Privacy acceptance (unchecked box, re-prompt on version change)
 ├── move-data.tsx                 # Signed-in parent: move the profiles left on this phone into the account? (gated)
@@ -66,8 +66,8 @@ components/
 ├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
 ├── kids/ Avatar, BadgeCard, Sticker, ProfilePill
 ├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
-└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate (+ useParentalGate), TabHeader, ListRow, GlassSurface
-hooks/ useActiveChild.ts, useChildDataSync.ts, useChildWatch.ts (shared by the next two), useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts
+└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate (+ useParentalGate; decisions in src/data/gateFlow.ts), ParentNotice (parent-only error/info banner), TabHeader, ListRow, GlassSurface
+hooks/ useActiveChild.ts, useChildDataSync.ts, useChildWatch.ts (shared by the next two), useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts, useRetryingWatch.ts (re-subscribes a failed listener, marks data stale)
 src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
 ├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
 ├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
@@ -77,16 +77,22 @@ src/data/                         # REPOSITORY LAYER — the only code that touc
 ├── backup.ts                     # Pure: backup file format + validation (import)
 ├── local.ts                      # Pure: device-only store (a Backup in memory) used when the owner is LOCAL_UID
 ├── outbox.ts                     # Pure outbox codec for unsynced sessions
+├── consent.ts                    # Pure: device consent record + planConsentCheck (resend / confirm / forget)
+├── score.ts                      # Pure: scoreSession (/100; runs under 2 min capped at 90) — ADR 0007
+├── gateFlow.ts                   # Pure: parental-gate decisions (an existing PIN needs the owner check)
+├── env.ts                        # Pure: zod schema of the EXPO_PUBLIC_* config
 └── *.test.ts                     # node --test unit tests
 lib/
 ├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In (+ reauth for account deletion)
+├── env.ts                        # Validated EXPO_PUBLIC_* config (fails at startup with the missing names)
+├── errors.ts                     # Failures → parent notices (stores/noticeStore.ts); dev logs error codes only
 ├── account.ts                    # Sign out, data export, delete child / account (app glue over src/data)
-├── consent.ts, legal.ts          # Consent check/accept; LEGAL_VERSIONS + hosted URLs
+├── consent.ts, legal.ts          # Consent check/accept/resend (server-confirmed); LEGAL_VERSIONS + hosted URLs
 ├── localData.ts                  # Device-only mode glue: load/save the store, enter/leave, move to account, erase
 ├── sync.ts                       # AsyncStorage outbox: sessions survive app kill offline, retried on launch/foreground
 ├── i18n.ts                       # t(), pt-BR + en + es strings
 └── coach.ts, constants.ts, tokens.ts
-stores/ authStore.ts (user, device-only flag, consent; `ownerIdOf`), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length, intro seen)
+stores/ authStore.ts (user, device-only flag, consent; `ownerIdOf`), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length, intro seen, PIN marker), noticeStore.ts (parent notices + stale flags)
 tests/ rules.test.ts, repository.test.ts   # Firestore emulator tests
 legal/                            # Terms + Privacy Policy drafts (pt-BR, en) → public/legal/*.html on Firebase Hosting
 types/ index.ts                   # All shared types; firebase-auth.d.ts augments RN persistence
@@ -110,7 +116,7 @@ Everything lives under the parent's uid (ADR 0004). Firestore region: southameri
 
 ```
 users/{uid}                         displayName, locale ('pt-BR'|'en'|'es'), createdAt,
-                                    consent { termsVersion, privacyVersion, acceptedAt }
+                                    consent { termsVersion, privacyVersion, healthData: true, acceptedAt (server time) }
   children/{childId}                name, avatarColor (#hex), avatarIcon, birthYear?, kidMode, createdAt, archivedAt
     brushingSlots/{slotId}          label, icon, mealType (breakfast|lunch|dinner|custom),
                                     windowStart, windowEnd ("HH:mm"), sortOrder, createdAt, archivedAt
@@ -121,11 +127,12 @@ users/{uid}                         displayName, locale ('pt-BR'|'en'|'es'), cre
 
 - **Device-only mode (ADR 0005):** when the owner is `LOCAL_UID` (no account), every repository function routes to `src/data/local.ts` and nothing is written to Firestore. Take the owner from `ownerIdOf` (`stores/authStore.ts`), never `user.uid`. Moving device data into an account is always asked (`app/move-data.tsx`), never automatic.
 - **Repository rule:** screens never import `firebase/firestore`; they call `src/data/*` (functions take `db` first so the emulator tests can pass their own).
-- **Offline:** the JS SDK can't persist its cache on React Native. Writes are fired without awaiting (they show instantly via `watch*` listeners and sync on reconnect); sessions also go through `lib/sync.ts` (AsyncStorage outbox) so an app kill offline loses nothing; `stores/childStore.ts` snapshots children + slots to the device so the app starts offline. Deletes and exports need a connection (they list from the server).
+- **Offline:** the JS SDK can't persist its cache on React Native. Writes are fired without awaiting (they show instantly via `watch*` listeners and sync on reconnect); sessions also go through `lib/sync.ts` (AsyncStorage outbox) so an app kill offline loses nothing; `stores/childStore.ts` snapshots children + slots to the device so the app starts offline. Deletes, imports and exports need a connection: they check the server first and every step gives up after 15 s (`withTimeout`, `ServerTimeoutError`) instead of hanging; the parent sees "needs a connection". Writes fired with `background()` report refusals to the parent (`lib/errors.ts` → `components/ui/ParentNotice.tsx`, never in kid mode); every `watch*` takes `onError`, and a failed listener is retried with backoff while its data is marked stale.
+- **Consent:** acceptance is kept on the device as *unconfirmed* first and marked confirmed only when the server has it. Status `pending` (unconfirmed) keeps the app on the consent screen — no child data can be entered — and the consent is re-sent; it turns `ok` by itself when the server confirms, and a refusal drops the record and asks again. `checkConsent` forgets a confirmed record the server no longer has (erased elsewhere — never revived). The Accept button is behind the grown-ups check. Two separate items on `app/consent.tsx`: Terms + Privacy, and children's health data. How the parent is verified is still open (lawyer, ADR 0007).
 - **Slots:** never hard-delete a slot with sessions — `removeSlot` archives it. Past days are evaluated with `slotsActiveOn(slots, day)` (a slot counts on every day from its creation day to its archive day, inclusive). Minimum one slot per child (client-enforced).
 - **Deleting** a child or the account deletes subcollections explicitly (Firestore doesn't cascade).
-- **Rules** (`firestore.rules`): owner-only under `users/{uid}`, exact keys + types on every write, `createdAt` immutable; children/categories need `users/{uid}.consent`; child subcollection writes need a live (existing, non-archived) child, so nothing can be orphaned under a deleted child; everything else denied. Tests: `npm run test:emulator`.
-- **Delete order:** `deleteChild` archives the child, deletes subcollections, then the doc; `deleteAllUserData` deletes the profile first. Keep this order — the rules rely on it.
+- **Rules** (`firestore.rules`): owner-only under `users/{uid}`, exact keys + types on every write, `createdAt` immutable (profile and children); a new consent must carry today's versions (`currentTermsVersion`/`currentPrivacyVersion`, same as `LEGAL_VERSIONS` — a test fails if they drift), `healthData: true` and `acceptedAt == request.time`; every write under `users/{uid}` except archiving and deleting needs a *current* receipt (same versions + health item — an older receipt authorizes nothing until re-consent) and no erasure marker (`erasures/{uid}`, written first by account deletion, never removable by the client), so nothing — not even the profile — can be recreated while or after the account is erased; child subcollection writes need a live (existing, non-archived) child; only an archived child can be deleted, so nothing is orphaned; everything else denied. Tests: `npm run test:emulator`.
+- **Delete order:** `deleteChild` archives the child, deletes subcollections, then the doc (idempotent: a missing child still gets its subcollections emptied); `deleteAllUserData` writes the erasure marker, deletes the profile, then every child (listed plus known ids) and the categories. Keep this order — the rules rely on it. A delete cut off offline is remembered (`src/data/pendingOps.ts`), re-run on launch/foreground/every minute by `reconcilePendingOps` (`lib/account.ts`), and the parent is told when it really finished.
 
 ---
 
@@ -155,6 +162,8 @@ The camera is a **live mirror only**. It must never capture, record, save, uploa
 ---
 
 ## The Mouth Map (MouthMap.tsx)
+
+Mirror perspective: the child's left on the screen's left. DentalArch is the opposite (dentist).
 
 This is the most important UI component. It is an SVG overlay displayed on top of the camera feed.
 
@@ -230,7 +239,7 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 - Use Zod schemas to validate all Firestore reads — data can be malformed (in `src/data/`)
 - Go through the repository layer in `src/data/` — never call Firestore from screens
 - Put user-facing strings in `lib/i18n.ts` (pt-BR first, then English and Spanish — all three)
-- Use `expo-constants` for environment variables, never hardcode API keys
+- Read config only through `lib/env.ts` (`EXPO_PUBLIC_*` via `process.env`, zod-validated at startup), never hardcode API keys. The Google Sign-In iOS URL scheme is derived from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` at prebuild by `plugins/withGoogleSignInScheme.js` (never type it into `app.json`; reading the config never needs the variable, so `eas init` / EAS commands with `EXPO_NO_DOTENV` work)
 - Write self-documenting code — prefer clear names over comments
 - Use NativeWind classes, never raw StyleSheet unless performance demands it
 
@@ -248,8 +257,8 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 - No analytics that track individual children by name
 - All data lives under `users/{uid}` — the security rules enforce owner-only access
 - Camera frames are never processed, stored or uploaded (mirror only)
-- **Parental gate (Apple Kids Category):** every external link (legal, review), purchase/Premium, backup export/import, moving or erasing device-only data, creating an account from device-only mode, settings, categories, kid-mode change, routine editing, adding/deleting a child or tooth event, sign-out and account deletion goes through `ParentalGate` / `useParentalGate` (viewing the chart and records is open). The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal). The gate asks for the parent's 4-digit PIN, kept in the Keychain (`expo-secure-store`, this device only, cleared on a fresh install). Choosing the PIN — at the first gate or after "I forgot the PIN" — needs the phone's Face ID / passcode (`expo-local-authentication`; the app only learns yes or no); a phone with no passcode falls back to one multiplication question. Gate modes: `check` (default), `noNewPin` (consent screen: the PIN if there is one, else the question; never makes a first-time parent choose a PIN), `choosePin` (Settings → Change PIN). From the 5th wrong try in a row the next try has to wait, doubling from 1 minute (`src/data/pinLock.ts`).
-- **Kid mode** (`children.kidMode`, off for new children, toggled behind the gate on Brushing): hides the Family tab (`more.tsx`), makes the Overview chart view-only (no tooth sheet, no Dental History) and hides edit/add in the child picker. first-run consent is an unchecked box (`app/consent.tsx`) storing accepted versions on `users/{uid}.consent`
+- **Parental gate (Apple Kids Category):** every external link (legal, review), purchase/Premium, backup export/import, moving or erasing device-only data, creating an account from device-only mode, settings, categories, kid-mode change, routine editing, adding/deleting a child or tooth event, sign-out and account deletion goes through `ParentalGate` / `useParentalGate` (viewing the chart and records is open). The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal). The gate asks for the parent's 4-digit PIN, kept in the Keychain (`expo-secure-store`, this device only, cleared on a fresh install). Choosing the PIN — at the first gate or after "I forgot the PIN" — needs the phone's Face ID / passcode (`expo-local-authentication`; the app only learns yes or no); only first-time setup on a phone confirmed to have no passcode may fall back to one multiplication question (an authentication error fails closed: try again); an existing PIN is replaced only after the owner check, and a failed settings or Keychain read never wipes or skips it (`src/data/gateFlow.ts`, `resolveStoredPin` in `src/data/pinLock.ts`). `app/move-data.tsx` names the device's children only after the gate. Gate modes: `check` (default), `noNewPin` (consent screen: the PIN if there is one, else the question; never makes a first-time parent choose a PIN), `choosePin` (Settings → Change PIN). From the 5th wrong try in a row the next try has to wait, doubling from 1 minute (`src/data/pinLock.ts`).
+- **Kid mode** (`children.kidMode`, off for new children, toggled behind the gate on Brushing): hides the Grownups tab (`more.tsx`), makes the Overview chart view-only (no tooth sheet, no Dental History) and hides edit/add in the child picker. first-run consent is two unchecked, required items (`app/consent.tsx`) storing accepted versions and the health-data item on `users/{uid}.consent`
 - Legal docs (`legal/`) must describe what the code actually does — change them (and `LEGAL_VERSIONS`) whenever data handling changes
 - The Gemini prompt must never include the child's last name, school, or location
 
@@ -298,13 +307,13 @@ The project is already bootstrapped (Expo SDK 57, blank TypeScript template) wit
 
 ```bash
 npx expo start          # Start Metro dev server (press i for iOS simulator)
-npx tsc --noEmit        # Typecheck — run after every change; there is no test suite yet
+npx tsc --noEmit        # Typecheck — run after every change (tests: see below)
 npx expo export --platform ios --output-dir dist-check   # Full bundle check (delete dist-check after)
 npx expo install <pkg>  # Always use this (not npm install) for Expo/RN native packages — it picks SDK-compatible versions
 ```
 
 ```bash
-npm test                # node --test src/data/*.test.ts (pure repository logic; Node ≥ 23.6)
+npm test                # node --test src/data/*.test.ts (pure repository logic; Node 24, see .nvmrc)
 npm run test:emulator   # Firestore rules + repository against the emulator (needs Java)
 npx expo lint           # ESLint incl. the camera guardrail rules
 node scripts/check-camera-guardrail.mjs
@@ -339,6 +348,6 @@ Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only 
 
 **App concept:** Daniel Cardoso (developer) + his dentist mother (clinical advisor)
 **Primary clinical advisor:** Reviews all coaching message templates for accuracy
-**Target launch:** App Store, iOS first, Portuguese (BR) + English + Spanish (legal documents exist in Portuguese and English only)
+**Target launch:** App Store, iOS first, Portuguese (BR) + English + Spanish (legal documents exist in Portuguese, English and Spanish)
 
 When generating coaching messages or dental content, flag anything that sounds like medical advice for review by the clinical advisor before shipping.

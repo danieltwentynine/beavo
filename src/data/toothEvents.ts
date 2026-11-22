@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 import type { Category, ToothEvent, ToothEventType } from '@/types';
 
-import { parseDocs } from './firestore.ts';
+import { parseDocs, type WatchErrorHandler } from './firestore.ts';
 import {
   LOCAL_UID,
   localAddCategory,
@@ -46,9 +46,10 @@ export function watchToothEvents(
   uid: string,
   childId: string,
   onChange: (events: ToothEvent[]) => void,
+  onError?: WatchErrorHandler,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalToothEvents(childId, onChange);
-  return onSnapshot(toothEventsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, toothEventSchema)));
+  return onSnapshot(toothEventsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, toothEventSchema)), onError);
 }
 
 /** One event per tooth in a single atomic batch (multi-select logging). */
@@ -123,7 +124,8 @@ export function watchCategories(
   db: Firestore,
   uid: string,
   onChange: (categories: Category[], fromCache: boolean) => void,
+  onError?: WatchErrorHandler,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalCategories((categories) => onChange(categories, false));
-  return onSnapshot(categoriesRef(db, uid), (snap) => onChange(parseDocs(snap, categorySchema), snap.metadata.fromCache));
+  return onSnapshot(categoriesRef(db, uid), (snap) => onChange(parseDocs(snap, categorySchema), snap.metadata.fromCache), onError);
 }

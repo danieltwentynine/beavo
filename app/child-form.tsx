@@ -52,7 +52,7 @@ export default function ChildFormScreen() {
   const [deleting, setDeleting] = useState(false);
   const [gate, setGate] = useState<'delete' | null>(null);
 
-  const leave = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/overview'));
+  const leave = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/brushing'));
 
   const onSave = () => {
     if (!uid) return;
@@ -75,7 +75,7 @@ export default function ChildFormScreen() {
     });
     background(created.written);
     setActiveChild(created.id);
-    if (isFirst) router.replace('/(tabs)/overview');
+    if (isFirst) router.replace('/(tabs)/brushing');
     else leave();
   };
 
@@ -98,7 +98,7 @@ export default function ChildFormScreen() {
   };
 
   // Deep links reach every route: no child before consent (the rules enforce it too).
-  if (consent === 'needed' || consent === 'updated') return <Redirect href="/consent" />;
+  if (consent === 'needed' || consent === 'updated' || consent === 'pending') return <Redirect href="/consent" />;
 
   return (
     <SafeScreen>

@@ -12,6 +12,6 @@ export default function Index() {
     return null;
   }
 
-  if (ownerId) return <Redirect href="/(tabs)/overview" />;
+  if (ownerId) return <Redirect href="/(tabs)/brushing" />;
   return <Redirect href={introSeen ? '/onboarding/welcome' : '/onboarding/intro'} />;
 }

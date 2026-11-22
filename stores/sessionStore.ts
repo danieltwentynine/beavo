@@ -16,6 +16,9 @@ export interface SessionResult {
   startedAt: Date;
   /** The full configured length ran (vs. "I'm done" early). */
   completed: boolean;
+  /** The brushing length chosen for this session (seconds: 60, 90, 120, 150 or 180). */
+  totalSec: number;
+  /** 0–100; capped below 100 when totalSec is under 2 minutes (src/data/score.ts). */
   score: number;
   zoneStates: Partial<Record<ToothZone, 'empty' | 'active' | 'done' | 'missed'>>;
   missed: ToothZone[];

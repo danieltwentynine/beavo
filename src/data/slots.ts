@@ -14,7 +14,7 @@ import { z } from 'zod';
 
 import type { BrushingSlot } from '@/types';
 
-import { date, optionalDate, parseDocs } from './firestore.ts';
+import { date, optionalDate, parseDocs, type WatchErrorHandler } from './firestore.ts';
 import { LOCAL_UID, localAddSlot, localRemoveSlot, localReorderSlots, localUpdateSlot, watchLocalSlots } from './local.ts';
 import { slotRemoval, type NewSlot } from './schedule.ts';
 import { hasSessionsForSlot } from './sessions.ts';
@@ -39,9 +39,10 @@ export function watchSlots(
   uid: string,
   childId: string,
   onChange: (slots: BrushingSlot[]) => void,
+  onError?: WatchErrorHandler,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalSlots(childId, onChange);
-  return onSnapshot(slotsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, slotSchema)));
+  return onSnapshot(slotsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, slotSchema)), onError);
 }
 
 export function addSlot(db: Firestore, uid: string, childId: string, slot: NewSlot): { id: string; written: Promise<void> } {

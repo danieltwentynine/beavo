@@ -8,6 +8,12 @@ import { tokens } from '@/lib/tokens';
 // dial's centre. Re-measure if the font, fontSize or lineHeight below change.
 const DIGIT_NUDGE = 0.07;
 
+export function formatBrushTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const remainder = String(Math.floor(seconds % 60)).padStart(2, '0');
+  return `${minutes}:${remainder}`;
+}
+
 interface BrushTimerProps {
   remaining?: number;
   total?: number;
@@ -29,8 +35,6 @@ export function BrushTimer({ remaining = 120, total = 120, size = 240, style }: 
   // stroke and start it half a stroke late, so the painted arc runs exactly from
   // 12 o'clock to the elapsed share — the ring and the digits agree.
   const arc = Math.max(0, pct * c - stroke);
-  const mm = Math.floor(remaining / 60);
-  const ss = String(Math.floor(remaining % 60)).padStart(2, '0');
   const half = size / 2;
 
   return (
@@ -64,7 +68,7 @@ export function BrushTimer({ remaining = 120, total = 120, size = 240, style }: 
             transform: [{ translateY: size * DIGIT_NUDGE }],
           }}
         >
-          {mm}:{ss}
+          {formatBrushTime(remaining)}
         </Text>
       </View>
     </View>

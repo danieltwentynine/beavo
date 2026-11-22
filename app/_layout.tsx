@@ -9,8 +9,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { LogoScreen } from '@/components/brand/LogoScreen';
+import { ParentNotice } from '@/components/ui/ParentNotice';
 import { useChildDataSync } from '@/hooks/useChildDataSync';
-import { cleanupBackupFiles } from '@/lib/account';
+import { cleanupBackupFiles, reconcilePendingOps } from '@/lib/account';
 import { isLocalMode, startLocalStore } from '@/lib/localData';
 import { checkConsent } from '@/lib/consent';
 import { auth } from '@/lib/firebase';
@@ -64,6 +65,7 @@ export default function RootLayout() {
     // Sessions saved offline in an earlier run: retried once we know whose they
     // are, since the security rules are scoped to the signed-in parent.
     void flushOutbox(uid);
+    void reconcilePendingOps(uid);
     void checkConsent(uid).then((status) => {
       if (!stale) setConsent(status);
     });
@@ -78,7 +80,10 @@ export default function RootLayout() {
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active') return;
       void startLocalStore();
-      if (uid) void flushOutbox(uid);
+      if (uid) {
+        void flushOutbox(uid);
+        void reconcilePendingOps(uid);
+      }
     });
     return () => sub.remove();
   }, [uid]);
@@ -96,6 +101,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: tokens.surfacePage },
         }}
       >
+        <Stack.Screen name="session" options={{ gestureEnabled: false }} />
         <Stack.Screen
           name="child-picker"
           options={{ presentation: 'formSheet', sheetAllowedDetents: [0.5, 1], sheetGrabberVisible: true, contentStyle: { backgroundColor: 'transparent' } }}
@@ -105,6 +111,7 @@ export default function RootLayout() {
           options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true, contentStyle: { backgroundColor: 'transparent' } }}
         />
       </Stack>
+      <ParentNotice />
       {logoDone ? null : <LogoScreen onDone={hideLogo} />}
     </>
   );

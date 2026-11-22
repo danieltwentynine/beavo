@@ -15,7 +15,8 @@ import { useAuthStore } from '@/stores/authStore';
  * Shown once per launch to a signed-in parent while this phone still holds
  * profiles from device-only mode (ADR 0005). The move is never automatic: the
  * person who signed in may not be the parent whose children are on the phone,
- * so they are named, and moving them sits behind the parental gate.
+ * so the children are named only after the parental gate, and moving or
+ * erasing them happens only from there.
  */
 export default function MoveDataScreen() {
   const uid = useAuthStore((s) => s.user?.uid ?? null);
@@ -23,6 +24,9 @@ export default function MoveDataScreen() {
   const names = useLocalChildNames();
   const [moving, setMoving] = useState(false);
   const [failed, setFailed] = useState(false);
+  // The children's names show only after a grown-up passes the gate: whoever
+  // signed in on this phone may not be the parent of the children on it.
+  const [unlocked, setUnlocked] = useState(false);
   const { gate, requireParent } = useParentalGate();
 
   if (!uid || (names !== null && names.length === 0 && !moving)) return <Redirect href="/" />;
@@ -67,14 +71,26 @@ export default function MoveDataScreen() {
           <BeavoWave width={140} />
         </View>
         <Text className="font-display text-3xl text-ink">{t('move.title')}</Text>
-        <Text className="mt-3 font-body text-base text-muted">{t('move.body', { names: names.join(', ') })}</Text>
+        <Text className="mt-3 font-body text-base text-muted">
+          {unlocked ? t('move.body', { names: names.join(', ') }) : t('move.bodyLocked')}
+        </Text>
         <Text className="mt-3 font-body text-base text-muted">{t('move.keepHint')}</Text>
         {failed ? <Text className="mt-4 font-body-semi text-base text-ink">{t('move.fail')}</Text> : null}
 
         <View style={{ marginTop: 'auto', paddingTop: 28, rowGap: 12 }}>
-          <Button label={t('move.confirm')} size="lg" loading={moving} onPress={() => requireParent(() => void move())} />
-          <Button label={t('move.keep')} variant="ghost" disabled={moving} onPress={keep} />
-          <Button label={t('more.erase')} variant="ghost" size="sm" disabled={moving} onPress={() => requireParent(erase)} />
+          {unlocked ? (
+            <>
+              {/* Already behind the gate (unlocked): moving and erasing run directly. */}
+              <Button label={t('move.confirm')} size="lg" loading={moving} onPress={() => void move()} />
+              <Button label={t('move.keep')} variant="ghost" disabled={moving} onPress={keep} />
+              <Button label={t('more.erase')} variant="ghost" size="sm" disabled={moving} onPress={erase} />
+            </>
+          ) : (
+            <>
+              <Button label={t('move.reveal')} size="lg" onPress={() => requireParent(() => setUnlocked(true))} />
+              <Button label={t('move.keep')} variant="ghost" onPress={keep} />
+            </>
+          )}
         </View>
       </ScrollView>
       {gate}

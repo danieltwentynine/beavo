@@ -15,12 +15,32 @@ service cloud.firestore {
       return request.resource.data;
     }
 
-    // Children and categories can only be created once the parent has consented
-    // (users/{uid}.consent, written by app/consent.tsx). getAfter: the consent
-    // write may be in the same batch or queued just before (offline).
+    // Every write under users/{uid} (except archiving and deleting) needs the
+    // parent's consent record (users/{uid}.consent, written by app/consent.tsx).
+    // Account erasure deletes the profile first, so from then on no device can
+    // add records while the rest is being deleted. getAfter: the consent write
+    // may be in the same batch or queued just before (offline).
+    // A CURRENT receipt: today's versions and the health-data item, the same
+    // test a new consent write must pass. An older receipt (e.g. from a release
+    // before the health-data item) authorizes nothing until the parent re-consents.
     function hasConsented(uid) {
       let user = /databases/$(database)/documents/users/$(uid);
-      return existsAfter(user) && 'consent' in getAfter(user).data;
+      return notErasing(uid) && existsAfter(user) && isCurrentReceipt(getAfter(user).data.get('consent', null));
+    }
+
+    function isCurrentReceipt(c) {
+      return c is map
+        && c.get('termsVersion', '') == currentTermsVersion()
+        && c.get('privacyVersion', '') == currentPrivacyVersion()
+        && c.get('healthData', false) == true;
+    }
+
+    // Account erasure writes erasures/{uid} first (src/data/account.ts). From then
+    // on nothing under users/{uid} can be created or changed — not even the
+    // profile — by any device still holding a valid token; only archiving and
+    // deleting work. The marker can't be removed by the client.
+    function notErasing(uid) {
+      return !exists(/databases/$(database)/documents/erasures/$(uid));
     }
 
     // Child subcollection writes need the child to exist and not be mid-deletion
@@ -67,17 +87,48 @@ service cloud.firestore {
           || (v >= 51 && v <= 85 && v % 10 >= 1 && v % 10 <= 5));
     }
 
+    // The document versions parents accept today: LEGAL_VERSIONS in lib/legal.ts.
+    // tests/rules.test.ts fails when these drift; bump both together and deploy
+    // the rules with the app release that bumps them (docs/RUNBOOK.md).
+    function currentTermsVersion() {
+      return '2026-11-22';
+    }
+
+    function currentPrivacyVersion() {
+      return '2026-11-22';
+    }
+
+    // A new consent record: today's versions, the separate children's-health-data
+    // item, and the server's own clock (the app sends serverTimestamp()), so the
+    // client can't backdate it or claim a version it never showed.
+    function validNewConsent(c) {
+      return c is map
+        && c.keys().hasAll(['termsVersion', 'privacyVersion', 'healthData', 'acceptedAt'])
+        && c.keys().hasOnly(['termsVersion', 'privacyVersion', 'healthData', 'acceptedAt'])
+        && c.termsVersion == currentTermsVersion()
+        && c.privacyVersion == currentPrivacyVersion()
+        && c.healthData == true
+        && c.acceptedAt == request.time;
+    }
+
+    // Any other write of the profile keeps the consent record exactly as stored.
+    function consentUnchanged() {
+      return resource != null && data().get('consent', null) == resource.data.get('consent', null);
+    }
+
     function validUser() {
       return shape(['displayName', 'locale', 'createdAt'], ['consent'])
         && str(data().displayName, 100)
         && data().locale in ['pt-BR', 'en', 'es']
         && data().createdAt is timestamp
-        && (!('consent' in data()) || (
-          data().consent is map
-          && data().consent.keys().hasOnly(['termsVersion', 'privacyVersion', 'acceptedAt'])
-          && nonEmpty(data().consent.termsVersion, 40)
-          && nonEmpty(data().consent.privacyVersion, 40)
-          && data().consent.acceptedAt is timestamp));
+        && (!('consent' in data()) || consentUnchanged() || validNewConsent(data().consent));
+    }
+
+    // Archiving is the first step of deleting a child; it must still work while
+    // the account is being erased (profile already gone, see hasConsented).
+    function onlyArchiving() {
+      return data().diff(resource.data).affectedKeys().hasOnly(['archivedAt'])
+        && data().archivedAt is timestamp;
     }
 
     function validChild() {
@@ -133,29 +184,36 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read, delete: if isOwner(uid);
-      allow create, update: if isOwner(uid) && validUser();
+      allow create: if isOwner(uid) && validUser() && notErasing(uid);
+      // createdAt is the account date: set once, never moved.
+      allow update: if isOwner(uid) && validUser() && data().createdAt == resource.data.createdAt && notErasing(uid);
 
       match /children/{childId} {
-        allow read, delete: if isOwner(uid);
+        allow read: if isOwner(uid);
+        // Only an archived child can be deleted (deleteChild archives, empties the
+        // subcollections, then deletes), so a live child's records can't be
+        // orphaned under a missing parent document.
+        allow delete: if isOwner(uid) && resource.data.get('archivedAt', null) != null;
         // createdAt is set once and never moved (slot/day history depends on it).
         allow create: if isOwner(uid) && validChild() && hasConsented(uid);
-        allow update: if isOwner(uid) && validChild() && data().createdAt == resource.data.createdAt;
+        allow update: if isOwner(uid) && validChild() && data().createdAt == resource.data.createdAt
+          && (hasConsented(uid) || onlyArchiving());
 
         match /brushingSlots/{slotId} {
           allow read, delete: if isOwner(uid);
-          allow create: if isOwner(uid) && validSlot() && childIsLive(uid, childId);
-          allow update: if isOwner(uid) && validSlot() && data().createdAt == resource.data.createdAt && childIsLive(uid, childId);
+          allow create: if isOwner(uid) && validSlot() && childIsLive(uid, childId) && hasConsented(uid);
+          allow update: if isOwner(uid) && validSlot() && data().createdAt == resource.data.createdAt && childIsLive(uid, childId) && hasConsented(uid);
         }
 
         match /brushingSessions/{sessionId} {
           allow read, delete: if isOwner(uid);
           // Create and update: a retried save overwrites the same id.
-          allow create, update: if isOwner(uid) && validSession() && childIsLive(uid, childId);
+          allow create, update: if isOwner(uid) && validSession() && childIsLive(uid, childId) && hasConsented(uid);
         }
 
         match /toothEvents/{eventId} {
           allow read, delete: if isOwner(uid);
-          allow create, update: if isOwner(uid) && validToothEvent() && childIsLive(uid, childId);
+          allow create, update: if isOwner(uid) && validToothEvent() && childIsLive(uid, childId) && hasConsented(uid);
         }
       }
 
@@ -163,6 +221,17 @@ service cloud.firestore {
         allow read, delete: if isOwner(uid);
         allow create, update: if isOwner(uid) && validCategory() && hasConsented(uid);
       }
+    }
+
+    // Erasure marker: written once when account deletion starts (rewritten on a
+    // retry), never deleted by the client. Holds only the start time.
+    // ponytail: a trusted worker (Cloud Function) should finish an abandoned
+    // erasure and delete the marker with the Auth user; see ADR 0007.
+    match /erasures/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && data().keys().hasAll(['startedAt']) && data().keys().hasOnly(['startedAt'])
+        && data().startedAt == request.time;
     }
   }
 }

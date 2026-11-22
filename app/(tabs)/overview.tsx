@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DentalArch, DentalArchLegend } from '@/components/teeth/DentalArch';
+import { DentalArch, DentalArchLegend, ToothStatusSwatch } from '@/components/teeth/DentalArch';
 import { GlassSurface } from '@/components/ui/GlassSurface';
 import { Card } from '@/components/ui/Card';
 import { SectionTitle } from '@/components/ui/SectionTitle';
@@ -66,19 +66,10 @@ function CornerButton({
   );
 }
 
-function StatCard({ count, label, color }: { count: number; label: string; color: string }) {
+function StatCard({ count, label, status }: { count: number; label: string; status: 'symptom' | 'treatment' }) {
   return (
     <Card padding={16} style={{ flex: 1, rowGap: 6 }}>
-      <View
-        style={{
-          width: 20,
-          height: 20,
-          borderRadius: 6,
-          backgroundColor: color,
-          borderWidth: 2,
-          borderColor: tokens.line,
-        }}
-      />
+      <ToothStatusSwatch status={status} />
       <Text className="font-numeric" style={{ fontSize: 36, color: tokens.textPrimary, lineHeight: 40 }}>
         {count}
       </Text>
@@ -127,7 +118,7 @@ export default function OverviewScreen() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 22 }}>
         <TabHeader title={t('overview.title')} />
 
-        <Card tone="soft" padding={CARD_PADDING} radius={radius.xl}>
+        <Card tone="plain" padding={CARD_PADDING} radius={radius.xl}>
           {kidMode ? null : (
             <>
               <CornerButton
@@ -173,8 +164,8 @@ export default function OverviewScreen() {
         <View>
           <SectionTitle>{t('overview.thisYear')}</SectionTitle>
           <View style={{ flexDirection: 'row', columnGap: 12 }}>
-            <StatCard count={counts.symptoms} label={t('overview.symptoms')} color={tokens.warning} />
-            <StatCard count={counts.treatments} label={t('overview.treatments')} color={tokens.brandPrimary} />
+            <StatCard count={counts.symptoms} label={t('overview.symptoms')} status="symptom" />
+            <StatCard count={counts.treatments} label={t('overview.treatments')} status="treatment" />
           </View>
         </View>
 

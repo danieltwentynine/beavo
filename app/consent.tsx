@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { Check } from 'phosphor-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
@@ -8,34 +8,105 @@ import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { signOutParent } from '@/lib/account';
 import { leaveLocalMode } from '@/lib/localData';
-import { acceptConsent } from '@/lib/consent';
+import { acceptConsent, checkConsent } from '@/lib/consent';
 import { t } from '@/lib/i18n';
 import { LEGAL_URLS } from '@/lib/legal';
-import { controlBorder, radius, tokens } from '@/lib/tokens';
+import { cardShadow, controlBorder, radius, tokens } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
+import { useNoticeStore } from '@/stores/noticeStore';
 
 /**
- * Parent consent to the Terms and Privacy Policy (LGPD art. 14: specific
- * consent from a parent for children's data). The box starts unchecked and is
- * required. Shown again whenever LEGAL_VERSIONS changes.
+ * Parent consent (LGPD art. 14: specific consent from a parent for children's
+ * data). Two separate items, each in its own highlighted card, both starting
+ * unchecked and both required: the Terms + Privacy Policy, and the children's
+ * dental (health) records. Shown again whenever LEGAL_VERSIONS changes.
+ * The rules take the versions and the time from the server side (firestore.rules
+ * validNewConsent). How the parent is verified is still open (lawyer review,
+ * docs/decisions/0006-fix-sprint-v1-decisions.md).
  */
+type ConsentItem = 'terms' | 'health';
+
+function ConsentCheck({ label, checked, onToggle }: { label: string; checked: boolean; onToggle: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      accessibilityLabel={label}
+      onPress={onToggle}
+      style={{
+        flexDirection: 'row',
+        columnGap: 14,
+        alignItems: 'flex-start',
+        padding: 16,
+        borderRadius: radius.lg,
+        backgroundColor: checked ? tokens.primarySoft : tokens.surfaceCard,
+        ...cardShadow,
+      }}
+    >
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: radius.sm,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: checked ? tokens.brandPrimary : tokens.surfaceCard,
+          ...controlBorder,
+        }}
+      >
+        {checked ? <Check size={20} color={tokens.textOnBrand} weight="bold" /> : null}
+      </View>
+      <Text className="font-body" style={{ flex: 1, fontSize: 16, lineHeight: 23, color: tokens.textPrimary }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 export default function ConsentScreen() {
   const user = useAuthStore((s) => s.user);
   const ownerId = useAuthStore(ownerIdOf);
   const status = useAuthStore((s) => s.consent);
   const setConsent = useAuthStore((s) => s.setConsent);
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState<Record<ConsentItem, boolean>>({ terms: false, health: false });
   const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const allChecked = checked.terms && checked.health;
+  const lateRefusal = useNoticeStore((s) => s.notice?.key === 'consent.saveFailed');
+  const toggle = (item: ConsentItem) => setChecked((c) => ({ ...c, [item]: !c[item] }));
   // Apple Kids Category: external links sit behind the grown-ups check, even here.
   // A first-time parent has no PIN yet: the written question, never "choose a PIN".
   const { gate, requireParent } = useParentalGate('noNewPin');
 
-  const onAccept = async () => {
-    if (!ownerId || !checked) return;
+  // Only a server-confirmed consent opens the app; 'pending' stays here (lib/consent.ts).
+  useEffect(() => {
+    if (status === 'ok') router.replace('/');
+  }, [status]);
+
+  const accept = async () => {
+    if (!ownerId || !allChecked) return;
     setSaving(true);
-    await acceptConsent({ uid: ownerId, displayName: user?.displayName });
-    setConsent('ok');
-    router.replace('/');
+    setFailed(false);
+    let result: Awaited<ReturnType<typeof acceptConsent>>;
+    try {
+      result = await acceptConsent({ uid: ownerId });
+    } catch {
+      result = 'needed';
+    }
+    setSaving(false);
+    if (result === 'needed' || result === 'updated') setFailed(true);
+    setConsent(result);
+  };
+  // The acceptance itself is a grown-ups action, like the legal links. How the
+  // parent is verified beyond this is still open (lawyer, ADR 0007).
+  const onAccept = () => requireParent(() => void accept());
+
+  const retry = async () => {
+    if (!ownerId) return;
+    setSaving(true);
+    const result = await checkConsent(ownerId);
+    setSaving(false);
+    setConsent(result);
   };
 
   const onSignOut = async () => {
@@ -67,32 +138,30 @@ export default function ConsentScreen() {
           {link(t('consent.privacy'), LEGAL_URLS.privacy)}
         </View>
 
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked }}
-          onPress={() => setChecked((c) => !c)}
-          style={{ flexDirection: 'row', columnGap: 14, alignItems: 'flex-start', marginTop: 22 }}
-        >
-          <View
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: radius.sm,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: checked ? tokens.brandPrimary : tokens.surfaceCard,
-              ...controlBorder,
-            }}
-          >
-            {checked ? <Check size={20} color={tokens.textOnBrand} weight="bold" /> : null}
+        {status === 'pending' ? (
+          <View style={{ marginTop: 22, padding: 16, borderRadius: radius.lg, backgroundColor: tokens.surfaceCard, ...cardShadow }}>
+            <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 16, lineHeight: 23, color: tokens.textPrimary }}>
+              {t('consent.pendingOnline')}
+            </Text>
           </View>
-          <Text className="font-body" style={{ flex: 1, fontSize: 16, lineHeight: 23, color: tokens.textPrimary }}>
-            {t('consent.checkbox')}
-          </Text>
-        </Pressable>
+        ) : (
+          <>
+            <View style={{ marginTop: 22, rowGap: 12 }}>
+              <ConsentCheck label={t('consent.checkTerms')} checked={checked.terms} onToggle={() => toggle('terms')} />
+              <ConsentCheck label={t('consent.checkHealth')} checked={checked.health} onToggle={() => toggle('health')} />
+            </View>
+            {!allChecked ? <Text className="mt-3 font-body text-sm text-muted">{t('consent.required')}</Text> : null}
+          </>
+        )}
+        {/* A late refusal (after 'pending') arrives as a notice; shown here too, since the banner needs loaded child data. */}
+        {failed || lateRefusal ? <Text className="mt-3 font-body-semi text-base text-ink">{t('consent.saveFailed')}</Text> : null}
 
         <View style={{ marginTop: 'auto', paddingTop: 28, rowGap: 12 }}>
-          <Button label={t('consent.continue')} size="lg" onPress={onAccept} disabled={!checked} loading={saving} />
+          {status === 'pending' ? (
+            <Button label={t('consent.retry')} size="lg" onPress={() => void retry()} loading={saving} />
+          ) : (
+            <Button label={t('consent.continue')} size="lg" onPress={onAccept} disabled={!allChecked} loading={saving} />
+          )}
           <Button label={user ? t('consent.signOut') : t('childForm.back')} variant="ghost" onPress={onSignOut} />
         </View>
       </ScrollView>

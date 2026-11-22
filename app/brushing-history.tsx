@@ -59,7 +59,7 @@ export default function BrushingHistoryScreen() {
                   {formatWhen(s.startedAt)} · {formatDuration(s.durationSec)}
                 </Text>
               </View>
-              <Badge label={status} tone={s.completed ? 'primary' : 'warning'} solid={s.completed} />
+              <Badge label={status} tone={s.completed ? 'primary' : 'neutral'} solid={s.completed} />
             </Card>
           );
         }}

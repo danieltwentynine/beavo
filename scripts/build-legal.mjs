@@ -22,11 +22,11 @@ const files = readdirSync(src).filter((f) => f.endsWith('.md'));
 for (const file of files) {
   const md = readFileSync(new URL(file, src), 'utf8');
   const doc = file.split('.')[0];
-  const version = md.match(/\*\*(?:Versão|Version):\*\* (\S+)/)?.[1];
+  const version = md.match(/\*\*(?:Versão|Version|Versión):\*\* (\S+)/)?.[1];
   if (!expected[doc] || version !== expected[doc]) {
     throw new Error(`${file}: version ${version} does not match LEGAL_VERSIONS in lib/legal.ts (${expected[doc]})`);
   }
-  const lang = file.includes('.pt-BR.') ? 'pt-BR' : 'en';
+  const lang = file.includes('.pt-BR.') ? 'pt-BR' : file.includes('.es.') ? 'es' : 'en';
   const title = md.match(/^# (.+)$/m)?.[1] ?? 'Beavo';
   const html = `<!doctype html>
 <html lang="${lang}">

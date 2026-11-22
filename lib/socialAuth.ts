@@ -19,14 +19,15 @@ import {
   type User,
 } from 'firebase/auth';
 
+import { env } from '@/lib/env';
 import { auth } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 
 GoogleSignin.configure({
   // Web client ID is what Firebase verifies the ID token against — required
   // even though this is a native app.
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  webClientId: env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  iosClientId: env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
 });
 
 export type SocialSignInResult =

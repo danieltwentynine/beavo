@@ -49,7 +49,7 @@ In dependency order.
 ### QA fixes from the 2026-11-18 screenshots (2026-11-19)
 - [x] Consent: Terms/Privacy links ask the written question when there is no PIN (no PIN creation before consent)
 - [x] Settings: choose / change the grown-ups PIN; PIN field remounts on every step (a stuck confirm field was seen once)
-- [x] More tab renamed **Family** (provisional; needs product review), legal paths updated
+- [x] More tab renamed **Family** (provisional), legal paths updated — since renamed **Grownups / Adultos / Adultos** in Fix Sprint v1 (ADR 0007)
 - [x] Brushing start button: halo, button and caption no longer overlap; "Brush again" keeps the chosen slot
 - [x] Brushing History rows open a session summary (`app/session-review.tsx`)
 - [x] Session: ring arc matches the clock, digits centred, cue grouped with the map, cheer sticker pops in (cross-fade with Reduce Motion)

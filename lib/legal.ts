@@ -5,13 +5,13 @@ import { locale } from '@/lib/i18n';
  * document changes in substance: every parent is asked to accept again.
  * Must match the version line at the top of the matching files in /legal.
  */
-export const LEGAL_VERSIONS = { terms: '2026-11-11', privacy: '2026-11-11' } as const;
+export const LEGAL_VERSIONS = { terms: '2026-11-22', privacy: '2026-11-22' } as const;
 
 /** Firebase Hosting default domain for project `beavo-dental` (see firebase.json > hosting). */
 const LEGAL_BASE_URL = 'https://beavo-dental.web.app/legal';
 
-// The documents exist in Portuguese and English only; Spanish devices get the English ones.
-const legalLocale = locale === 'pt-BR' ? 'pt-BR' : 'en';
+// The documents exist in Portuguese, Spanish and English; the Spanish ones are machine-assisted translations of the Portuguese, pending native review.
+const legalLocale = locale;
 
 export const LEGAL_URLS = {
   terms: `${LEGAL_BASE_URL}/terms.${legalLocale}.html`,

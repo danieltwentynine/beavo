@@ -127,7 +127,7 @@ export default function ToothSheet() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
                         <Badge
                           label={t(e.type === 'symptom' ? 'event.symptom' : 'event.treatment')}
-                          tone={e.type === 'symptom' ? 'warning' : 'primary'}
+                          tone={e.type === 'symptom' ? 'symptom' : 'primary'}
                         />
                         <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
                           {formatEventDate(e.date)}

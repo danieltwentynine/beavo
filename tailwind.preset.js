@@ -44,7 +44,15 @@ module.exports = {
         "glass-session-solid": "#FFFFFF",
         "tab-on": "rgba(10,116,110,0.12)",
         "icon-dark-bg": "#0F1E1D",
-        "icon-dark-glow": "#0A746E"
+        "icon-dark-glow": "#0A746E",
+        "camera-scrim": "rgba(15,30,29,0.62)",
+        "on-camera": "#FFFFFF",
+        "session-pill": "rgba(255,255,255,0.88)",
+        "pause-veil": "rgba(15,30,29,0.72)",
+        "symptom": "#B45309",
+        "on-symptom": "#FFFFFF",
+        "symptom-soft": "#FCE9D4",
+        "symptom-ink": "#7A3A06"
       },
       "fontFamily": {
         "display": [

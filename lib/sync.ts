@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FirebaseError } from 'firebase/app';
 
 import { db } from '@/lib/firebase';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { OUTBOX_KEY, decodeOutbox, encodeOutbox, upsertEntry, type PendingSession } from '@/src/data/outbox';
 import { writeSession } from '@/src/data/sessions';
 
@@ -53,9 +54,13 @@ async function send(entry: PendingSession): Promise<boolean> {
     await mutateOutbox((es) => es.filter((e) => e.id !== entry.id));
     return true;
   } catch (error) {
-    // Refused by the rules: the child was deleted (possibly on another device).
-    // Retrying can never succeed, so drop it instead of keeping it forever.
-    if (error instanceof FirebaseError && error.code === 'permission-denied') {
+    // Refused by the rules while this parent's consent is current: the child was
+    // deleted (possibly on another device), so a retry can never succeed — drop
+    // it. Refused while consent isn't current (e.g. new document versions not
+    // accepted yet, firestore.rules hasConsented): keep it for after re-consent.
+    const auth = useAuthStore.getState();
+    const consentCurrent = ownerIdOf(auth) === entry.uid && auth.consent === 'ok';
+    if (error instanceof FirebaseError && error.code === 'permission-denied' && consentCurrent) {
       await mutateOutbox((es) => es.filter((e) => e.id !== entry.id));
     }
     return false;

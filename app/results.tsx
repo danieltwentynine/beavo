@@ -26,7 +26,7 @@ export default function ResultsScreen() {
   const retrySave = useSessionStore((s) => s.saveLastResult);
 
   if (!result) {
-    return <Redirect href="/(tabs)/overview" />;
+    return <Redirect href="/(tabs)/brushing" />;
   }
 
   const title = result.score >= 80 ? t('results.great') : t('results.good');
@@ -64,6 +64,11 @@ export default function ResultsScreen() {
         </View>
 
         <CoachCard score={result.score} message={result.coachMessage} style={{ width: '100%' }} />
+        {result.totalSec < 120 ? (
+          <Text className="font-body" style={{ marginTop: 12, fontSize: 16, color: tokens.textSecondary, textAlign: 'center' }}>
+            {t('results.shortTimer')}
+          </Text>
+        ) : null}
 
         {/* Save state, in the child's language — never an error message, and it
             never blocks the buttons below. "Saving" only lasts a few seconds: the

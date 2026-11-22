@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import { useRetryingWatch } from '@/hooks/useRetryingWatch';
 import { db } from '@/lib/firebase';
 import { loadSnapshot, saveSnapshot, useChildStore } from '@/stores/childStore';
 import { watchChildren } from '@/src/data/children';
@@ -11,11 +12,14 @@ import { watchSlots } from '@/src/data/slots';
  * starts from the on-device snapshot, then live listeners take over (they also
  * reflect offline writes at once). Without an account (`LOCAL_UID`) the data is
  * already on the device, so there is no snapshot to keep.
+ * A listener that fails is retried (hooks/useRetryingWatch.ts) without
+ * clearing what is on screen; the parent sees a notice meanwhile.
  * Mounted once, in app/_layout.tsx.
  */
 export function useChildDataSync(uid: string | null): void {
   const activeChildId = useChildStore((s) => s.activeChildId);
 
+  // Per owner: the stored snapshot, persisting it, and clearing on change of owner.
   useEffect(() => {
     if (!uid) return;
     let cancelled = false;
@@ -25,25 +29,41 @@ export function useChildDataSync(uid: string | null): void {
         if (snap && !cancelled) useChildStore.getState().hydrate(snap);
       });
     }
-    const stopChildren = watchChildren(db, uid, (children, fromCache) => {
-      // A cold offline cache reports zero children; treating that as real would
-      // send the parent to child setup and create a duplicate profile.
-      if (children.length === 0 && fromCache) return;
-      useChildStore.getState().setChildren(children);
-    });
     const stopPersisting = useChildStore.subscribe((s) => {
       if (snapshots && s.loaded) void saveSnapshot(uid, s);
     });
     return () => {
       cancelled = true;
-      stopChildren();
       stopPersisting();
       useChildStore.getState().reset();
     };
   }, [uid]);
 
-  useEffect(() => {
-    if (!uid || !activeChildId) return;
-    return watchSlots(db, uid, activeChildId, (slots) => useChildStore.getState().setSlots(activeChildId, slots));
-  }, [uid, activeChildId]);
+  useRetryingWatch('children', uid, (onError, onLive) =>
+    watchChildren(
+      db,
+      uid as string,
+      (children, fromCache) => {
+        onLive();
+        // A cold offline cache reports zero children; treating that as real would
+        // send the parent to child setup and create a duplicate profile.
+        if (children.length === 0 && fromCache) return;
+        useChildStore.getState().setChildren(children);
+      },
+      onError,
+    ),
+  );
+
+  useRetryingWatch('slots', uid && activeChildId ? `${uid}/${activeChildId}` : null, (onError, onLive) =>
+    watchSlots(
+      db,
+      uid as string,
+      activeChildId as string,
+      (slots) => {
+        onLive();
+        useChildStore.getState().setSlots(activeChildId as string, slots);
+      },
+      onError,
+    ),
+  );
 }
