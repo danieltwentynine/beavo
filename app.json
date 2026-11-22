@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.beavo.app",
+      "bundleIdentifier": "com.dcrds.beavo",
       "infoPlist": {
         "NSCameraUsageDescription": "Beavo uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
       },
@@ -26,7 +26,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.beavo.app"
+      "package": "com.dcrds.beavo"
     },
     "plugins": [
       "expo-router",

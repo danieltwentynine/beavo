@@ -14,7 +14,12 @@ The full repo review of 2026-11-21 (snapshot `ea9fb01`) raised four decisions on
    - Its score is capped at **90** (`SHORT_RUN_SCORE_CAP`) — **placeholder — needs owner confirmation** — so it never reaches 100 or the perfect message (`coach.perfect` now needs a score of 100, `isPerfectScore`).
    - The cap value comes from the design spec (Iris) and still needs the owner's confirmation.
    - `SessionResult.totalSec` carries the chosen length, so Results can explain the cap.
-2. **Identifiers.** iOS `bundleIdentifier` and Android `package` are `com.beavo.app`, matching the iOS and Android apps registered in Firebase project `beavo-dental`.
+2. **Identifiers.** iOS `bundleIdentifier` and Android `package` are both `com.dcrds.beavo` (2026-11-22).
+   - History: Apple refused `com.beavo.app` as "not available" because another team owns it; the owner then chose `com.dcrds.beavo` for both platforms.
+   - Firebase `beavo-dental` has an iOS app for `com.dcrds.beavo` (`1:1046400663421:ios:35857bd8f14d94a766d614`), with its own auto-created Google iOS OAuth client. `.env.local` already points `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` to that client.
+   - The JS SDK uses the beavo-dental *web* app id, so `EXPO_PUBLIC_FIREBASE_APP_ID` is unchanged.
+   - The Firebase Android app is still registered for the old id: register a new Android app for `com.dcrds.beavo` before the first Android build.
+   - The owner can delete the old iOS apps in Firebase (the two earlier ids).
    - **EAS project:** `@dnlcrds/beavo` (2026-11-22, `eas init --id 8e404b74-…`, run at the owner's request). `slug` is `beavo`, `owner` is `dnlcrds`, and `extra.eas.projectId` points to the new project. Earlier projects `@zing-dental-ai/zing` and `@zing-dental-ai/beavo` are no longer linked (not deleted).
 3. **Tab name.** The More tab shows **Grownups / Adultos / Adultos** (pt-BR / en / es keys `tabs.more`, `more.title`; owned by Quill and Pixel), matching the PIN and gate wording.
 4. **Consent hardening (code).**
@@ -48,7 +53,7 @@ The full repo review of 2026-11-21 (snapshot `ea9fb01`) raised four decisions on
 - Consent records from before this change lack `healthData`, so every parent is asked once again, on their next launch.
 - Still open, needing the owner:
   - (done 2026-11-22) EAS project relinked to `@dnlcrds/beavo` (owner `dnlcrds`)
-  - confirming in Google Cloud that the beavo-dental iOS OAuth client is registered for `com.beavo.app`, and setting `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` in each EAS environment. Then test Google sign-in on an internal build. The scheme is now derived from the variable (it used to be hard-coded to project `925227389891`).
+  - setting `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` (the auto-created iOS OAuth client of the `com.dcrds.beavo` Firebase iOS app) in each EAS environment, then testing Google sign-in on an internal build. The scheme is derived from the variable (it used to be hard-coded to project `925227389891`).
   - The erasure marker stays after deletion: it holds only the uid as the document id and a start time. A trusted worker (Cloud Function) that finishes abandoned erasures, removes the marker with the Auth user, and sweeps subcollections under a child document that is already gone (one only a modified client could create) is still open. Rules cannot check that a collection is empty.
   - confirming the cap of 90 (placeholder — needs owner confirmation; only `SHORT_RUN_SCORE_CAP` in `src/data/score.ts` changes)
   - the parent-verification method (lawyer)
