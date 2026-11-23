@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
-import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { signOutParent } from '@/lib/account';
 import { leaveLocalMode } from '@/lib/localData';
@@ -74,9 +73,8 @@ export default function ConsentScreen() {
   const allChecked = checked.terms && checked.health;
   const lateRefusal = useNoticeStore((s) => s.notice?.key === 'consent.saveFailed');
   const toggle = (item: ConsentItem) => setChecked((c) => ({ ...c, [item]: !c[item] }));
-  // Apple Kids Category: external links sit behind the grown-ups check, even here.
-  // A first-time parent has no PIN yet: the written question, never "choose a PIN".
-  const { gate, requireParent } = useParentalGate('noNewPin');
+  // Owner rule: the grown-ups check is only for app settings and child management.
+  // Sign-up stays simple: the legal links open directly and accepting needs only the two items.
 
   // Only a server-confirmed consent opens the app; 'pending' stays here (lib/consent.ts).
   useEffect(() => {
@@ -97,9 +95,8 @@ export default function ConsentScreen() {
     if (result === 'needed' || result === 'updated') setFailed(true);
     setConsent(result);
   };
-  // The acceptance itself is a grown-ups action, like the legal links. How the
-  // parent is verified beyond this is still open (lawyer, ADR 0007).
-  const onAccept = () => requireParent(() => void accept());
+  // No grown-ups check here (owner rule). How the parent is verified is still open (lawyer, ADR 0007).
+  const onAccept = () => void accept();
 
   const retry = async () => {
     if (!ownerId) return;
@@ -117,7 +114,7 @@ export default function ConsentScreen() {
   };
 
   const link = (label: string, url: string) => (
-    <Pressable accessibilityRole="link" onPress={() => requireParent(() => void Linking.openURL(url).catch(() => undefined))} hitSlop={6} style={{ minHeight: 48, justifyContent: 'center' }}>
+    <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(url).catch(() => undefined)} hitSlop={6} style={{ minHeight: 48, justifyContent: 'center' }}>
       <Text className="font-display-semi" style={{ fontSize: 17, color: tokens.textLink, textDecorationLine: 'underline' }}>
         {label}
       </Text>
@@ -165,7 +162,6 @@ export default function ConsentScreen() {
           <Button label={user ? t('consent.signOut') : t('childForm.back')} variant="ghost" onPress={onSignOut} />
         </View>
       </ScrollView>
-      {gate}
     </SafeScreen>
   );
 }

@@ -61,8 +61,10 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /**
- * Parent area (hidden in kid mode). Apple Kids Category: every external link,
- * purchase, backup and destructive action goes through the parental gate.
+ * Parent area (hidden in kid mode). Owner rule: the grown-ups check guards only
+ * app settings and child management — settings, routine, categories, backup,
+ * account deletion and erasing data. Legal and review links, sign-in and
+ * sign-out open directly.
  */
 export default function MoreTab() {
   const [busy, setBusy] = useState<'export' | 'import' | 'delete' | null>(null);
@@ -222,18 +224,18 @@ export default function MoreTab() {
         <Section title={t('more.app')}>
           <ListRow Icon={Gear} label={t('more.settings')} onPress={() => requireParent(() => router.push('/settings'))} last={!reviewUrl} />
           {reviewUrl ? (
-            <ListRow Icon={Star} label={t('more.review')} external onPress={() => requireParent(() => void openExternal(reviewUrl))} last />
+            <ListRow Icon={Star} label={t('more.review')} external onPress={() => void openExternal(reviewUrl)} last />
           ) : null}
         </Section>
 
         <Section title={t('more.legal')}>
-          <ListRow Icon={FileText} label={t('more.termsAndConditions')} external onPress={() => requireParent(() => void openExternal(LEGAL_URLS.terms))} />
-          <ListRow Icon={ShieldCheck} label={t('consent.privacy')} external onPress={() => requireParent(() => void openExternal(LEGAL_URLS.privacy))} last />
+          <ListRow Icon={FileText} label={t('more.termsAndConditions')} external onPress={() => void openExternal(LEGAL_URLS.terms)} />
+          <ListRow Icon={ShieldCheck} label={t('consent.privacy')} external onPress={() => void openExternal(LEGAL_URLS.privacy)} last />
         </Section>
 
         {signedIn ? (
           <Section title={t('more.account')}>
-            <ListRow Icon={SignOut} label={t('more.signOut')} onPress={() => requireParent(confirmSignOut)} />
+            <ListRow Icon={SignOut} label={t('more.signOut')} onPress={confirmSignOut} />
             <ListRow
               Icon={Trash}
               label={t('more.delete')}
@@ -245,8 +247,8 @@ export default function MoreTab() {
         ) : (
           <View style={{ rowGap: 10 }}>
             <Section title={t('more.device')}>
-              <ListRow Icon={UserPlus} label={t('more.createAccount')} onPress={() => requireParent(() => router.push('/(auth)/register'))} />
-              <ListRow Icon={SignOut} label={t('more.haveAccount')} onPress={() => requireParent(() => router.push('/(auth)/login'))} />
+              <ListRow Icon={UserPlus} label={t('more.createAccount')} onPress={() => router.push('/(auth)/register')} />
+              <ListRow Icon={SignOut} label={t('more.haveAccount')} onPress={() => router.push('/(auth)/login')} />
               <ListRow
                 Icon={Trash}
                 label={t('more.erase')}

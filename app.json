@@ -11,12 +11,16 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.dcrds.beavo",
       "infoPlist": {
-        "NSCameraUsageDescription": "Beavo uses the front camera only as a mirror so your child can see themselves while brushing. Nothing is recorded, saved or sent."
+        "NSCameraUsageDescription": "O Beavo usa a câmera frontal apenas como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado.",
+        "CFBundleDevelopmentRegion": "pt-BR"
       },
       "icon": {
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png",
         "tinted": "./assets/icon-tinted.png"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -55,7 +59,7 @@
       [
         "expo-secure-store",
         {
-          "faceIDPermission": "Beavo uses Face ID only to confirm a grown-up before the parental PIN is created or changed."
+          "faceIDPermission": "O Beavo usa o Face ID apenas para confirmar que é um adulto antes de criar ou trocar o PIN dos pais."
         }
       ]
     ],
@@ -67,9 +71,7 @@
     },
     "owner": "dnlcrds",
     "locales": {
-      "en": "./locales/en.json",
-      "pt-BR": "./locales/pt-BR.json",
-      "es": "./locales/es.json"
+      "pt-BR": "./locales/pt-BR.json"
     }
   }
 }

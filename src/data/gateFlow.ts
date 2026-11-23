@@ -12,11 +12,9 @@
 
 /**
  * - `check` (default): the PIN; a phone without one chooses it first.
- * - `noNewPin`: the PIN if there is one, else the written question. Never asks
- *   to choose a PIN (reading the Terms before consent).
  * - `choosePin`: confirm the phone's owner, then choose a new PIN (Settings).
  */
-export type GateMode = 'check' | 'noNewPin' | 'choosePin';
+export type GateMode = 'check' | 'choosePin';
 
 export type GateStep = 'pin' | 'owner' | 'math' | 'create' | 'confirm';
 
@@ -31,8 +29,7 @@ export type GateNext = GateStep | 'pass' | 'blocked' | 'retry' | 'stay';
 
 export function firstGateStep(mode: GateMode, pinExists: boolean): GateStep {
   if (mode === 'choosePin') return 'owner';
-  if (pinExists) return 'pin';
-  return mode === 'noNewPin' ? 'math' : 'owner';
+  return pinExists ? 'pin' : 'owner';
 }
 
 export function afterOwnerCheck(outcome: OwnerCheck, pinExists: boolean): GateNext {
@@ -44,7 +41,7 @@ export function afterOwnerCheck(outcome: OwnerCheck, pinExists: boolean): GateNe
   return pinExists ? 'blocked' : 'math';
 }
 
-export function afterRightAnswer(mode: GateMode, pinExists: boolean): GateNext {
+export function afterRightAnswer(pinExists: boolean): GateNext {
   if (pinExists) return 'blocked';
-  return mode === 'noNewPin' ? 'pass' : 'create';
+  return 'create';
 }

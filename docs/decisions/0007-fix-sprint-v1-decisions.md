@@ -42,6 +42,12 @@ The full repo review of 2026-11-21 (snapshot `ea9fb01`) raised four decisions on
 
    Until counsel answers, cloud collection stays behind the two consent items only.
 
+6. **Gate scope (owner, 2026-11-23, after the TestFlight test):** "The parental control is only for app settings and child management." Sign-up has no gate: the legal links open directly, and Accept needs only the two items, for email and Google alike. The `noNewPin` gate mode is removed. This supersedes the earlier rule that gated every external link, and it may matter for the Apple Kids Category, which expects a parental gate before links that leave the app. Check this before choosing that category.
+7. **Branch `user-test-ptbr` only:** every device runs in pt-BR (user tests in Brazil).
+   - `FORCED_LOCALE = 'pt-BR'` in `lib/i18n.ts`.
+   - In `app.json`: `locales` has pt-BR only, `ios.infoPlist.CFBundleDevelopmentRegion` is `pt-BR`, and the base camera text (`NSCameraUsageDescription`) and the Face ID text (`faceIDPermission`) are in pt-BR, so the iOS permission prompts show in Portuguese even on an English iPhone.
+   - To revert: set `FORCED_LOCALE` to `null`, and restore the `en`/`es` locales and the English base texts in `app.json` (as on `fix-sprint-v1`).
+
 ## Alternatives considered
 - Drop the score entirely (it contradicts Terms §2 and CLINICAL.md "no scores"): the owner chose to keep /100. Quill aligns the copy.
 - Count short runs as not completed: rejected; the child did what the parent set.

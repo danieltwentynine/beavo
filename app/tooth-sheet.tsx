@@ -46,10 +46,8 @@ export default function ToothSheet() {
   const [date, setDate] = useState(today);
   const [error, setError] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
-  // What to do once the grown-ups check passes. Batch logging opens straight into the form, so it starts gated.
-  const [pending, setPending] = useState<{ add: ToothEventType } | { deleteId: string } | null>(
-    single ? null : { add: 'symptom' },
-  );
+  // Owner rule: the grown-ups check guards deleting a child's records only; adding one opens directly.
+  const [pending, setPending] = useState<{ deleteId: string } | null>(null);
 
   if (!uid || !child || teeth.length === 0) return null;
   const childId = child.id;
@@ -64,7 +62,7 @@ export default function ToothSheet() {
     setError(null);
   };
 
-  const startForm = (type: ToothEventType) => (unlocked ? openForm(type) : setPending({ add: type }));
+  const startForm = (type: ToothEventType) => openForm(type);
 
   const save = () => {
     if (!formType) return;
@@ -215,13 +213,9 @@ export default function ToothSheet() {
             const action = pending;
             setPending(null);
             setUnlocked(true);
-            if (action && 'add' in action) openForm(action.add);
-            else if (action) deleteEvent(action.deleteId);
+            if (action) deleteEvent(action.deleteId);
           }}
-          onCancel={() => {
-            setPending(null);
-            if (!single) router.back();
-          }}
+          onCancel={() => setPending(null)}
         />
       </KeyboardAvoidingView>
     </GlassSurface>

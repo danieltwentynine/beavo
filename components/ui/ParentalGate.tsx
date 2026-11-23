@@ -117,7 +117,7 @@ export function ParentalGate({ visible, onPass, onCancel, mode = 'check' }: Pare
   const confirmOwner = async () => follow(afterOwnerCheck(await ownerCheck(), pinExists));
 
   const submitAnswer = () =>
-    attempt(Number(value) === question.a * question.b, () => follow(afterRightAnswer(mode, pinExists)), 'gate.wrong');
+    attempt(Number(value) === question.a * question.b, () => follow(afterRightAnswer(pinExists)), 'gate.wrong');
 
   const onDigits = (text: string) => {
     const digits = text.replace(/\D/g, '');

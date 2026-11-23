@@ -2,6 +2,8 @@ import { getLocales } from 'expo-localization';
 
 import type { Locale } from '@/types';
 
+import { pickLocale } from '@/src/data/locale';
+
 /**
  * Minimal i18n: pt-BR is the default and the source of keys; English or Spanish
  * when that is the device language. Add a key to all three maps — `en` and `es`
@@ -1350,9 +1352,14 @@ const es: Record<StringKey, string> = {
 
 };
 
-/** The app language for a device language: English and Spanish when the device uses them, pt-BR for everything else. */
-const deviceLanguage = getLocales()[0]?.languageCode;
-export const locale: Locale = deviceLanguage === 'en' ? 'en' : deviceLanguage === 'es' ? 'es' : 'pt-BR';
+// USER-TEST-PTBR BRANCH ONLY: user tests run in Brazil, so every device gets
+// pt-BR, even an iPhone set to English. To restore device-based language
+// (English / Spanish when the device uses them), set this to null — and put
+// the en/es locales back in app.json (see ADR 0007 "user-test-ptbr").
+const FORCED_LOCALE: Locale | null = 'pt-BR';
+
+/** The app language: FORCED_LOCALE when set, else from the device (src/data/locale.ts). */
+export const locale: Locale = pickLocale(getLocales()[0]?.languageCode, FORCED_LOCALE);
 
 const strings: Record<StringKey, string> = { 'pt-BR': ptBR, en, es }[locale];
 
