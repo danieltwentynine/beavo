@@ -365,7 +365,7 @@ const ptBR = {
   'auth.err.disabled': 'Esta conta foi desativada. Fale com o suporte.',
   'auth.err.socialGeneric': 'Não conseguimos entrar na sua conta agora. Tente de novo.',
   'welcome.tagline': 'O amigo da escovação que transforma dois minutos em uma aventura diária.',
-  'welcome.getStarted': 'Começar',
+  'welcome.getStarted': 'Criar conta',
   'welcome.google': 'Continuar com o Google',
   'welcome.haveAccount': 'Já tenho uma conta',
   'login.title': 'Que bom ver você de novo',

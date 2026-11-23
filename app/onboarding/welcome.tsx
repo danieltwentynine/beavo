@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -128,20 +128,40 @@ export default function WelcomeScreen() {
               {signInError}
             </Text>
           ) : null}
-          <Button label={t('welcome.getStarted')} size="lg" onPress={() => router.push('/(auth)/register')} />
+          <Button
+            label={t('welcome.getStarted')}
+            size="lg"
+            style={{ height: 72 }}
+            onPress={() => router.push('/(auth)/register')}
+          />
           <Button
             label={t('welcome.google')}
             variant="outline"
             icon={<GoogleG />}
             loading={googlePending}
+            style={{ height: 72, paddingHorizontal: 8 }}
             onPress={onGoogleSignIn}
           />
-          <Button
-            label={t('welcome.haveAccount')}
-            variant="ghost"
-            onPress={() => router.push('/(auth)/login')}
-          />
-          <Button label={t('local.use')} variant="ghost" onPress={onUseWithoutAccount} />
+          <View className="flex-row gap-2">
+            <Pressable
+              accessibilityRole="button"
+              className="min-h-12 flex-1 items-center justify-center py-2 active:opacity-70"
+              onPress={() => router.push('/(auth)/login')}
+            >
+              <Text className="text-center font-display text-sm leading-5 text-primary">
+                {t('welcome.haveAccount')}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              className="min-h-12 flex-1 items-center justify-center py-2 active:opacity-70"
+              onPress={onUseWithoutAccount}
+            >
+              <Text className="text-center font-display text-sm leading-5 text-primary">
+                {t('local.use')}
+              </Text>
+            </Pressable>
+          </View>
           <Text className="font-body" style={{ fontSize: 14, lineHeight: 20, color: tokens.textSecondary, textAlign: 'center' }}>
             {t('local.note')}
           </Text>
