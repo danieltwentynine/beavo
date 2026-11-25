@@ -49,11 +49,14 @@ export function watchAllSessions(
   db: Firestore,
   uid: string,
   childId: string,
-  onChange: (sessions: BrushingSession[]) => void,
+  onChange: (sessions: BrushingSession[], confirmed?: boolean) => void,
   onError?: WatchErrorHandler,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalSessions(childId, onChange);
-  return onSnapshot(sessionsRef(db, uid, childId), (snap) => onChange(parseDocs(snap, sessionSchema)), onError);
+  return onSnapshot(sessionsRef(db, uid, childId), { includeMetadataChanges: true }, (snap) => {
+    const confirmed = !snap.metadata.fromCache && !snap.metadata.hasPendingWrites;
+    onChange(parseDocs(snap, sessionSchema), confirmed);
+  }, onError);
 }
 
 /** Whether any session uses the slot — asked of the server. Null when it can't be reached. */

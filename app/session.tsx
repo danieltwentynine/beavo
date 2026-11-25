@@ -17,19 +17,32 @@ import { Button } from '@/components/ui/Button';
 import { GlassSurface } from '@/components/ui/GlassSurface';
 import { SideLabels } from '@/components/ui/SideLabels';
 import { useActiveChild } from '@/hooks/useActiveChild';
+import { useSessionHistory } from '@/hooks/useSessions';
 import { brushingCheer, buildCoachMessage } from '@/lib/coach';
 import { ALL_TOOTH_ZONES, COUNTDOWN_SECONDS } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import { cardShadow, motion, radius, tokens } from '@/lib/tokens';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { brushingStoryStep, carriedSessionCount, resolveBrushingStory, type BrushingStory } from '@/src/data/brushingStory';
 import { scoreSession } from '@/src/data/score';
 import type { ToothZone } from '@/types';
 
+function countReachedZones(elapsed: number, total: number) {
+  return Math.min(ALL_TOOTH_ZONES.length, Math.floor((elapsed / total) * ALL_TOOTH_ZONES.length));
+}
+
 export default function SessionScreen() {
   const { child } = useActiveChild();
+  const history = useSessionHistory();
+  const [story, setStory] = useState<{ childId: string; id: BrushingStory } | null>(null);
+  const [foamZone, setFoamZone] = useState<ToothZone>();
   // Slot chosen on the Brushing tab; the length is fixed for this session when it opens.
-  const { slotId } = useLocalSearchParams<{ slotId?: string }>();
+  const { slotId, historyChildId, historyCount } = useLocalSearchParams<{
+    slotId?: string;
+    historyChildId?: string;
+    historyCount?: string;
+  }>();
   const [total] = useState<number>(() => useSettingsStore.getState().brushingDurationSec);
   const setLastResult = useSessionStore((s) => s.setLastResult);
   const saveLastResult = useSessionStore((s) => s.saveLastResult);
@@ -40,7 +53,7 @@ export default function SessionScreen() {
   const timerSize = height < 700 ? 130 : 150;
   const reduceMotion = useReducedMotion();
   const [controlPressed, setControlPressed] = useState(false);
-  // Each new cheer is pressed on like a sticker; with Reduce Motion it cross-fades in instead.
+  // Only the opening cheer animates so later cheers do not overlap the foam effect.
   const cheerIn = reduceMotion
     ? FadeIn.duration(250).reduceMotion(ReduceMotion.Never)
     : ZoomIn.springify().damping(19).stiffness(180);
@@ -64,7 +77,7 @@ export default function SessionScreen() {
   const paused = phase === 'paused';
   const active = phase === 'active';
   const doneVisible = elapsed >= Math.min(30, Math.floor(total / 4));
-  const zonesReached = Math.min(ALL_TOOTH_ZONES.length, Math.floor((elapsed / total) * ALL_TOOTH_ZONES.length));
+  const zonesReached = countReachedZones(elapsed, total);
 
   const zoneStates = useMemo(() => {
     const ns: Partial<Record<ToothZone, ZoneState>> = {};
@@ -95,10 +108,7 @@ export default function SessionScreen() {
     finishedRef.current = true;
 
     const elapsedAtFinish = Math.min(total, Math.max(0, total - remainingRef.current));
-    const reached = Math.min(
-      ALL_TOOTH_ZONES.length,
-      Math.floor((elapsedAtFinish / total) * ALL_TOOTH_ZONES.length),
-    );
+    const reached = countReachedZones(elapsedAtFinish, total);
 
     const final: Partial<Record<ToothZone, ZoneState>> = {};
     const missed: ToothZone[] = [];
@@ -146,6 +156,11 @@ export default function SessionScreen() {
     const interval = setInterval(() => {
       if (AppState.currentState !== 'active') return;
       const next = remainingRef.current - 1;
+      const previousReached = countReachedZones(total - remainingRef.current, total);
+      const nextReached = countReachedZones(total - next, total);
+      if (nextReached > previousReached && !reduceMotion) {
+        setFoamZone(ALL_TOOTH_ZONES[nextReached - 1]);
+      }
       remainingRef.current = next;
       setRemaining(Math.max(0, next));
       if (next <= 0) {
@@ -154,10 +169,19 @@ export default function SessionScreen() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [active, finish]);
+  }, [active, finish, reduceMotion, total]);
 
   const currentZone = ALL_TOOTH_ZONES[Math.min(zonesReached, ALL_TOOTH_ZONES.length - 1)];
   const zoneInstruction = t(`zone.${currentZone}`);
+  const childId = child?.id;
+  const sessionCount = carriedSessionCount(childId, historyChildId, historyCount) ?? history?.confirmedCount ?? null;
+  const currentStory = story?.childId === childId ? story?.id ?? null : null;
+  const selectedStory = phase === 'countdown' ? null : resolveBrushingStory(currentStory, sessionCount);
+  // Lock the first known choice for this child without blocking the brushing guide.
+  if (childId && selectedStory !== null && currentStory !== selectedStory) {
+    setStory({ childId, id: selectedStory });
+  }
+  const storyLine = selectedStory === null ? null : t(`story.${selectedStory}.${brushingStoryStep(zonesReached)}`);
 
   useEffect(() => {
     if (Platform.OS !== 'ios' || askingForCamera || phase !== 'active') return;
@@ -169,6 +193,7 @@ export default function SessionScreen() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state !== 'active' && !finishedRef.current) {
+        setFoamZone(undefined);
         setPhase((current) => current === 'active' ? 'paused' : current);
       }
     });
@@ -183,6 +208,7 @@ export default function SessionScreen() {
         return true;
       }
       if (active) {
+        setFoamZone(undefined);
         setPhase('paused');
         return true;
       }
@@ -200,8 +226,12 @@ export default function SessionScreen() {
 
   const onControlPress = () => {
     if (finishedRef.current) return;
-    if (active) setPhase('paused');
-    else stopWithoutSaving();
+    if (active) {
+      setFoamZone(undefined);
+      setPhase('paused');
+    } else {
+      stopWithoutSaving();
+    }
   };
 
   return (
@@ -259,13 +289,13 @@ export default function SessionScreen() {
           </View>
         ) : (
           <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 20, paddingBottom: 4 }}>
-            <Animated.View key={zonesReached} entering={cheerIn} style={{ marginTop: 8, marginHorizontal: 52 }}>
+            <Animated.View key={zonesReached} entering={zonesReached === 0 ? cheerIn : undefined} style={{ marginTop: 8, marginHorizontal: 52 }}>
               <Sticker label={brushingCheer(zonesReached)} />
             </Animated.View>
 
             <View style={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 8 }}>
               <View style={{ backgroundColor: tokens.surfaceCard, borderRadius: radius.pill, ...cardShadow }}>
-                <MouthMap states={zoneStates} size={mapSize} />
+                <MouthMap states={zoneStates} size={mapSize} foamZone={active && !reduceMotion ? foamZone : undefined} />
               </View>
               <SideLabels left={t('mouth.yourLeft')} right={t('mouth.yourRight')} width={mapSize} session />
               <GlassSurface ground="session" tint={tokens.sessionPill}
@@ -274,6 +304,9 @@ export default function SessionScreen() {
                   style={{ fontSize: 22, lineHeight: 28, color: tokens.textPrimary, textAlign: 'center' }}>
                   {zoneInstruction}
                 </Text>
+                {storyLine ? <Text className="font-body-semi" style={{ fontSize: 16, marginTop: 4, color: tokens.textPrimary, textAlign: 'center' }}>
+                  {storyLine}
+                </Text> : null}
               </GlassSurface>
             </View>
 

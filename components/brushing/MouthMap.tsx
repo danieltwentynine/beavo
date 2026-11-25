@@ -1,4 +1,6 @@
 import { Fragment } from 'react';
+import { View } from 'react-native';
+import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { ToothZone } from '@/types';
@@ -35,9 +37,16 @@ const segments = mouthMapZoneAngles().map(({ zone, start, end }) => {
   return { zone, path: sectorPath(cx, cy, ri, ro, start, end), lx, ly };
 });
 
+const bubbleSettle = new Keyframe({
+  from: { opacity: 1, transform: [{ translateY: 4 }, { scale: 0.7 }] },
+  60: { opacity: 1, transform: [{ translateY: 0 }, { scale: 1 }], easing: Easing.out(Easing.quad) },
+  to: { opacity: 0, transform: [{ translateY: -2 }, { scale: 0.9 }] },
+}).duration(240);
+
 interface MouthMapProps {
   states?: Partial<Record<ToothZone, ZoneState>>;
   size?: number;
+  foamZone?: ToothZone;
 }
 
 /**
@@ -46,7 +55,31 @@ interface MouthMapProps {
  * empty (sunken) → active (white, thick teal ring, foam bubbles) → done (teal + check).
  * Un-brushed zones end as missed (honey yellow + retry glyph) — never red.
  */
-export function MouthMap({ states = {}, size = 220 }: MouthMapProps) {
+export function MouthMap({ states = {}, size = 220, foamZone }: MouthMapProps) {
+  const foam = segments.find(({ zone }) => zone === foamZone);
+
+  const scale = size / 220;
+  return (
+    <View>
+      <MouthMapSvg states={states} size={size} />
+      {foam ? <Animated.View
+        key={foam.zone}
+        entering={bubbleSettle}
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{ position: 'absolute', left: (foam.lx - 8) * scale, top: (foam.ly - 13) * scale }}
+      >
+        <Svg width={18 * scale} height={14 * scale} viewBox="0 0 18 14">
+          <Circle cx={4} cy={9} r={2.4} fill={tokens.primarySoft} />
+          <Circle cx={14} cy={4} r={3} fill={tokens.textOnBrand} />
+        </Svg>
+      </Animated.View> : null}
+    </View>
+  );
+}
+
+function MouthMapSvg({ states, size }: Required<Pick<MouthMapProps, 'states' | 'size'>>) {
   return (
     <Svg width={size} height={size} viewBox="0 0 220 220">
       <Circle cx={cx} cy={cy} r={ri - 8} fill={tokens.primarySoft} />

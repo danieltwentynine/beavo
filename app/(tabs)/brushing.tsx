@@ -19,7 +19,7 @@ import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
 import { useActiveChild } from '@/hooks/useActiveChild';
-import { useSessions } from '@/hooks/useSessions';
+import { useSessionHistory } from '@/hooks/useSessions';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
 import { motion, pressShadow, radius, tokens } from '@/lib/tokens';
@@ -177,7 +177,7 @@ function GrownupsChip({ onPress }: { onPress: () => void }) {
 export default function BrushingTab() {
   const uid = useAuthStore(ownerIdOf);
   const { child, slots } = useActiveChild();
-  const sessions = useSessions();
+  const history = useSessionHistory();
   const now = useNow();
   const today = localDate(now);
   const { gate, requireParent } = useParentalGate();
@@ -204,7 +204,7 @@ export default function BrushingTab() {
 
   // Latest session per slot today.
   const latestBySlot = new Map<string, BrushingSession>();
-  for (const s of sessions) {
+  for (const s of history?.items ?? []) {
     if (s.date !== today) continue;
     const prev = latestBySlot.get(s.slotId);
     if (!prev || s.startedAt > prev.startedAt) latestBySlot.set(s.slotId, s);
@@ -215,7 +215,14 @@ export default function BrushingTab() {
 
   const start = () => {
     if (!target) return;
-    router.push({ pathname: '/session', params: { slotId: target.id } });
+    const knownCount = history?.confirmedCount;
+    router.push({
+      pathname: '/session',
+      params: {
+        slotId: target.id,
+        ...(knownCount != null && child ? { historyChildId: child.id, historyCount: String(knownCount) } : {}),
+      },
+    });
   };
 
   return (

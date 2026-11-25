@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CoachCard } from '@/components/brushing/CoachCard';
+import { DayStamp } from '@/components/brushing/DayStamp';
 import { MouthMap } from '@/components/brushing/MouthMap';
 import { Button } from '@/components/ui/Button';
 import { controlBorder, tokens } from '@/lib/tokens';
@@ -53,6 +54,8 @@ export default function ResultsScreen() {
         <Text className="font-display" style={{ fontSize: 26, color: tokens.textPrimary }}>
           {title}
         </Text>
+
+        <DayStamp />
 
         <View style={{ marginTop: 14, marginBottom: 6 }}>
           <MouthMap states={result.zoneStates} size={200} />
