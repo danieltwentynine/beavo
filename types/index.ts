@@ -10,23 +10,80 @@ export type ToothZone =
   | 'bottom-back-left'
   | 'bottom-back-right';
 
-export interface ChildProfile {
-  id: string;
-  parentUid: string;
-  name: string;
-  age: number;
-  avatarId: string;
-  streakCurrent: number;
-  streakBest: number;
-  totalSessions: number;
-  badges: Badge[];
-  createdAt: Date;
-  lastSessionAt?: Date;
+export type BadgeType = 'streak' | 'perfect' | 'firstSession' | 'weeklyGoal';
+
+export type Locale = 'pt-BR' | 'en' | 'es';
+
+export interface Consent {
+  termsVersion: string;
+  privacyVersion: string;
+  /** The separate consent to children's dental (health) records; missing on records from before 2026-11-22. */
+  healthData?: boolean;
+  acceptedAt: Date;
 }
 
-export interface Badge {
+/** users/{uid} — the parent. Children never have accounts. */
+export interface UserProfile {
+  displayName: string;
+  locale: Locale;
+  createdAt: Date;
+  consent?: Consent;
+}
+
+/** users/{uid}/children/{childId} */
+export interface Child {
   id: string;
   name: string;
-  earnedAt: Date;
-  type: 'streak' | 'perfect' | 'firstSession' | 'weeklyGoal';
+  avatarColor: string;
+  avatarIcon: string;
+  birthYear?: number;
+  kidMode: boolean;
+  createdAt: Date;
+  archivedAt?: Date;
+}
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'custom';
+
+/** users/{uid}/children/{childId}/brushingSlots/{slotId}. Times are local "HH:mm". */
+export interface BrushingSlot {
+  id: string;
+  label: string;
+  icon: string;
+  mealType: MealType;
+  windowStart: string;
+  windowEnd: string;
+  sortOrder: number;
+  createdAt: Date;
+  archivedAt?: Date;
+}
+
+/** users/{uid}/children/{childId}/brushingSessions/{sessionId}. `date` is local YYYY-MM-DD. */
+export interface BrushingSession {
+  id: string;
+  slotId: string;
+  date: string;
+  startedAt: Date;
+  durationSec: number;
+  completed: boolean;
+}
+
+export type ToothEventType = 'symptom' | 'treatment';
+
+/** users/{uid}/children/{childId}/toothEvents/{eventId}. `fdi` is the FDI tooth number. */
+export interface ToothEvent {
+  id: string;
+  fdi: number;
+  type: ToothEventType;
+  categoryId: string;
+  note: string;
+  date: string;
+}
+
+/** users/{uid}/categories/{categoryId} */
+export interface Category {
+  id: string;
+  name: string;
+  type: ToothEventType;
+  color: string;
+  isDefault: boolean;
 }

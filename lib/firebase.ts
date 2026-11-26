@@ -6,16 +6,19 @@ import {
   initializeAuth,
   type Auth,
 } from 'firebase/auth';
-import { Timestamp, getFirestore } from 'firebase/firestore';
-import { z } from 'zod';
+import { getFirestore } from 'firebase/firestore';
+
+import { env } from '@/lib/env';
+import { reportWriteError } from '@/lib/errors';
+import { setBackgroundErrorHandler } from '@/src/data/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  apiKey: env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -38,7 +41,5 @@ try {
 export { auth };
 export const db = getFirestore(app);
 
-/** Zod field for Firestore Timestamp → Date, shared by all doc read schemas. */
-export const timestampToDate = z
-  .custom<Timestamp>((v) => v instanceof Timestamp)
-  .transform((t) => t.toDate());
+// Writes fired without waiting (background()) report refusals to the parent instead of vanishing.
+setBackgroundErrorHandler(reportWriteError);

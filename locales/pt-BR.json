@@ -1,3 +1,6 @@
 {
-  "NSCameraUsageDescription": "O Beavo usa a câmera frontal para ver a boca da criança enquanto ela escova. O vídeo fica neste celular e nunca é salvo nem enviado para lugar nenhum."
+  "ios": {
+    "NSCameraUsageDescription": "O Beavo usa a câmera frontal apenas como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado.",
+    "NSFaceIDUsageDescription": "O Beavo usa o Face ID apenas para confirmar que é um adulto antes de criar ou trocar o PIN dos pais."
+  }
 }

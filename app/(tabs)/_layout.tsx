@@ -1,113 +1,81 @@
-import { Tabs, router } from 'expo-router';
-import { ChartLineUp, House, Tooth } from 'phosphor-react-native';
-import { Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Redirect, router } from 'expo-router';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { useEffect, useState } from 'react';
 
+import { GrownupsNavigation } from '@/components/ui/GrownupsNavigation';
+import { useActiveChild } from '@/hooks/useActiveChild';
+import { useLocalChildNames } from '@/hooks/useLocalChildNames';
 import { t } from '@/lib/i18n';
-import { hardShadow, tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
+import { ownerIdOf, useAuthStore } from '@/stores/authStore';
+import { useChildStore } from '@/stores/childStore';
 
-function TabItem({
-  label,
-  active,
-  icon,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  icon: (color: string, weight: 'bold' | 'fill') => React.ReactNode;
-  onPress: () => void;
-}) {
-  const color = active ? tokens.textLink : tokens.textTertiary;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-      style={{ flex: 1, minHeight: 48, alignItems: 'center', rowGap: 4 }}
-    >
-      {icon(color, active ? 'fill' : 'bold')}
-      <Text className="font-display-semi" style={{ fontSize: 13, color }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-interface TabBarProps {
-  state: { index: number; routes: { key: string; name: string }[] };
-  navigation: { navigate: (name: string) => void };
-}
-
-function ZingTabBar({ state, navigation }: TabBarProps) {
-  const insets = useSafeAreaInsets();
-  const activeRoute = state.routes[state.index]?.name;
-
-  return (
-    <View
-      style={[
-        {
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          paddingTop: 12,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 12,
-          height: 76 + (insets.bottom > 0 ? insets.bottom : 12),
-          backgroundColor: tokens.surfaceCard,
-          borderTopWidth: 3,
-          borderTopColor: tokens.borderStrong,
-        },
-      ]}
-    >
-      <TabItem
-        label={t('tabs.home')}
-        active={activeRoute === 'home'}
-        icon={(c, w) => <House size={25} color={c} weight={w} />}
-        onPress={() => navigation.navigate('home')}
-      />
-
-      <View style={{ flex: 1, alignItems: 'center' }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('common.startBrushing')}
-          onPress={() => router.push('/session')}
-          style={[
-            {
-              position: 'absolute',
-              top: -26,
-              width: 66,
-              height: 66,
-              borderRadius: 33,
-              backgroundColor: tokens.brandPrimary,
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-            hardShadow(5),
-          ]}
-        >
-          <Tooth size={30} color="#fff" weight="fill" />
-        </Pressable>
-        <Text
-          className="font-display-semi"
-          style={{ position: 'absolute', top: 46, fontSize: 13, color: tokens.textLink }}
-        >
-          {t('tabs.brush')}
-        </Text>
-      </View>
-
-      <TabItem
-        label={t('tabs.progress')}
-        active={activeRoute === 'progress'}
-        icon={(c, w) => <ChartLineUp size={25} color={c} weight={w} />}
-        onPress={() => navigation.navigate('progress')}
-      />
-    </View>
-  );
-}
-
+/**
+ * The app shell. Order of the first-run gates: an owner (signed in, or using
+ * this phone without an account) → current consent → profiles left on this
+ * phone from device-only mode (offered to a signed-in parent, never moved
+ * silently) → at least one child. Children never reach these gates alone: the
+ * parent signs in once and the session persists.
+ */
 export default function TabsLayout() {
+  const ownerId = useAuthStore(ownerIdOf);
+  const signedIn = useAuthStore((s) => s.user !== null);
+  const moveDeclined = useAuthStore((s) => s.moveDeclined);
+  const localNames = useLocalChildNames();
+  const consent = useAuthStore((s) => s.consent);
+  const needsFirstChild = useChildStore((s) => s.loaded && s.children.length === 0 && !s.activeChildId);
+  // Kid Mode shows only Brushing and Progress. Exiting is gated on Brushing.
+  // Fails closed: until the active child is known, treat it as kid mode.
+  const { child } = useActiveChild();
+  const kidMode = child?.kidMode ?? true;
+  const [unlockingChildId, setUnlockingChildId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!unlockingChildId || !child || (child.id === unlockingChildId && kidMode)) return;
+    // NativeTabs can remount when its routes change, so this handoff lives in its parent.
+    const frame = requestAnimationFrame(() => {
+      setUnlockingChildId(null);
+      if (ownerId && child.id === unlockingChildId) router.navigate('/(tabs)/more');
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [child, kidMode, ownerId, unlockingChildId]);
+
+  if (!ownerId) return <Redirect href="/onboarding/welcome" />;
+  if (consent === 'unknown') return null;
+  if (consent !== 'ok') return <Redirect href="/consent" />;
+  if (signedIn && !moveDeclined && localNames && localNames.length > 0) return <Redirect href="/move-data" />;
+  if (needsFirstChild) {
+    // The device profiles arrive a moment after the first render: wait for them, or a
+    // parent with profiles to move is sent to "add a child" and never offered the move.
+    // ponytail: waits forever if device storage can't be read (retried on foreground); add a timeout if that shows up.
+    if (signedIn && !moveDeclined && localNames === null) return null;
+    return <Redirect href="/child-form" />;
+  };
+
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <ZingTabBar {...props} />}>
-      <Tabs.Screen name="home" />
-      <Tabs.Screen name="progress" />
-    </Tabs>
+    <GrownupsNavigation.Provider value={{ unlockingChildId, setUnlockingChildId }}>
+      <NativeTabs tintColor={colors.primary}>
+        <NativeTabs.Trigger name="brushing">
+          <NativeTabs.Trigger.Label>{t('tabs.brushing')}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf={{ default: 'paintbrush.pointed', selected: 'paintbrush.pointed.fill' }} md="brush" />
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="progress">
+          <NativeTabs.Trigger.Label>{t('tabs.progress')}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="bar_chart" />
+        </NativeTabs.Trigger>
+        {!kidMode ? (
+          <NativeTabs.Trigger name="overview">
+            <NativeTabs.Trigger.Label>{t('tabs.overview')}</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon src={require('../../assets/tabs/tooth.png')} renderingMode="template" md="dentistry" />
+          </NativeTabs.Trigger>
+        ) : null}
+        {!kidMode ? (
+          <NativeTabs.Trigger name="more">
+            <NativeTabs.Trigger.Label>{t('tabs.more')}</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon sf={{ default: 'person.2', selected: 'person.2.fill' }} md="family_restroom" />
+          </NativeTabs.Trigger>
+        ) : null}
+      </NativeTabs>
+    </GrownupsNavigation.Provider>
   );
 }

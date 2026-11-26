@@ -1,64 +1,107 @@
-import { z } from 'zod';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import type { ChildProfile } from '@/types';
+import { clearConsentRecord } from '@/lib/consent';
+import { noteImportFailure } from '@/lib/errors';
+import { db } from '@/lib/firebase';
+import { dropOutboxForUser } from '@/lib/sync';
+import { useAuthStore } from '@/stores/authStore';
+import { importBackup } from '@/src/data/account';
+import { parseBackup } from '@/src/data/backup';
+import { LOCAL_DATA_KEY, LOCAL_UID, hydrateLocal, localBackup, localClear } from '@/src/data/local';
 
 /**
- * Device-only mode: a parent using Beavo without an account. Their data never
- * reaches Firestore; it is owned by this reserved id instead of a Firebase uid.
- * Kept dependency-free (no firebase, no AsyncStorage) so `lib/localData.check.mjs`
- * can run it under plain node — the storage side lives in `lib/localStore.ts`.
+ * App side of device-only mode (ADR 0005): where the store in src/data/local.ts
+ * is kept, whether this phone is used without an account, and the two ways out
+ * of it — moving the data into an account, or erasing it.
  */
-export const LOCAL_UID = 'local';
+const LOCAL_MODE_KEY = 'beavo.localMode.v1';
 
-export const LOCAL_MODE_KEY = 'zing.localMode.v1';
-export const LOCAL_CHILD_KEY = 'zing.localChild.v1';
-export const LOCAL_SESSIONS_KEY = 'zing.localSessions.v1';
+/**
+ * Read the device data (at launch, and again on return to the foreground until
+ * it works). If storage can't be read the store is left unstarted on purpose:
+ * starting it empty would let the next save overwrite real data. Data that is
+ * there but unreadable is set aside, not lost.
+ */
+export async function startLocalStore(): Promise<void> {
+  if (started) return;
+  try {
+    const text = await AsyncStorage.getItem(LOCAL_DATA_KEY);
+    // Unreadable data (e.g. written by a newer app version) is set aside BEFORE
+    // the store starts empty and can save over it. The first copy set aside is
+    // kept: a later failure must not replace the one worth recovering.
+    if (text && !parseBackup(text) && !(await AsyncStorage.getItem(UNREADABLE_KEY))) {
+      await AsyncStorage.setItem(UNREADABLE_KEY, text);
+    }
+    if (started) return;
+    hydrateLocal(text, (next) => AsyncStorage.setItem(LOCAL_DATA_KEY, next));
+    started = true;
+  } catch {
+    // Not started: called again when the app returns to the foreground.
+  }
+}
 
-const isoDate = z
-  .string()
-  .refine((s) => !Number.isNaN(Date.parse(s)), 'unparseable date')
-  .transform((s) => new Date(s));
+let started = false;
+const UNREADABLE_KEY = `${LOCAL_DATA_KEY}.unreadable`;
 
-const storedChildSchema = z.object({
-  id: z.string().min(1),
-  name: z.string(),
-  age: z.number(),
-  avatarId: z.string(),
-  streakCurrent: z.number().default(0),
-  streakBest: z.number().default(0),
-  totalSessions: z.number().default(0),
-  badges: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        type: z.enum(['streak', 'perfect', 'firstSession', 'weeklyGoal']),
-        earnedAt: isoDate,
-      }),
-    )
-    .default([]),
-  createdAt: isoDate,
-  lastSessionAt: isoDate.optional(),
-});
+export async function isLocalMode(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(LOCAL_MODE_KEY)) === '1';
+  } catch {
+    return false;
+  }
+}
 
-/** Dates become ISO strings through `Date.prototype.toJSON`. */
-export function encodeChild(child: ChildProfile): string {
-  return JSON.stringify(child);
+/** Start using this phone without an account. False if the choice couldn't be saved. */
+export async function enterLocalMode(): Promise<boolean> {
+  try {
+    await AsyncStorage.setItem(LOCAL_MODE_KEY, '1');
+  } catch {
+    return false;
+  }
+  useAuthStore.getState().setLocal(true);
+  return true;
+}
+
+/** Stop using this phone without an account. The data stays until moved or erased. */
+export async function leaveLocalMode(): Promise<void> {
+  await AsyncStorage.removeItem(LOCAL_MODE_KEY).catch(() => undefined);
+  useAuthStore.getState().setLocal(false);
+}
+
+async function forgetLocalData(): Promise<void> {
+  await localClear();
+  await clearConsentRecord(LOCAL_UID);
+  await dropOutboxForUser(LOCAL_UID);
+  await leaveLocalMode();
+}
+
+/** Erase every child, slot, session, tooth record and category kept on this device. */
+export async function eraseLocalData(): Promise<boolean> {
+  try {
+    await forgetLocalData();
+    // Erasing means everything, including a copy set aside as unreadable. A move
+    // to an account keeps that copy: it was never moved.
+    await AsyncStorage.removeItem(UNREADABLE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
- * Storage is untrusted input: bad JSON or a profile from an older app version
- * reads as "no child yet" — never a crash on launch.
+ * Move everything on this device into the signed-in parent's account, then
+ * remove it from the device. Merges by id (importBackup), so a retry after a
+ * failure can't duplicate anything, and the device copy is only removed once
+ * the account has confirmed every write. Needs a connection.
  */
-export function decodeChild(raw: string | null): ChildProfile | null {
-  if (!raw) return null;
-  let parsed: unknown;
+export async function moveLocalDataToAccount(uid: string): Promise<boolean> {
   try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
+    await importBackup(db, uid, await localBackup());
+    await forgetLocalData();
+    return true;
+  } catch (error) {
+    // The device copy stays until a full move is confirmed; a re-run merges by id.
+    noteImportFailure(error);
+    return false;
   }
-  const child = storedChildSchema.safeParse(parsed);
-  // Whatever was stored, a device profile is always owned by LOCAL_UID.
-  return child.success ? { ...child.data, parentUid: LOCAL_UID } : null;
 }

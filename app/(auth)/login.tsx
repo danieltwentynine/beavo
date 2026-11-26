@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { auth } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 const loginSchema = z.object({
   email: z.string().trim().email(t('form.emailInvalid')),
@@ -96,11 +96,11 @@ export default function LoginScreen() {
             hitSlop={8}
             style={{ alignSelf: 'flex-start', padding: 4, marginBottom: 6 }}
           >
-            <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
+            <ArrowLeft size={26} color={colors.inkMuted} weight="bold" />
           </Pressable>
 
           <Text className="font-display text-3xl text-ink">{t('login.title')}</Text>
-          <Text className="mb-6 mt-1.5 font-body text-base text-muted">
+          <Text className="mb-6 mt-1.5 font-body text-base text-ink-muted">
             {t('login.subtitle')}
           </Text>
 
@@ -114,7 +114,7 @@ export default function LoginScreen() {
                   placeholder={t('form.emailPlaceholder')}
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  icon={<EnvelopeSimple size={20} color={tokens.textTertiary} weight="bold" />}
+                  icon={<EnvelopeSimple size={20} color={colors.inkMuted} weight="bold" />}
                   value={value}
                   onChangeText={onChange}
                   error={error?.message}
@@ -130,7 +130,7 @@ export default function LoginScreen() {
                   placeholder={t('login.passwordPlaceholder')}
                   autoCapitalize="none"
                   secureTextEntry
-                  icon={<LockSimple size={20} color={tokens.textTertiary} weight="bold" />}
+                  icon={<LockSimple size={20} color={colors.inkMuted} weight="bold" />}
                   value={value}
                   onChangeText={onChange}
                   error={error?.message}
@@ -145,17 +145,17 @@ export default function LoginScreen() {
             hitSlop={8}
             style={{ alignSelf: 'flex-end', marginTop: 10 }}
           >
-            <Text className="font-display-semi text-sm text-text-link">
+            <Text className="font-display-semi text-base text-primary">
               {sendingReset ? t('login.sending') : t('login.forgot')}
             </Text>
           </Pressable>
 
           {submitError ? (
-            <Text className="mt-4 font-body-semi text-sm text-danger">{submitError}</Text>
+            <Text className="mt-4 font-body-semi text-base text-danger">{submitError}</Text>
           ) : null}
 
           {resetNotice ? (
-            <Text className="mt-4 font-body-semi text-sm text-text-link">{resetNotice}</Text>
+            <Text className="mt-4 font-body-semi text-base text-primary">{resetNotice}</Text>
           ) : null}
 
           <Button
@@ -166,10 +166,10 @@ export default function LoginScreen() {
             style={{ marginTop: 20 }}
           />
 
-          <View className="mt-6 flex-row justify-center">
-            <Text className="font-body text-muted">{t('login.newHere')}</Text>
+          <View className="mt-6 flex-row flex-wrap justify-center">
+            <Text className="font-body text-base text-ink-muted">{t('login.newHere')}</Text>
             <Pressable onPress={() => router.replace('/(auth)/register')}>
-              <Text className="font-display-semi text-text-link">{t('login.create')}</Text>
+              <Text className="font-display-semi text-base text-primary">{t('login.create')}</Text>
             </Pressable>
           </View>
         </ScrollView>

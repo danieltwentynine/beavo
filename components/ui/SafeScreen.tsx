@@ -6,5 +6,5 @@ interface SafeScreenProps {
 }
 
 export function SafeScreen({ children }: SafeScreenProps) {
-  return <SafeAreaView className="flex-1 bg-surface-page">{children}</SafeAreaView>;
+  return <SafeAreaView className="flex-1 bg-bg">{children}</SafeAreaView>;
 }

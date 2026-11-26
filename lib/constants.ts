@@ -1,6 +1,5 @@
 import type { ToothZone } from '@/types';
 
-export const BRUSHING_DURATION_SECONDS = 120;
 export const COUNTDOWN_SECONDS = 3;
 
 // Guide order for the brushing session: each arch ends with the back teeth,

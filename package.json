@@ -1,21 +1,30 @@
 {
-  "name": "zing",
+  "name": "beavo",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "engines": {
+    "node": ">=24"
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-google-signin/google-signin": "^16.1.5",
     "babel-preset-expo": "~57.0.9",
-    "expo": "~57.0.31",
-    "expo-build-properties": "~57.0.15",
+    "expo": "~57.0.34",
+    "expo-build-properties": "~57.0.24",
     "expo-constants": "~57.0.15",
-    "expo-dev-client": "~57.0.20",
+    "expo-dev-client": "~57.0.22",
+    "expo-document-picker": "~57.0.3",
+    "expo-file-system": "~57.0.7",
     "expo-font": "~57.0.1",
-    "expo-linking": "~57.0.13",
+    "expo-glass-effect": "~57.0.5",
+    "expo-linking": "~57.0.14",
+    "expo-local-authentication": "~57.0.3",
     "expo-localization": "~57.0.2",
-    "expo-router": "~57.0.29",
-    "expo-splash-screen": "~57.0.10",
+    "expo-router": "~57.0.32",
+    "expo-secure-store": "~57.0.4",
+    "expo-sharing": "~57.0.27",
+    "expo-splash-screen": "~57.0.12",
     "expo-status-bar": "~57.0.1",
     "firebase": "^12.19.0",
     "nativewind": "^4.2.7",
@@ -32,25 +41,33 @@
     "react-native-vision-camera": "^5.2.3",
     "react-native-worklets": "0.10.1",
     "tailwindcss": "^3.4.19",
-    "zod": "^4.6.5",
+    "zod": "^4.6.7",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@types/node": "^26.6.6",
     "@types/react": "~19.2.18",
-    "react-dom": "19.2.3",
-    "react-native-web": "^0.21.4",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.2",
+    "firebase-tools": "^15.34.2",
+    "marked": "^18.1.2",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "lint": "expo lint",
+    "test": "node --test 'src/data/*.test.ts'",
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-beavo \"node --test --test-concurrency=1 'tests/*.test.ts'\"",
+    "build:legal": "node scripts/build-legal.mjs",
+    "check": "tsc --noEmit && expo lint && npm test && node scripts/check-camera-guardrail.mjs"
   },
   "private": true,
   "allowScripts": {
     "fsevents@2.3.3": true,
     "@firebase/util@1.15.3": true,
-    "protobufjs@7.6.6": true
+    "protobufjs@7.6.6": true,
+    "re2@1.27.0": true
   }
 }

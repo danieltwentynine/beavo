@@ -1,17 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-// Colors, fonts, radii and toy shadows come from tailwind.preset.js (design-system
-// export — regenerate, don't hand-edit). Only app aliases live here.
+// Colors, fonts, type sizes, spacing, radii and shadows come from tailwind.preset.js,
+// generated from design/tokens.json by scripts/build-tokens.mjs (regenerate, don't hand-edit).
 module.exports = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   presets: [require('nativewind/preset'), require('./tailwind.preset')],
-  theme: {
-    extend: {
-      colors: {
-        ink: { DEFAULT: '#14142b' },
-        muted: '#55557a',
-        danger: { DEFAULT: '#dc2626' },
-      },
-    },
-  },
   plugins: [],
 };

@@ -1,5 +1,22 @@
 {
   "firestore": {
     "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": "public",
+    "predeploy": ["node scripts/build-legal.mjs"],
+    "cleanUrls": false,
+    "ignore": ["firebase.json", "**/.*"],
+    "headers": [
+      {
+        "source": "**/*.html",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=300" }]
+      }
+    ]
+  },
+  "emulators": {
+    "firestore": { "host": "127.0.0.1", "port": 8080 },
+    "singleProjectMode": true,
+    "ui": { "enabled": false }
   }
 }

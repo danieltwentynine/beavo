@@ -1,8 +1,9 @@
 import { Text, View, type ViewStyle } from 'react-native';
 
-import { Sparky } from '@/components/brand/ZingBrand';
+import { BeavoMark } from '@/components/brand/BeavoBrand';
+import { useReduceTransparency } from '@/hooks/useReduceTransparency';
 import { t } from '@/lib/i18n';
-import { hardShadow, outline, palette, radius, tokens } from '@/lib/tokens';
+import { colors, radius, shadow } from '@/lib/tokens';
 
 interface CoachCardProps {
   message: string;
@@ -11,10 +12,11 @@ interface CoachCardProps {
 }
 
 /**
- * CoachCard — the post-session coaching message from Sparky. Warm, playful,
- * never clinical (CLAUDE.md > Gemini Coach). Optional score chip.
+ * CoachCard — the post-session coaching message from Beavo. Warm, playful,
+ * never clinical (docs/CLINICAL.md). Optional score chip.
  */
 export function CoachCard({ message, score = null, style }: CoachCardProps) {
+  const reduceTransparency = useReduceTransparency();
   return (
     <View
       style={[
@@ -22,39 +24,31 @@ export function CoachCard({ message, score = null, style }: CoachCardProps) {
           flexDirection: 'row',
           columnGap: 14,
           padding: 18,
-          borderRadius: radius['2xl'],
-          backgroundColor: tokens.surfaceMint,
+          borderRadius: radius.xl,
+          backgroundColor: reduceTransparency ? colors.glassSessionSolid : colors.sessionPill,
           alignItems: 'flex-start',
         },
-        hardShadow(6),
+        shadow.card,
         style,
       ]}
     >
-      <Sparky width={60} />
+      <BeavoMark width={60} />
       <View style={{ flex: 1, rowGap: 6 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-          <Text className="font-display" style={{ fontSize: 17, color: palette.cobalt[700] }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          <Text className="font-display" style={{ fontSize: 17, color: colors.primaryPress }}>
             {t('coach.says')}
           </Text>
           {score != null ? (
             <View
-              style={[
-                {
-                  backgroundColor: tokens.brandPrimary,
-                  borderRadius: radius.pill,
-                  paddingHorizontal: 10,
-                  paddingVertical: 1,
-                },
-                outline,
-              ]}
+              style={{ backgroundColor: colors.primary, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 1 }}
             >
-              <Text className="font-numeric" style={{ fontSize: 14, color: tokens.textOnBrand }}>
+              <Text className="font-numeric" style={{ fontSize: 16, color: colors.onPrimary }}>
                 {score}/100
               </Text>
             </View>
           ) : null}
         </View>
-        <Text className="font-body" style={{ fontSize: 17, lineHeight: 25, color: tokens.textPrimary }}>
+        <Text className="font-body" style={{ fontSize: 17, lineHeight: 25, color: colors.ink }}>
           {message}
         </Text>
       </View>

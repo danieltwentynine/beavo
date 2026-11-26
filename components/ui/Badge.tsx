@@ -1,8 +1,9 @@
+import { Pause } from 'phosphor-react-native';
 import { Text, View, type ViewStyle } from 'react-native';
 
-import { outline, palette, radius, tokens } from '@/lib/tokens';
+import { colors, radius } from '@/lib/tokens';
 
-type BadgeTone = 'cobalt' | 'warning';
+type BadgeTone = 'primary' | 'symptom' | 'neutral';
 
 interface BadgeProps {
   label: string;
@@ -11,16 +12,15 @@ interface BadgeProps {
   style?: ViewStyle;
 }
 
-// [soft background, solid background, text on solid]. Soft always takes ink text;
-// white only on cobalt.
-const TONES: Record<BadgeTone, [string, string, string]> = {
-  cobalt: [palette.cobalt[100], palette.cobalt[500], tokens.textOnBrand],
-  warning: [palette.warning[100], palette.warning[500], tokens.textPrimary],
-};
+/** Badge — small status or reward pill. */
+export function Badge({ label, tone = 'primary', solid = false, style }: BadgeProps) {
+  const solidPrimary = tone === 'primary' && solid;
+  const bg = tone === 'symptom' ? colors.symptomSoft
+    : tone === 'neutral' ? colors.zoneEmpty
+    : solidPrimary ? colors.primary : colors.primarySoft;
+  const fg = tone === 'symptom' ? colors.symptomInk
+    : solidPrimary ? colors.onPrimary : colors.ink;
 
-/** Badge — small status / reward pill. */
-export function Badge({ label, tone = 'cobalt', solid = false, style }: BadgeProps) {
-  const [bg, solidBg, solidFg] = TONES[tone];
   return (
     <View
       style={[
@@ -28,19 +28,23 @@ export function Badge({ label, tone = 'cobalt', solid = false, style }: BadgePro
           flexDirection: 'row',
           alignItems: 'center',
           columnGap: 6,
-          height: 30,
+          minHeight: 30,
           paddingHorizontal: 12,
           borderRadius: radius.pill,
-          backgroundColor: solid ? solidBg : bg,
+          backgroundColor: bg,
         },
-        outline,
         style,
       ]}
     >
-      <Text
-        className="font-display-semi"
-        style={{ color: solid ? solidFg : tokens.textPrimary, fontSize: 14, lineHeight: 17 }}
-      >
+      {tone === 'symptom' ? (
+        <View accessible={false} style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.symptom }} />
+      ) : null}
+      {tone === 'neutral' ? (
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <Pause size={14} weight="fill" color={colors.ink} />
+        </View>
+      ) : null}
+      <Text className="font-display-semi" style={{ color: fg, fontSize: 16, lineHeight: 20 }}>
         {label}
       </Text>
     </View>

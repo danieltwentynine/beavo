@@ -1,6 +1,6 @@
 # 0002. Camera and brush-zone detection approach (Phase 2)
 
-- Status: Accepted (2026-10-06) for the camera layer and the spike-first approach. The detection layer is still undecided until the spike finishes.
+- Status: Camera layer (VisionCamera v5) still in use. **Detection layer superseded by [0003](0003-camera-mirror-only.md)** (2026-10-31): the camera is a mirror only, no frame processing.
 - Date: 2026-10-06
 
 ## Context

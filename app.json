@@ -1,40 +1,41 @@
 {
   "expo": {
     "name": "Beavo",
-    "slug": "zing",
+    "slug": "beavo",
     "version": "1.0.0",
-    "scheme": "zing",
+    "scheme": "beavo",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zingdentalai.zing",
+      "bundleIdentifier": "com.dcrds.beavo",
       "infoPlist": {
-        "NSCameraUsageDescription": "Beavo uses the front camera to see your child's mouth while they brush. Video stays on this phone and is never saved or sent anywhere.",
-        "CFBundleAllowMixedLocalizations": true
+        "NSCameraUsageDescription": "O Beavo usa a câmera frontal apenas como espelho, para a criança se ver enquanto escova. Nada é gravado, salvo ou enviado.",
+        "CFBundleDevelopmentRegion": "pt-BR"
+      },
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundColor": "#2D5BFF",
+        "backgroundColor": "#0A746E",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "predictiveBackGestureEnabled": false,
+      "package": "com.dcrds.beavo"
     },
     "plugins": [
       "expo-router",
       "expo-font",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.925227389891-q1qbhnos6l78qchb1ajfn99js33fkml7"
-        }
-      ],
+      "./plugins/withGoogleSignInScheme",
       [
         "expo-build-properties",
         {
@@ -47,33 +48,30 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 300,
           "resizeMode": "contain",
-          "backgroundColor": "#2D5BFF"
+          "backgroundColor": "#FFF7EA"
         }
       ],
       "./plugins/withSceneLifecycle",
+      "expo-localization",
+      "expo-sharing",
       [
-        "expo-localization",
+        "expo-secure-store",
         {
-          "supportedLocales": [
-            "en",
-            "pt-BR",
-            "es"
-          ]
+          "faceIDPermission": "O Beavo usa o Face ID apenas para confirmar que é um adulto antes de criar ou trocar o PIN dos pais."
         }
       ]
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d9d41921-b061-4b1d-9bc8-813ad94f21ed"
+        "projectId": "8e404b74-176b-4f4b-8b9a-54804689fc76"
       }
     },
-    "owner": "zing-dental-ai",
+    "owner": "dnlcrds",
     "locales": {
-      "pt-BR": "./locales/pt-BR.json",
-      "es": "./locales/es.json"
+      "pt-BR": "./locales/pt-BR.json"
     }
   }
 }

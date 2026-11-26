@@ -1,70 +1,14 @@
-import { router } from 'expo-router';
-import { useEffect } from 'react';
-import { Alert } from 'react-native';
-
-import { fetchActiveChild, moveLocalDataToAccount } from '@/lib/children';
-import { t } from '@/lib/i18n';
-import { LOCAL_UID } from '@/lib/localData';
-import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
+import type { BrushingSlot } from '@/types';
 
-/** The parent decides whether the child stored on this phone goes into the account they just signed in to. */
-function confirmMove(childName: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    Alert.alert(
-      t('move.title', { name: childName }),
-      t('move.body', { name: childName }),
-      [
-        { text: t('move.keep'), style: 'cancel', onPress: () => resolve(false) },
-        { text: t('move.confirm'), onPress: () => resolve(true) },
-      ],
-      { cancelable: false },
-    );
-  });
-}
+const NO_SLOTS: BrushingSlot[] = [];
 
-/**
- * Resolves the active child: prefers the in-memory store (just created during
- * onboarding), otherwise fetches the first child from Firestore — or from the
- * device when the parent uses Zing without an account. A parent who has just
- * signed in to an account with no child is asked whether to move their device data into it.
- * If there is no child anywhere, sends them to child setup.
- */
+/** The child currently using the app (persisted per parent), their slots, and the switcher. */
 export function useActiveChild() {
-  const ownerId = useAuthStore(ownerIdOf);
-  const setLocal = useAuthStore((s) => s.setLocal);
-  const activeChild = useChildStore((s) => s.activeChild);
-  const setActiveChild = useChildStore((s) => s.setActiveChild);
-
-  // A child left in memory by the previous owner (signed out, or just moved from
-  // device-only mode to an account) is not this owner's child.
-  const child = activeChild?.parentUid === ownerId ? activeChild : null;
-
-  useEffect(() => {
-    let cancelled = false;
-    if (child || !ownerId) return;
-    (async () => {
-      try {
-        let found = await fetchActiveChild(ownerId);
-        if (!found && ownerId !== LOCAL_UID) {
-          found = await moveLocalDataToAccount(ownerId, confirmMove);
-          if (found) setLocal(false);
-        }
-        if (cancelled) return;
-        if (found) {
-          setActiveChild(found);
-        } else {
-          router.replace('/onboarding/child-setup');
-        }
-      } catch {
-        // Couldn't load (offline, rules, …) — stay put instead of sending the
-        // parent to child setup, which would create a duplicate profile.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [ownerId, child, setActiveChild, setLocal]);
-
-  return { child };
+  const children = useChildStore((s) => s.children);
+  const activeChildId = useChildStore((s) => s.activeChildId);
+  const slots = useChildStore((s) => (s.activeChildId ? s.slotsByChild[s.activeChildId] : undefined)) ?? NO_SLOTS;
+  const setActiveChild = useChildStore((s) => s.setActiveChildId);
+  const child = children.find((c) => c.id === activeChildId) ?? null;
+  return { child, children, slots, setActiveChild };
 }

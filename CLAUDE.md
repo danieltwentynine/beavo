@@ -1,19 +1,19 @@
-# Zing — AI Dental Coach for Kids
+# Beavo — AI Dental Coach for Kids
 > Single source of truth for every coding agent in this repo (Claude Code, Codex, etc.). `AGENTS.md` only points here — edit this file, never duplicate its content elsewhere. Read this entire file before making any change.
 
 **Expo has changed.** Before writing Expo code, read the versioned docs at https://docs.expo.dev/versions/v57.0.0/ — don't rely on memory of older SDKs.
 
-## What is Zing?
+## What is Beavo?
 
-Zing is an iOS-first mobile app that uses the phone camera to coach children through proper teeth brushing in real time. The AI watches the brushing session via camera, maps which zones of the mouth were brushed, and delivers a personalized, kid-friendly coaching message at the end. The app is built by a dentist mother and her developer son.
+Beavo is an iOS-first mobile app (Brazil first, pt-BR default; English and Spanish when the device uses them) that coaches children through a 2-minute guided brushing session. The front camera can act as a **mirror** so the child sees themselves — it never captures or analyzes anything (see Camera guardrail). The app is built by a dentist mother and her developer son.
 
 **Core loop:**
 
-1. Parent sets up child profile (age, name, avatar)
-2. Child opens the app, positions phone so camera sees their mouth
-3. 2-minute brushing session with live zone detection overlay
-4. AI coaching message generated after session ("You missed your back teeth!")
-5. Streaks, badges, and rewards to build the habit
+1. Parent signs in (Google or email) or chooses to use the app without an account (data stays on the phone — ADR 0005), accepts Terms + Privacy Policy, adds one or more child profiles (name, avatar, optional birth year)
+2. Each child has brushing slots tied to meals (after breakfast / lunch / dinner by default, editable)
+3. Child starts a 2-minute guided session (timer + mouth-zone guide), optionally with the camera mirror
+4. Session is saved against the slot active at that time; a local, reviewed message closes it (no AI tips)
+5. Streaks, badges, and rewards to build the habit (being rebuilt on the new data model in step 2)
 
 **Target user:** Children ages 4–12. Parents manage accounts. UI must be playful, simple, and work without reading skills for younger children.
 
@@ -27,9 +27,9 @@ Zing is an iOS-first mobile app that uses the phone camera to coach children thr
 | Language | TypeScript (strict mode) | Required everywhere, no `any` |
 | Navigation | Expo Router (file-based) | App directory structure |
 | Backend | Firebase JS SDK v12 (Firestore + Auth + Storage) | Free tier sufficient for MVP |
-| Camera | react-native-vision-camera v5 (per ADR 0002; needs a development build) | Per-frame processing for live detection |
-| AI Model (camera) | TBD — Phase 2 spike decides (ADR 0002). `react-native-mediapipe` is unproven here | Brush zone detection, on-device |
-| AI Coach (text) | Google Gemini Flash API (verify current model name before Phase 2 — the 1.5 series is being retired) | Free tier |
+| Camera | react-native-vision-camera v5, **preview only** (ADR 0003; needs a development build) | Live mirror; no capture, no frame processing |
+| AI Coach (text) | None: local reviewed messages in `lib/coach.ts` (ADR 0003) | AI tips need a privacy-policy update first |
+| i18n | `lib/i18n.ts` (`t()`, pt-BR default, English or Spanish if that is the device language) + `expo-localization` | No i18n library needed |
 | Subscriptions | RevenueCat | Free until $2,500 MRR |
 | Styling | NativeWind (Tailwind for RN) | Consistent design system |
 | State | Zustand | Lightweight, no boilerplate |
@@ -44,127 +44,134 @@ Actual layout (the repo root is the project; ignore any older `fable/` naming):
 
 ```
 app/                              # Expo Router screens
-├── _layout.tsx                   # Fonts, auth subscription, outbox flush
-├── index.tsx                     # Redirect: signed in → (tabs)/home, else onboarding/welcome
+├── _layout.tsx                   # Fonts, auth → consent check, child data sync, outbox flush, child-picker sheet
+├── index.tsx                     # Redirect: an owner (signed in, or device-only) → (tabs)/overview, else onboarding/intro (first launch) or onboarding/welcome
 ├── (auth)/ login.tsx, register.tsx
-├── (tabs)/ home.tsx, progress.tsx
-├── onboarding/ welcome.tsx, child-setup.tsx
-├── session.tsx                   # Brushing session (replaces the planned (tabs)/brush.tsx)
-└── results.tsx                   # Score, coach message, save status
+├── (tabs)/ _layout.tsx (NativeTabs + first-run gates), overview, brushing, progress, more (shown as "Grownups" / "Adultos")
+├── onboarding/ intro.tsx (first launch only), welcome.tsx
+├── consent.tsx                   # Terms + Privacy acceptance (unchecked box, re-prompt on version change)
+├── move-data.tsx                 # Signed-in parent: move the profiles left on this phone into the account? (gated)
+├── child-form.tsx                # Add (gated) / edit / delete (gated) a child
+├── child-picker.tsx              # Form sheet opened by ProfilePill
+├── slots.tsx                     # Edit the active child's brushing slots
+├── tooth-sheet.tsx               # Form sheet: one tooth's records + add, or log for several teeth
+├── dental-history.tsx            # All tooth events, newest first
+├── brushing-history.tsx          # All brushing sessions, newest first
+├── session-review.tsx            # One saved session (opened from Brushing History)
+├── categories.tsx, settings.tsx, premium.tsx   # Parent-only (reached through the gate in More)
+├── session.tsx                   # Brushing session
+└── results.tsx                   # Score, local message, save status
 components/
-├── brand/ZingBrand.tsx
-├── brushing/ MouthMap.tsx, BrushTimer.tsx, CoachCard.tsx
-├── kids/ Avatar.tsx, BadgeCard.tsx, StreakDisplay.tsx, Sticker.tsx
-└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle
-hooks/useActiveChild.ts
+├── brand/ BeavoBrand.tsx (generated), LogoScreen.tsx
+├── brushing/ MouthMap, BrushTimer, CoachCard, CameraBackdrop (mirror), CameraGate, SlotIcon
+├── kids/ Avatar, BadgeCard, Sticker, ProfilePill
+├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
+└── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate (+ useParentalGate; decisions in src/data/gateFlow.ts), ParentNotice (parent-only error/info banner), TabHeader, ListRow, GlassSurface
+hooks/ useActiveChild.ts, useChildDataSync.ts, useChildWatch.ts (shared by the next two), useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts, useRetryingWatch.ts (re-subscribes a failed listener, marks data stale)
+src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
+├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
+├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
+├── schedule.ts                   # Pure slot logic: defaults, slotsActiveOn(date), pickSlotForTime, archive-vs-delete
+├── teeth.ts                      # Pure tooth logic: primary FDI teeth, arch geometry/shapes, nearestTooth, stats
+├── progress.ts                   # Pure: week dots, streak (all slots completed), 30-day completion rate, derived badges
+├── backup.ts                     # Pure: backup file format + validation (import)
+├── local.ts                      # Pure: device-only store (a Backup in memory) used when the owner is LOCAL_UID
+├── outbox.ts                     # Pure outbox codec for unsynced sessions
+├── consent.ts                    # Pure: device consent record + planConsentCheck (resend / confirm / forget)
+├── score.ts                      # Pure: scoreSession (/100; runs under 2 min capped at 90) — ADR 0007
+├── gateFlow.ts                   # Pure: parental-gate decisions (an existing PIN needs the owner check)
+├── env.ts                        # Pure: zod schema of the EXPO_PUBLIC_* config
+└── *.test.ts                     # node --test unit tests
 lib/
-├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In
-├── children.ts, sessions.ts      # Firestore reads/writes
-├── outbox.ts                     # Offline queue so finished sessions are never lost
-├── translations.ts, i18n.ts      # All UI strings in en / pt-BR / es; `t()` + device language
-├── localData.ts, localStore.ts   # Device-only mode (no account): codec + AsyncStorage (ADR 0003)
-├── streak.ts, badges.ts
-├── coach.ts                      # Local coach message — fallback when Gemini fails
-├── gemini.ts                     # Gemini Flash client + prompt/sanitizer
-├── constants.ts, tokens.ts       # Zone map, timing; design tokens
-└── *.check.mjs                   # Plain-node self-checks (see Commands)
-stores/ authStore.ts, childStore.ts, sessionStore.ts   # Zustand
+├── firebase.ts, socialAuth.ts    # Firebase init, Google Sign-In (+ reauth for account deletion)
+├── env.ts                        # Validated EXPO_PUBLIC_* config (fails at startup with the missing names)
+├── errors.ts                     # Failures → parent notices (stores/noticeStore.ts); dev logs error codes only
+├── account.ts                    # Sign out, data export, delete child / account (app glue over src/data)
+├── consent.ts, legal.ts          # Consent check/accept/resend (server-confirmed); LEGAL_VERSIONS + hosted URLs
+├── localData.ts                  # Device-only mode glue: load/save the store, enter/leave, move to account, erase
+├── sync.ts                       # AsyncStorage outbox: sessions survive app kill offline, retried on launch/foreground
+├── i18n.ts                       # t(), pt-BR + en + es strings
+└── coach.ts, constants.ts, tokens.ts
+stores/ authStore.ts (user, device-only flag, consent; `ownerIdOf`), childStore.ts (children, slots, active child, device snapshot), sessionStore.ts, settingsStore.ts (device: brushing length, intro seen, PIN marker), noticeStore.ts (parent notices + stale flags)
+tests/ rules.test.ts, repository.test.ts   # Firestore emulator tests
+legal/                            # Terms + Privacy Policy drafts (pt-BR, en) → public/legal/*.html on Firebase Hosting
 types/ index.ts                   # All shared types; firebase-auth.d.ts augments RN persistence
 ```
 
-Not built yet: `useBrushingSession`, `useZoneDetection`, `useCoachMessage`, `ZoneAlert`, `assets/characters|sounds` (Phase 2+).
+Not built yet: `useBrushingSession`, `ZoneAlert`, `assets/characters|sounds`.
+
+**DentalArch (`components/teeth/DentalArch.tsx`):** primary teeth only (FDI 51–85), drawn in react-native-svg from the pure geometry in `src/data/teeth.ts`. The chart uses the **dentist perspective** (`CHART_PERSPECTIVE`: the child's right is on the screen's left) — change it only there. Touches resolve to the nearest tooth within a 44pt circle; VoiceOver gets one labelled 44pt element per tooth. Glow is a translucent halo.
 
 ---
 
 ## Core Types
 
-```typescript
-// Always use these types. Do not create parallel type definitions.
-
-type ToothZone =
-  | 'top-front' | 'top-left' | 'top-right' | 'top-back-left' | 'top-back-right'
-  | 'bottom-front' | 'bottom-left' | 'bottom-right' | 'bottom-back-left' | 'bottom-back-right';
-
-interface ChildProfile {
-  id: string;
-  parentUid: string;
-  name: string;
-  age: number;
-  avatarId: string;
-  streakCurrent: number;
-  streakBest: number;
-  totalSessions: number;
-  badges: Badge[];
-  createdAt: Date;
-}
-
-interface Badge {
-  id: string;
-  name: string;
-  earnedAt: Date;
-  type: 'streak' | 'perfect' | 'firstSession' | 'weeklyGoal';
-}
-```
+All shared types live in `types/index.ts` — `Child`, `BrushingSlot`, `BrushingSession`, `ToothEvent`, `Category`, `UserProfile`, `Consent`, `ToothZone`, `BadgeType`. Use them; do not create parallel definitions. Zod schemas for reads live next to each repository in `src/data/`.
 
 ---
 
 ## Firebase Schema
 
+Everything lives under the parent's uid (ADR 0004). Firestore region: southamerica-east1.
+
 ```
-/users/{uid}/
-  - email: string
-  - displayName: string
-  - createdAt: Timestamp
-
-/children/{childId}/
-  - parentUid: string
-  - name: string
-  - age: number
-  - avatarId: string
-  - streakCurrent: number
-  - streakBest: number
-  - totalSessions: number
-  - badges: Badge[]
-
-/sessions/{sessionId}/
-  - childId: string
-  - parentUid: string
-  - startedAt: Timestamp
-  - completedAt: Timestamp
-  - durationSeconds: number
-  - zonesDetected: string[]
-  - zonesCoverage: Record<string, number>
-  - score: number
-  - coachMessage: string
+users/{uid}                         displayName, locale ('pt-BR'|'en'|'es'), createdAt,
+                                    consent { termsVersion, privacyVersion, healthData: true, acceptedAt (server time) }
+  children/{childId}                name, avatarColor (#hex), avatarIcon, birthYear?, kidMode, createdAt, archivedAt
+    brushingSlots/{slotId}          label, icon, mealType (breakfast|lunch|dinner|custom),
+                                    windowStart, windowEnd ("HH:mm"), sortOrder, createdAt, archivedAt
+    brushingSessions/{sessionId}    slotId, date (local YYYY-MM-DD), startedAt, durationSec, completed
+    toothEvents/{eventId}           fdi, type (symptom|treatment), categoryId, note, date
+  categories/{categoryId}           name, type, color, isDefault
 ```
 
-**Firestore rules:** A parent can only read/write their own children and sessions. Children never authenticate directly — only parents do.
+- **Device-only mode (ADR 0005):** when the owner is `LOCAL_UID` (no account), every repository function routes to `src/data/local.ts` and nothing is written to Firestore. Take the owner from `ownerIdOf` (`stores/authStore.ts`), never `user.uid`. Moving device data into an account is always asked (`app/move-data.tsx`), never automatic.
+- **Repository rule:** screens never import `firebase/firestore`; they call `src/data/*` (functions take `db` first so the emulator tests can pass their own).
+- **Offline:** the JS SDK can't persist its cache on React Native. Writes are fired without awaiting (they show instantly via `watch*` listeners and sync on reconnect); sessions also go through `lib/sync.ts` (AsyncStorage outbox) so an app kill offline loses nothing; `stores/childStore.ts` snapshots children + slots to the device so the app starts offline. Deletes, imports and exports need a connection: they check the server first and every step gives up after 15 s (`withTimeout`, `ServerTimeoutError`) instead of hanging; the parent sees "needs a connection". Writes fired with `background()` report refusals to the parent (`lib/errors.ts` → `components/ui/ParentNotice.tsx`, never in kid mode); every `watch*` takes `onError`, and a failed listener is retried with backoff while its data is marked stale.
+- **Consent:** acceptance is kept on the device as *unconfirmed* first and marked confirmed only when the server has it. Status `pending` (unconfirmed) keeps the app on the consent screen — no child data can be entered — and the consent is re-sent; it turns `ok` by itself when the server confirms, and a refusal drops the record and asks again. `checkConsent` forgets a confirmed record the server no longer has (erased elsewhere — never revived). The Accept button is behind the grown-ups check. Two separate items on `app/consent.tsx`: Terms + Privacy, and children's health data. How the parent is verified is still open (lawyer, ADR 0007).
+- **Slots:** never hard-delete a slot with sessions — `removeSlot` archives it. Past days are evaluated with `slotsActiveOn(slots, day)` (a slot counts on every day from its creation day to its archive day, inclusive). Minimum one slot per child (client-enforced).
+- **Deleting** a child or the account deletes subcollections explicitly (Firestore doesn't cascade).
+- **Rules** (`firestore.rules`): owner-only under `users/{uid}`, exact keys + types on every write, `createdAt` immutable (profile and children); a new consent must carry today's versions (`currentTermsVersion`/`currentPrivacyVersion`, same as `LEGAL_VERSIONS` — a test fails if they drift), `healthData: true` and `acceptedAt == request.time`; every write under `users/{uid}` except archiving and deleting needs a *current* receipt (same versions + health item — an older receipt authorizes nothing until re-consent) and no erasure marker (`erasures/{uid}`, written first by account deletion, never removable by the client), so nothing — not even the profile — can be recreated while or after the account is erased; child subcollection writes need a live (existing, non-archived) child; only an archived child can be deleted, so nothing is orphaned; everything else denied. Tests: `npm run test:emulator`.
+- **Delete order:** `deleteChild` archives the child, deletes subcollections, then the doc (idempotent: a missing child still gets its subcollections emptied); `deleteAllUserData` writes the erasure marker, deletes the profile, then every child (listed plus known ids) and the categories. Keep this order — the rules rely on it. A delete cut off offline is remembered (`src/data/pendingOps.ts`), re-run on launch/foreground/every minute by `reconcilePendingOps` (`lib/account.ts`), and the parent is told when it really finished.
 
 ---
 
-## Gemini Coach Integration (implemented in `lib/gemini.ts`)
+## Liquid Glass
 
-- Model `gemini-3.5-flash-lite` (constant `GEMINI_MODEL` — re-check https://ai.google.dev/gemini-api/docs/deprecations before each release).
-- `generateCoachMessage(childName, { age, missedZones, score, streakDays, locale })` (`locale` is the app language: `en`, `pt-BR` or `es`) returns a sanitized message or `null`. It is the only place Gemini is called.
-- **The child's name never leaves the device**: the prompt uses the token `{NAME}`, substituted locally after the reply. Only age, up to 2 missed zones, score and streak are sent.
-- Replies are rejected (→ fallback) if empty, over 300 chars, or containing clinical/brand wording (`BANNED` regex — clinical advisor owns this list). Capped at 2 sentences.
-- `app/session.tsx` awaits it (4 s timeout) in `finish()`; on `null` it uses `lib/coach.ts`. Never show an error to the child.
-- Self-check: `node lib/gemini.check.mjs`.
-- Known gap: `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle. Before App Store, proxy via a Firebase Function + App Check.
+NativeTabs gives the tab bar native glass on iOS 26+. Elsewhere, `components/ui/GlassSurface.tsx` is the only user of `expo-glass-effect`, and only for floating chrome: ProfilePill, Overview's corner buttons, the child-picker and tooth sheets. Never on content cards. It tints the glass per ground (`chrome` / `session`) and falls back to solid token surfaces when `isLiquidGlassAvailable()` is false or Reduce Transparency is on. Chrome keeps its soft `cardShadow` either way.
 
-**Fallback:** If Gemini API fails or is rate-limited, use the local message bank in `lib/constants.ts`. Never show an error to the child.
+---
+
+## Gemini Coach (removed — ADR 0003)
+
+There is no AI client in the app (the unused `lib/gemini.ts` was removed on 2026-11-12; it is in git history). `app/session.tsx` uses the local, clinically reviewed messages in `lib/coach.ts`. The Privacy Policy says Beavo sends no data to AI services. **Before bringing it back:** update the Privacy Policy (bump `LEGAL_VERSIONS.privacy` so parents re-consent), use a paid tier or a Firebase Function proxy + App Check (the free tier may use prompts for product improvement, and `EXPO_PUBLIC_GEMINI_API_KEY` ships in the bundle), and keep these rules: the child's name never leaves the device (`{NAME}` token), only age/missed zones/score/streak are sent.
+
+---
+
+## Camera guardrail (non-negotiable — ADR 0003)
+
+The camera is a **live mirror only**. It must never capture, record, save, upload, or analyze frames, and never use the microphone.
+
+- Only `components/brushing/CameraBackdrop.tsx` renders `<Camera>` (react-native-vision-camera), with **no outputs** — no photo, video, frame, depth or object output, no frame processors, no `takePhoto`/`startRecording`/`capturePhoto*`.
+- The camera runs only while the session screen is focused and the app is in the foreground (`isActive` is false otherwise).
+- No microphone permission: VisionCamera v5 has no Expo config plugin, and only `NSCameraUsageDescription` is set (app.json + `locales/*.json`, pt-BR and English: "only a mirror; nothing is recorded, saved or sent").
+- Enforced by `eslint.config.js` (`no-restricted-imports` / `no-restricted-properties`, "Camera guardrail" message) and `scripts/check-camera-guardrail.mjs` (no mic permission in config; no `expo-media-library`, `expo-image-picker`, `expo-camera`, frame-processor or MediaPipe packages). Never disable these inline.
+- The parent sees `CameraGate` (what the camera does) before the system prompt; brushing works without the camera.
+- Changing any of this needs the owner, the clinical advisor, and a Privacy Policy update first.
 
 ---
 
 ## The Mouth Map (MouthMap.tsx)
 
+Mirror perspective: the child's left on the screen's left. DentalArch is the opposite (dentist).
+
 This is the most important UI component. It is an SVG overlay displayed on top of the camera feed.
 
 - 10 zones total (see `ToothZone` type)
-- Default state: all zones gray/empty
-- As zones are detected: fill progressively (light cobalt `zoneActive`)
-- Fully brushed zone: solid cobalt + checkmark icon; every zone has a 3px ink outline
-- At session end: show missed zones highlighted in soft orange (never red — too alarming for kids)
+- Default state: all zones empty (sunken blue-grey)
+- Zone being brushed: white with a thick teal ring and foam bubbles (`zoneActive`)
+- Fully brushed zone: solid teal + checkmark
+- At session end: missed zones turn honey yellow with the retry glyph (never red — too alarming for kids)
 - The SVG must be responsive and overlay correctly on any phone screen size
 - Zones animate smoothly — no harsh flickers
 
@@ -192,25 +199,28 @@ IDLE → COUNTDOWN (3s) → ACTIVE → PAUSED → COMPLETED → RESULTS
 
 ## Design System
 
-Toy box design system, adopted 2026-10-24 from the Claude Design code export (`zing-design-system.zip`). Values live in `lib/tokens.ts` (inline styles/SVG) and `tailwind.preset.js` (classes) — the preset is generated; regenerate it rather than hand-editing.
+**Riacho** ("calm like a picture book"), adopted 2026-11-10 from the Beavo design system artifact (https://claude.ai/artifact/ErXwoX53UF1ie2kYGq1Ajb — its `project/README.md` is the brand book; read it before designing a screen). The current handoff kit is `beavo-design/` (brand book `beavo-design/design/README.md`, mocks in `beavo-design/design/mocks/`). `design/tokens.json` is the single token source: the kit's tokens plus the app-only session/symptom colours. `node scripts/build-tokens.mjs` generates **both** `tailwind.preset.js` and `lib/tokens.ts` (`colors`, `space`, `radius`, `size`, `shadow`, `fonts`, `type`, `motion`, plus `hairline`/`controlBorder`/`pressShadow`); never hand-edit them (`src/data/designTokens.test.ts` fails if they are stale). Change values in the design system first, then here.
 
 **Palette:**
-- Primary: `#2D5BFF` (cobalt) — main brand color, brushing success. Press: `#1F45DB`
-- Secondary: `#D6247A` (bubblegum-600) · Reward: `#FFD23F` (sunny)
-- Background: `#FFF6DA` (warm cream) — main screen bg · Surface: `#FFFFFF`
-- Ink: `#14142B` — headings, outlines, hard shadows · Text Secondary: `#55557A`
-- Warning: `#FFB347` — missed zones / retry (warm orange, never red)
-- Danger `#DC2626`: parent-facing auth errors only, never shown to children
+- Primary: `#0A746E` (teal) — buttons, links, done zones; white text on it. Press: `#075A55`. Soft: `#D3EEEA`
+- Secondary: `#8FCB63` with `#1C2B1A` text · Reward: `#B83A75` (berry, white text) — stickers, badges and streaks only
+- Background: `#FFF7EA` (cream) · Surface: `#FFFFFF` · Line: `#EADFCB`
+- Ink: `#22302E` · Ink muted: `#58655F`
+- Session: ground `#E4F1F7`, track / empty zone `#C9DCE5`, zone line `#6F8A96`
+- Warning: `#F6C447` (honey yellow, never red, always with the retry glyph; text on it `#3A2A00`)
+- Danger `#B3261E`: parent screens only, never in kid mode
 
-**Signature (non-negotiable):** every card, button, tile and sticker gets a 3px ink outline + hard drop shadow (`hardShadow()` / `outline` in `lib/tokens.ts`, `boxShadow: '0 6px 0 #14142B'`). No blurred shadows, no gradients. Press feedback = scale 0.96 and the drop shrinks. Only stickers tilt (±3–6°). Touch targets ≥ 48px, controls 56px.
+**Surfaces:** content sits in white cards (`radius.lg`, `cardShadow`) on cream; no outlines, no gradients. Primary buttons are pills on a 3px ledge (`pressShadow`) that collapses on press. Edges that must be seen (inputs, checkboxes, empty dots) use `controlBorder`. Press feedback = scale 0.96. Motion is calm; with Reduce Motion, cross-fade instead of moving. Touch targets ≥ 48px, primary controls 56px, 44px per tooth.
 
-**Contrast:** white text only on cobalt-500/600 and bubblegum-600. Sunny and bubblegum-500 always take ink text.
+**Contrast:** white text only on primary, reward, danger and ink. Every state also has its own glyph or fill, never colour alone.
 
 **Typography:** static weights — choose the family, never `fontWeight`.
-- `Fredoka` (Bold / SemiBold / Medium) — headings, numbers/scores, buttons
-- `Lexend` (Regular / SemiBold) — body (min 16px) and labels
+- `Baloo 2` (Bold; ExtraBold for numerals) — headings, numbers/scores, buttons
+- `Nunito` (Regular / SemiBold) — body (min 16px) and labels
 
-**Logo vs mascot:** the logo is the tooth with the lightning bolt (`ZingMark`, `ZingLockup`). Sparky (the foam bubble) is the mascot — splash, empty states, rewards, coaching. Never redraw either; use `components/brand/ZingBrand.tsx`.
+**Logo and mascot:** Beavo the beaver is both. The mark is his head (`BeavoMark`); the wordmark is outlined lettering (`BeavoWordmark`, never retyped in a font); `BeavoLockup` is the default; `BeavoWave` is the waving pose. Never redraw or recolour them: `components/brand/BeavoBrand.tsx` is generated from `assets/brand/*.svg` by `node scripts/build-brand.mjs`. His teeth are always bright white.
+
+**Launch and intro:** the native splash hands off to `components/brand/LogoScreen.tsx` (same image, same spot; 1 second, then a 250 ms cross-fade), drawn as an overlay in `app/_layout.tsx`. `app/onboarding/intro.tsx` is the four-screen intro, shown until `settingsStore.introSeen` is set on this device. Glass chrome takes its tint and solid fallback from `GlassSurface`'s `ground` prop (`chrome` on parent screens, `session` in the brushing session).
 
 **Tone (copy):**
 - For children: enthusiastic, uses "!" sparingly, never clinical
@@ -226,46 +236,49 @@ Toy box design system, adopted 2026-10-24 from the Claude Design code export (`z
 - Use TypeScript strict mode. No `any`, no `@ts-ignore`
 - Use `async/await` over `.then()` chains
 - Handle all Firebase errors with try/catch and user-friendly fallback messages
-- Use Zod schemas to validate all Firestore reads — data can be malformed
-- Use `expo-constants` for environment variables, never hardcode API keys
+- Use Zod schemas to validate all Firestore reads — data can be malformed (in `src/data/`)
+- Go through the repository layer in `src/data/` — never call Firestore from screens
+- Put user-facing strings in `lib/i18n.ts` (pt-BR first, then English and Spanish — all three)
+- Read config only through `lib/env.ts` (`EXPO_PUBLIC_*` via `process.env`, zod-validated at startup), never hardcode API keys. The Google Sign-In iOS URL scheme is derived from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` at prebuild by `plugins/withGoogleSignInScheme.js` (never type it into `app.json`; reading the config never needs the variable, so `eas init` / EAS commands with `EXPO_NO_DOTENV` work)
 - Write self-documenting code — prefer clear names over comments
 - Use NativeWind classes, never raw StyleSheet unless performance demands it
 
 ### Never:
 - Show error stack traces or technical messages to the child user
 - Request camera permissions without explaining why first (parent sees the prompt)
-- Store session video or images — only derived zone data
-- Call Gemini with the child's real name in a way that could be logged externally
+- Store, capture, record, upload or analyze camera frames, video, images or audio (Camera guardrail)
+- Call Gemini at all without the steps in "Gemini Coach (removed)"; never with the child's real name
 - Use `console.log` with sensitive data (auth tokens, child names)
 - Create new TypeScript types that duplicate the ones in `types/index.ts`
 - Use `useEffect` with missing dependencies — fix the dep array properly
 
 ### Privacy (critical — this is a children's app):
-- COPPA compliance: parents authenticate, children never do. In device-only mode nobody authenticates and nothing is stored off the device. The Gemini coach call is the same as with an account: age, up to 2 missed zones, score and streak, never the name
+- COPPA compliance: parents authenticate, children never do. Without an account nobody authenticates and nothing leaves the device (ADR 0005)
 - No analytics that track individual children by name
-- Session data in Firestore is keyed by `parentUid` — always enforce this in security rules
-- Camera frames are processed on-device and never uploaded
+- All data lives under `users/{uid}` — the security rules enforce owner-only access
+- Camera frames are never processed, stored or uploaded (mirror only)
+- **Parental gate — owner rule (2026-11-23): only for app settings and child management.** Gated: Settings (and the PIN), Edit routine, Categories, backup export/import, account deletion, moving or erasing device-only data, the kid-mode exit (Grownups chip; switching from a kid-mode child), adding or deleting a child, deleting a tooth record. Not gated: sign-up and consent (Terms/Privacy links open directly; Accept needs only the two items), sign-in/sign-out, legal and review links, adding a tooth record, viewing anything. `src/data/gateScope.test.ts` enforces the list. The gate runs the action only after its modal has dismissed (iOS can't present an Alert over a dismissing modal). The gate asks for the parent's 4-digit PIN, kept in the Keychain (`expo-secure-store`, this device only, cleared on a fresh install). Choosing the PIN — at the first gate or after "I forgot the PIN" — needs the phone's Face ID / passcode (`expo-local-authentication`; the app only learns yes or no); only first-time setup on a phone confirmed to have no passcode may fall back to one multiplication question (an authentication error fails closed: try again); an existing PIN is replaced only after the owner check, and a failed settings or Keychain read never wipes or skips it (`src/data/gateFlow.ts`, `resolveStoredPin` in `src/data/pinLock.ts`). `app/move-data.tsx` names the device's children only after the gate. Gate modes: `check` (default), `choosePin` (Settings → Change PIN). From the 5th wrong try in a row the next try has to wait, doubling from 1 minute (`src/data/pinLock.ts`).
+- **Kid mode** (`children.kidMode`, off for new children, toggled behind the gate on Brushing): hides the Grownups tab (`more.tsx`), makes the Overview chart view-only (no tooth sheet, no Dental History) and hides edit/add in the child picker. first-run consent is two unchecked, required items (`app/consent.tsx`) storing accepted versions and the health-data item on `users/{uid}.consent`
+- Legal docs (`legal/`) must describe what the code actually does — change them (and `LEGAL_VERSIONS`) whenever data handling changes
 - The Gemini prompt must never include the child's last name, school, or location
 
 ---
 
 ## Project knowledge (read before changing an area)
 
-Progress lives in `docs/ROADMAP.md`, decisions in `docs/decisions/`, copy rules in `docs/CLINICAL.md`, checks and releases in `docs/RUNBOOK.md`. Skills in `.claude/skills/`; the `privacy-reviewer` agent in `.claude/agents/` should review diffs touching Firestore, auth, logging, camera, or Gemini. If these docs and the code disagree, fix or flag the stale one.
+Progress lives in `docs/ROADMAP.md`, decisions in `docs/decisions/`, copy rules in `docs/CLINICAL.md`, checks and releases in `docs/RUNBOOK.md`, Terms/Privacy drafts in `legal/`. Skills in `.claude/skills/`; the `privacy-reviewer` agent in `.claude/agents/` should review diffs touching Firestore, auth, logging, camera, or Gemini. If these docs and the code disagree, fix or flag the stale one.
 
 ---
 
-## Current Phase: Phase 1 — Foundation (code complete, pending end-to-end simulator pass)
+## Current Phase: verify the foundation on a device, then TestFlight
 
-All seven Phase 1 items have code in the repo (register, login incl. Google Sign-In, child-setup, home, BrushTimer, session + results with Firestore save and offline outbox, progress). Streaks and badges are implemented. Item 6 landed as `app/session.tsx` + `app/results.tsx` rather than `(tabs)/brush.tsx`.
-
-**Next:** run the full flow in the simulator (register → child setup → session → results → progress), fix what breaks, then start Phase 2.
+The foundation rebuild (steps 1–3), device-only mode, Spanish and the Beavo rebrand are built but not yet verified on a device. Open tasks, in order, are in `docs/ROADMAP.md` ("Now", then "Next: TestFlight release").
 
 **What NOT to build yet:**
-- Camera integration (Phase 2)
-- Zone detection AI (Phase 2)
+- Zone detection AI / any frame processing (ruled out by the Camera guardrail)
 - Subscriptions/RevenueCat (Phase 3)
 - Android-specific code (Phase 4)
+- Apple Sign-In (not now — note App Store guideline 4.8 before release)
 
 ---
 
@@ -280,7 +293,8 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 EXPO_PUBLIC_FIREBASE_APP_ID=
-EXPO_PUBLIC_GEMINI_API_KEY=
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
 ```
 
 All accessed via `process.env.EXPO_PUBLIC_*` — the `EXPO_PUBLIC_` prefix makes them available client-side in Expo.
@@ -293,14 +307,23 @@ The project is already bootstrapped (Expo SDK 57, blank TypeScript template) wit
 
 ```bash
 npx expo start          # Start Metro dev server (press i for iOS simulator)
-npx tsc --noEmit        # Typecheck — run after every change; there is no test suite yet
+npx tsc --noEmit        # Typecheck — run after every change (tests: see below)
 npx expo export --platform ios --output-dir dist-check   # Full bundle check (delete dist-check after)
 npx expo install <pkg>  # Always use this (not npm install) for Expo/RN native packages — it picks SDK-compatible versions
 ```
 
-Self-checks (plain node + assert, no framework): `node lib/streak.check.mjs`, `node lib/badges.check.mjs`, `node lib/outbox.check.mjs`, `node lib/gemini.check.mjs`, `node lib/localData.check.mjs`, `node lib/translations.check.mjs`. Add one next to any new non-trivial pure logic. Run streak under a DST zone too: `TZ=America/New_York node lib/streak.check.mjs`.
+```bash
+npm test                # node --test src/data/*.test.ts (pure repository logic; Node 24, see .nvmrc)
+npm run test:emulator   # Firestore rules + repository against the emulator (needs Java)
+npx expo lint           # ESLint incl. the camera guardrail rules
+node scripts/check-camera-guardrail.mjs
+npm run build:legal     # legal/*.md → public/legal/*.html (also Hosting predeploy; checks versions)
+npm run check           # tsc + lint + unit tests + guardrail
+```
 
-There is no linter configured. `tsc --noEmit` plus the self-checks are the gates.
+Run the unit tests under a DST zone too: `TZ=America/New_York npm test`. Inside `src/data/`, import siblings with the `.ts` extension (`./schedule.ts`) and other code only via `import type`, so Node can run the tests without a bundler.
+
+Legal pages deploy: `npx firebase login` once, then `npx firebase deploy --only hosting` → `https://beavo-dental.web.app/legal/…`.
 
 **Simulator:** this is a dev-client project — use `npx expo run:ios`, never `expo start --ios` or `--go` (Expo Go can't load the native modules).
 
@@ -310,15 +333,14 @@ There is no linter configured. `tsc --noEmit` plus the self-checks are the gates
 
 - Entry point is `expo-router/entry` (set in `package.json` `main`); the template's `App.tsx`/`index.ts` were deleted.
 - Path alias `@/*` maps to the repo root (see `tsconfig.json`). Use it for all cross-directory imports.
-- NativeWind v4 is wired through `babel.config.js` (`jsxImportSource: 'nativewind'` + `nativewind/babel`), `metro.config.js` (`withNativeWind` with `global.css`), and `tailwind.config.js` (`presets: [nativewind/preset, ./tailwind.preset]` supplies the design-system colors, fonts, radii and `shadow-toy*`/`border-toy`; app-only aliases `ink`, `muted`, `danger` live in the config).
+- NativeWind v4 is wired through `babel.config.js` (`jsxImportSource: 'nativewind'` + `nativewind/babel`), `metro.config.js` (`withNativeWind` with `global.css`), and `tailwind.config.js` (`presets: [nativewind/preset, ./tailwind.preset]` supplies the design-system colors, fonts, radii and shadows; app-only aliases `muted`, `text-link`, `surface-page` live in the config).
 - Firebase Auth uses `initializeAuth` + `getReactNativePersistence(AsyncStorage)` in `lib/firebase.ts`. The firebase v12 wrapper's web typings omit `getReactNativePersistence` (it exists in the RN runtime build) — `types/firebase-auth.d.ts` augments the module; do not work around it with `@ts-ignore`.
-- Fonts are bundled TTFs in `assets/fonts/` loaded once in `app/_layout.tsx` via `expo-font` `useFonts`, referenced by family name: `font-display` → `Fredoka-Bold`, `font-display-semi` → `Fredoka-SemiBold`, `font-body` → `Lexend-Regular`, `font-body-semi` → `Lexend-SemiBold`, `font-numeric` → `Fredoka-Bold` (inline styles: `font.*` in `lib/tokens.ts`).
-- Auth state flows: `onAuthStateChanged` subscription in `app/_layout.tsx` → `stores/authStore.ts` (Zustand) → `app/index.tsx` redirects to `(tabs)/home` when there is an owner, else `onboarding/welcome`.
-- Device-only mode (ADR 0003): a parent can use Zing without an account. The owner is then the reserved id `LOCAL_UID` and `lib/children.ts` / `lib/sessions.ts` branch on it to AsyncStorage (`lib/localStore.ts`) — nothing is written to Firestore. Always take the owner from `ownerIdOf` in `stores/authStore.ts`, never `user.uid` directly. Signing in to an account with no child offers to move the device data into it — the parent must confirm, since the person signing in may not be the parent whose child is on the phone (`moveLocalDataToAccount`, called from `useActiveChild`).
-- Languages: English, Portuguese (Brazil) and Spanish. Never hard-code user-facing text — add a key to all three tables in `lib/translations.ts` (a missing one is a type error) and read it with `t()` from `lib/i18n.ts`. The language follows the device (`expo-localization`), with English as the fallback; pass `locale` from `lib/i18n.ts` to date/time formatting. The system camera prompt is translated in `locales/*.json` (wired through `locales` in `app.json`).
+- Fonts are static TTFs in `assets/fonts/` (Google Fonts download `static/` files, OFL texts alongside), loaded once in `app/_layout.tsx` under the kit names in `lib/tokens.ts` `fonts`: `Baloo2_700Bold`, `Baloo2_800ExtraBold`, `Nunito_400Regular`, `Nunito_600SemiBold`, `Nunito_700Bold`. Classes: `font-display`, `font-display-xb`, `font-body`, `font-body-semibold`, `font-body-bold` (older `font-display-semi`, `font-numeric`, `font-body-semi` still map to the same files). No `@expo-google-fonts` packages.
+- Auth state flows: `onAuthStateChanged` and the stored device-only flag in `app/_layout.tsx` → `stores/authStore.ts` (user, `isLocal`, consent status from `lib/consent.ts`) → `app/(tabs)/_layout.tsx` gates: an owner → current consent → device profiles to move (signed-in only) → at least one child, else redirects to welcome / consent / move-data / child-form.
 - NativeWind 4.2.5 drops function-form `Pressable` styles (upstream #1105); `Button`, `Chip`, `Card` and `AvatarPicker` keep pressed state in React state instead — don't revert it.
 - Fabric: don't make style *keys* conditional on focus (it recreates the native view and drops `TextInput` focus). Keep the keys, change the values.
-- Finished sessions go through `lib/outbox.ts` so an offline write is retried, not lost. Session docs are idempotent via a stable id; `totalSessions` is an increment, guarded by `inFlight` in `sessionStore`.
+- Finished sessions go through `lib/sync.ts` (outbox codec in `src/data/outbox.ts`) so an offline write is retried, not lost. Session docs are idempotent via a stable id reserved before the first attempt.
+- TypeScript 6 defaults `types` to `[]`: test files add `/// <reference types="node" />`.
 
 ---
 
@@ -326,6 +348,6 @@ There is no linter configured. `tsc --noEmit` plus the self-checks are the gates
 
 **App concept:** Daniel Cardoso (developer) + his dentist mother (clinical advisor)
 **Primary clinical advisor:** Reviews all coaching message templates for accuracy
-**Target launch:** App Store, iOS first, Portuguese (BR) + English
+**Target launch:** App Store, iOS first, Portuguese (BR) + English + Spanish (legal documents exist in Portuguese, English and Spanish)
 
 When generating coaching messages or dental content, flag anything that sounds like medical advice for review by the clinical advisor before shipping.
