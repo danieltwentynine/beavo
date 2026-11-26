@@ -10,7 +10,7 @@ type Watch<T> = (
   database: typeof db,
   uid: string,
   childId: string,
-  onChange: (items: T[], confirmed?: boolean) => void,
+  onChange: (items: T[]) => void,
   onError?: WatchErrorHandler,
 ) => () => void;
 
@@ -26,20 +26,16 @@ export function useChildWatchSnapshot<T>(watch: Watch<T>) {
   const { child } = useActiveChild();
   const childId = child?.id ?? null;
   const key = uid && childId ? `${uid}/${childId}` : null;
-  const [watched, setWatched] = useState<{ key: string; items: T[]; confirmedCount: number | null } | null>(null);
+  const [watched, setWatched] = useState<{ key: string; items: T[] } | null>(null);
 
   useRetryingWatch('childData', key, (onError, onLive) =>
     watch(
       db,
       uid as string,
       childId as string,
-      (items, confirmed = true) => {
+      (items) => {
         onLive();
-        setWatched((previous) => ({
-          key: key as string,
-          items,
-          confirmedCount: confirmed ? items.length : previous?.key === key ? previous.confirmedCount : null,
-        }));
+        setWatched({ key: key as string, items });
       },
       onError,
     ),

@@ -9,7 +9,7 @@ import { Chip } from '@/components/ui/Chip';
 import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { locale, t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 import { BRUSHING_DURATIONS, useSettingsStore } from '@/stores/settingsStore';
 
 /** Device settings (parent-only: reached through the gate in More). */
@@ -25,16 +25,16 @@ export default function SettingsScreen() {
     <SafeScreen>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 16 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('event.back')} onPress={() => router.back()} style={{ width: 48, height: 48, justifyContent: 'center' }}>
-          <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
+          <ArrowLeft size={26} color={colors.inkMuted} weight="bold" />
         </Pressable>
-        <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary }}>
+        <Text className="font-display" style={{ fontSize: 28, color: colors.ink }}>
           {t('settings.title')}
         </Text>
         <Card padding={16} style={{ rowGap: 12 }}>
-          <Text className="font-display-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
+          <Text className="font-display-semi" style={{ fontSize: 18, color: colors.ink }}>
             {t('settings.duration')}
           </Text>
-          <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary }}>
+          <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
             {t('settings.durationHint')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -50,10 +50,10 @@ export default function SettingsScreen() {
           </View>
         </Card>
         <Card padding={16} style={{ rowGap: 12 }}>
-          <Text className="font-display-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
+          <Text className="font-display-semi" style={{ fontSize: 18, color: colors.ink }}>
             {t('settings.pin')}
           </Text>
-          <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary }}>
+          <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
             {hasPin ? t('settings.pinSet') : t('settings.pinNone')}
           </Text>
           <Button
@@ -65,7 +65,7 @@ export default function SettingsScreen() {
             }}
           />
           {pinSaved ? (
-            <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 14, color: tokens.textLink }}>
+            <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 16, color: colors.primary }}>
               {t('settings.pinSaved')}
             </Text>
           ) : null}

@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { Pressable, View, type ViewStyle } from 'react-native';
+import { Pressable, View, type AccessibilityState, type ViewStyle } from 'react-native';
 
-import { cardShadow, radius, tokens } from '@/lib/tokens';
+import { useLiveReduceMotion } from '@/hooks/useLiveReduceMotion';
+import { colors, radius, shadow } from '@/lib/tokens';
 
 type CardTone = 'plain' | 'soft' | 'primary';
 
@@ -12,13 +13,14 @@ interface CardProps {
   radius?: number;
   onPress?: () => void;
   accessibilityLabel?: string;
+  accessibilityState?: AccessibilityState;
   style?: ViewStyle;
 }
 
 const TONES: Record<CardTone, string> = {
-  plain: tokens.surfaceCard,
-  soft: tokens.primarySoft,
-  primary: tokens.brandPrimary,
+  plain: colors.surface,
+  soft: colors.primarySoft,
+  primary: colors.primary,
 };
 
 /**
@@ -31,11 +33,14 @@ export function Card({
   radius: radiusProp = radius.lg,
   onPress,
   accessibilityLabel,
+  accessibilityState,
   style,
 }: CardProps) {
   // Pressed state lives in React state because NativeWind's runtime drops
   // Pressable's function-form style prop (nativewind/nativewind#1105).
   const [pressed, setPressed] = useState(false);
+  const reduceMotion = useLiveReduceMotion();
+  const moveOnPress = pressed && !reduceMotion;
   const base: ViewStyle = { borderRadius: radiusProp, padding, backgroundColor: TONES[tone] };
 
   if (onPress) {
@@ -43,13 +48,17 @@ export function Card({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
+        accessibilityState={accessibilityState}
         onPress={onPress}
         onPressIn={() => setPressed(true)}
         onPressOut={() => setPressed(false)}
         style={[
           base,
-          cardShadow,
-          { transform: [{ scale: pressed ? 0.98 : 1 }, { translateY: pressed ? 3 : 0 }] },
+          shadow.card,
+          {
+            opacity: pressed && reduceMotion ? 0.92 : 1,
+            transform: [{ scale: moveOnPress ? 0.98 : 1 }, { translateY: moveOnPress ? 3 : 0 }],
+          },
           style,
         ]}
       >
@@ -58,5 +67,5 @@ export function Card({
     );
   }
 
-  return <View style={[base, cardShadow, style]}>{children}</View>;
+  return <View style={[base, shadow.card, style]}>{children}</View>;
 }

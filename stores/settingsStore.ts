@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { introSeenFromSaved } from '@/src/data/launch';
 import { NO_LOCK, afterWrongPin, isPinLock, resolveStoredPin, type KeychainRead, type PinLock, type SettingsRead } from '@/src/data/pinLock';
 
 /** Brushing length choices (seconds). 2 minutes is the default dentists recommend. */
@@ -83,7 +84,7 @@ export const useSettingsStore = create<SettingsState>()(
         const s = (saved ?? {}) as { brushingDurationSec?: unknown; introSeen?: unknown; hasPin?: unknown; pinLock?: unknown };
         return {
           ...current,
-          introSeen: s.introSeen === true,
+          introSeen: introSeenFromSaved(s),
           hasPin: s.hasPin === true,
           pinLock: isPinLock(s.pinLock) ? s.pinLock : NO_LOCK,
           brushingDurationSec: isDuration(s.brushingDurationSec) ? s.brushingDurationSec : current.brushingDurationSec,

@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, type ViewStyle } from 'react-native';
 
-import { cardShadow, hairline, motion, pressShadow, radius, tokens } from '@/lib/tokens';
+import { useLiveReduceMotion } from '@/hooks/useLiveReduceMotion';
+import { colors, hairline, motion, pressShadow, radius, shadow } from '@/lib/tokens';
 
 type ButtonVariant = 'primary' | 'soft' | 'ghost' | 'outline';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -27,10 +28,10 @@ const SIZES: Record<ButtonSize, { height: number; paddingHorizontal: number; fon
 
 // White text only on primary. Primary sits on a pressable ledge; outline floats like a card.
 const VARIANTS: Record<ButtonVariant, { bg: string; fg: string; lift: 'press' | 'card' | 'none' }> = {
-  primary: { bg: tokens.brandPrimary, fg: tokens.textOnBrand, lift: 'press' },
-  soft: { bg: tokens.primarySoft, fg: tokens.brandPrimary, lift: 'none' },
-  outline: { bg: tokens.surfaceCard, fg: tokens.textPrimary, lift: 'card' },
-  ghost: { bg: 'transparent', fg: tokens.brandPrimary, lift: 'none' },
+  primary: { bg: colors.primary, fg: colors.onPrimary, lift: 'press' },
+  soft: { bg: colors.primarySoft, fg: colors.primary, lift: 'none' },
+  outline: { bg: colors.surface, fg: colors.ink, lift: 'card' },
+  ghost: { bg: 'transparent', fg: colors.primary, lift: 'none' },
 };
 
 export function Button({
@@ -49,6 +50,9 @@ export function Button({
   // Pressable's function-form style prop (nativewind/nativewind#1105) —
   // style={({ pressed }) => ...} renders completely unstyled here.
   const [pressed, setPressed] = useState(false);
+  const reduceMotion = useLiveReduceMotion();
+  const pressActive = pressed && !isDisabled;
+  const moveOnPress = pressActive && !reduceMotion;
   const s = SIZES[size];
   const v = VARIANTS[variant];
 
@@ -66,19 +70,20 @@ export function Button({
           alignItems: 'center',
           justifyContent: 'center',
           columnGap: 10,
-          height: s.height,
+          minHeight: s.height,
+          paddingVertical: 8,
           paddingHorizontal: s.paddingHorizontal,
           borderRadius: radius.pill,
           width: fullWidth ? '100%' : undefined,
           alignSelf: fullWidth ? 'stretch' : undefined,
           backgroundColor: v.bg,
-          opacity: isDisabled ? 0.5 : 1,
+          opacity: isDisabled ? 0.5 : pressActive && reduceMotion ? 0.92 : 1,
           transform: [
-            { scale: pressed && !isDisabled ? motion.pressScale : 1 },
-            { translateY: pressed && !isDisabled ? 2 : 0 },
+            { scale: moveOnPress ? motion.pressScale : 1 },
+            { translateY: moveOnPress ? 2 : 0 },
           ],
         },
-        v.lift === 'press' ? pressShadow(pressed || isDisabled) : v.lift === 'card' ? [hairline, cardShadow] : null,
+        v.lift === 'press' ? pressShadow(moveOnPress || isDisabled) : v.lift === 'card' ? [hairline, shadow.card] : null,
         style,
       ]}
     >
@@ -89,7 +94,7 @@ export function Button({
           {icon}
           <Text
             className="font-display"
-            style={{ color: v.fg, fontSize: s.font, lineHeight: s.font * 1.2 }}
+            style={{ color: v.fg, flexShrink: 1, textAlign: 'center', fontSize: s.font, lineHeight: s.font * 1.2 }}
           >
             {label}
           </Text>

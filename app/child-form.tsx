@@ -12,7 +12,7 @@ import { useActiveChild } from '@/hooks/useActiveChild';
 import { deleteChildProfile } from '@/lib/account';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { radius, tokens } from '@/lib/tokens';
+import { colors, radius } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { createChild, updateChild } from '@/src/data/children';
 import { background } from '@/src/data/firestore';
@@ -108,7 +108,7 @@ export default function ChildFormScreen() {
             {existing ? t('childForm.titleEdit') : t('childForm.titleNew')}
           </Text>
           {isFirst ? (
-            <Text className="mt-1 font-body text-base text-muted">{t('childForm.subtitleFirst')}</Text>
+            <Text className="mt-1 font-body text-base text-ink-muted">{t('childForm.subtitleFirst')}</Text>
           ) : null}
 
           <View style={{ rowGap: 18, marginTop: 20, flex: 1 }}>
@@ -121,12 +121,12 @@ export default function ChildFormScreen() {
             />
 
             <View>
-              <Text className="mb-2.5 font-body-semi text-sm text-ink">{t('childForm.icon')}</Text>
+              <Text className="mb-2.5 font-body-semi text-base text-ink">{t('childForm.icon')}</Text>
               <AvatarPicker value={icon} color={color} onChange={setIcon} />
             </View>
 
             <View>
-              <Text className="mb-2.5 font-body-semi text-sm text-ink">{t('childForm.color')}</Text>
+              <Text className="mb-2.5 font-body-semi text-base text-ink">{t('childForm.color')}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                 {AVATAR_COLORS.map((c) => (
                   <Pressable
@@ -140,7 +140,7 @@ export default function ChildFormScreen() {
                       height: 48,
                       borderRadius: radius.pill,
                       backgroundColor: c,
-                      borderColor: c === color ? tokens.brandPrimary : tokens.line,
+                      borderColor: c === color ? colors.primary : colors.line,
                       borderWidth: c === color ? 5 : 3,
                     }}
                   />
@@ -158,7 +158,7 @@ export default function ChildFormScreen() {
             />
           </View>
 
-          {error ? <Text className="mt-4 font-body-semi text-sm text-ink">{error}</Text> : null}
+          {error ? <Text className="mt-4 font-body-semi text-base text-ink">{error}</Text> : null}
 
           <View style={{ rowGap: 12, marginTop: 22 }}>
             <Button label={existing ? t('childForm.save') : t('childForm.create')} size="lg" onPress={onSave} />

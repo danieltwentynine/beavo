@@ -11,7 +11,7 @@ import { SectionTitle } from '@/components/ui/SectionTitle';
 import { useCategories } from '@/hooks/useCategories';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { background } from '@/src/data/firestore';
 import { DEFAULT_CATEGORIES, addCategory, deleteCategory, updateCategory } from '@/src/data/toothEvents';
@@ -42,11 +42,11 @@ function CategoryRow({ uid, category }: { uid: string; category: Category }) {
         onPress={() => background(updateCategory(db, uid, category.id, { color: nextColor(category.color) }))}
         style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
       >
-        <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: category.color, borderWidth: 3, borderColor: tokens.line }} />
+        <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: category.color, borderWidth: 3, borderColor: colors.line }} />
       </Pressable>
       <Input value={name} onChangeText={setName} onBlur={commit} maxLength={40} accessibilityLabel={category.name} containerStyle={{ flex: 1 }} />
       {category.isDefault ? (
-        <Text className="font-body" style={{ width: 48, fontSize: 12, color: tokens.textSecondary, textAlign: 'center' }}>
+        <Text className="font-body" style={{ flexBasis: 64, flexShrink: 0, fontSize: 16, color: colors.inkMuted, textAlign: 'center' }}>
           {t('categories.default')}
         </Text>
       ) : (
@@ -56,7 +56,7 @@ function CategoryRow({ uid, category }: { uid: string; category: Category }) {
           onPress={confirmDelete}
           style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
         >
-          <Trash size={22} color={tokens.textSecondary} weight="bold" />
+          <Trash size={22} color={colors.inkMuted} weight="bold" />
         </Pressable>
       )}
     </View>
@@ -100,9 +100,9 @@ export default function CategoriesScreen() {
         <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 20 }} keyboardShouldPersistTaps="handled">
           <View style={{ rowGap: 8 }}>
             <Pressable accessibilityRole="button" accessibilityLabel={t('event.back')} onPress={() => router.back()} style={{ width: 48, height: 48, justifyContent: 'center' }}>
-              <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
+              <ArrowLeft size={26} color={colors.inkMuted} weight="bold" />
             </Pressable>
-            <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary }}>
+            <Text className="font-display" style={{ fontSize: 28, color: colors.ink }}>
               {t('categories.title')}
             </Text>
           </View>

@@ -1,28 +1,14 @@
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
-import { useEffect, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, View, type StyleProp, type ViewStyle } from 'react-native';
+import type { ReactNode } from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { tokens } from '@/lib/tokens';
-
-/** Liquid Glass needs iOS 26+ and the user not asking for less transparency. */
-function useGlass(): boolean {
-  const [reduceTransparency, setReduceTransparency] = useState(true);
-  useEffect(() => {
-    let alive = true;
-    void AccessibilityInfo.isReduceTransparencyEnabled().then((v) => alive && setReduceTransparency(v));
-    const sub = AccessibilityInfo.addEventListener('reduceTransparencyChanged', setReduceTransparency);
-    return () => {
-      alive = false;
-      sub.remove();
-    };
-  }, []);
-  return !reduceTransparency && isLiquidGlassAvailable();
-}
+import { useReduceTransparency } from '@/hooks/useReduceTransparency';
+import { colors } from '@/lib/tokens';
 
 // [glass tint, solid fallback when glass is unavailable or Reduce Transparency is on]
 const GLASS = {
-  chrome: [tokens.glassChrome, tokens.glassChromeSolid],
-  session: [tokens.glassSession, tokens.glassSessionSolid],
+  chrome: [colors.glassChrome, colors.glassChromeSolid],
+  session: [colors.glassSession, colors.glassSessionSolid],
 } as const;
 
 interface GlassSurfaceProps {
@@ -32,8 +18,8 @@ interface GlassSurfaceProps {
   ground?: keyof typeof GLASS;
   /** Glass reacts to touch (buttons, pills). */
   interactive?: boolean;
-  /** Colored chrome (e.g. an active button): replaces the ground tint and the solid fallback. */
-  tint?: string;
+  /** Glass tint and, when needed, a separate opaque fill for its solid version. */
+  tint?: { glass: string; opaque?: string };
 }
 
 /**
@@ -44,11 +30,19 @@ interface GlassSurfaceProps {
  * Beavo with or without glass.
  */
 export function GlassSurface({ children, style, ground = 'chrome', interactive = false, tint }: GlassSurfaceProps) {
-  const glass = useGlass();
+  const reduceTransparency = useReduceTransparency();
+  const glass = !reduceTransparency && isLiquidGlassAvailable();
   const [glassTint, solid] = GLASS[ground];
-  if (!glass) return <View style={[{ backgroundColor: tint ?? solid }, style]}>{children}</View>;
+  if (!glass) return <View style={[{ backgroundColor: tint?.opaque ?? solid }, style]}>{children}</View>;
+  const background = tint?.glass ?? glassTint;
   return (
-    <GlassView glassEffectStyle="regular" isInteractive={interactive} tintColor={tint ?? glassTint} colorScheme="light" style={[{ overflow: 'hidden' }, style]}>
+    <GlassView glassEffectStyle="regular" isInteractive={interactive}
+      tintColor={ground === 'chrome' ? background : undefined}
+      colorScheme="light" style={[{ overflow: 'hidden' }, style]}>
+      {/* Cover the native material with a known alpha so content contrast has a measurable floor. */}
+      {ground === 'session' ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: background }]} />
+      ) : null}
       {children}
     </GlassView>
   );

@@ -13,7 +13,7 @@ import { useState, type ComponentType } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { t, type StringKey } from '@/lib/i18n';
-import { motion, radius, tokens } from '@/lib/tokens';
+import { colors, motion, radius } from '@/lib/tokens';
 
 type AvatarConfig = { Icon: ComponentType<IconProps>; bg: string };
 
@@ -76,8 +76,8 @@ export function Avatar({ avatarId = 'dog', color, size = 56, ring = false }: Ava
         padding: 2,
         borderRadius: radius.pill,
         borderWidth: 3,
-        borderColor: tokens.brandPrimary,
-        backgroundColor: tokens.surfaceCard,
+        borderColor: colors.primary,
+        backgroundColor: colors.surface,
       }}
     >
       {circle}
@@ -123,7 +123,7 @@ export function AvatarPicker({ value = 'dog', color, onChange }: AvatarPickerPro
                 borderRadius: radius.lg,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: selected ? tokens.primarySoft : 'transparent',
+                backgroundColor: selected ? colors.primarySoft : 'transparent',
                 transform: [{ scale: pressedId === id ? motion.pressScale : 1 }],
               }}
             >

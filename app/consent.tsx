@@ -10,7 +10,7 @@ import { leaveLocalMode } from '@/lib/localData';
 import { acceptConsent, checkConsent } from '@/lib/consent';
 import { t } from '@/lib/i18n';
 import { LEGAL_URLS } from '@/lib/legal';
-import { cardShadow, controlBorder, radius, tokens } from '@/lib/tokens';
+import { colors, controlBorder, radius, shadow } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useNoticeStore } from '@/stores/noticeStore';
 
@@ -38,8 +38,8 @@ function ConsentCheck({ label, checked, onToggle }: { label: string; checked: bo
         alignItems: 'flex-start',
         padding: 16,
         borderRadius: radius.lg,
-        backgroundColor: checked ? tokens.primarySoft : tokens.surfaceCard,
-        ...cardShadow,
+        backgroundColor: checked ? colors.primarySoft : colors.surface,
+        ...shadow.card,
       }}
     >
       <View
@@ -49,13 +49,13 @@ function ConsentCheck({ label, checked, onToggle }: { label: string; checked: bo
           borderRadius: radius.sm,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: checked ? tokens.brandPrimary : tokens.surfaceCard,
+          backgroundColor: checked ? colors.primary : colors.surface,
           ...controlBorder,
         }}
       >
-        {checked ? <Check size={20} color={tokens.textOnBrand} weight="bold" /> : null}
+        {checked ? <Check size={20} color={colors.onPrimary} weight="bold" /> : null}
       </View>
-      <Text className="font-body" style={{ flex: 1, fontSize: 16, lineHeight: 23, color: tokens.textPrimary }}>
+      <Text className="font-body" style={{ flex: 1, fontSize: 16, lineHeight: 23, color: colors.ink }}>
         {label}
       </Text>
     </Pressable>
@@ -115,7 +115,7 @@ export default function ConsentScreen() {
 
   const link = (label: string, url: string) => (
     <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(url).catch(() => undefined)} hitSlop={6} style={{ minHeight: 48, justifyContent: 'center' }}>
-      <Text className="font-display-semi" style={{ fontSize: 17, color: tokens.textLink, textDecorationLine: 'underline' }}>
+      <Text className="font-display-semi" style={{ fontSize: 17, color: colors.primary, textDecorationLine: 'underline' }}>
         {label}
       </Text>
     </Pressable>
@@ -128,7 +128,7 @@ export default function ConsentScreen() {
         {status === 'updated' ? (
           <Text className="mt-3 font-body-semi text-base text-ink">{t('consent.updated')}</Text>
         ) : null}
-        <Text className="mt-3 font-body text-base text-muted">{t('consent.body')}</Text>
+        <Text className="mt-3 font-body text-base text-ink-muted">{t('consent.body')}</Text>
 
         <View style={{ marginTop: 16 }}>
           {link(t('consent.terms'), LEGAL_URLS.terms)}
@@ -136,8 +136,8 @@ export default function ConsentScreen() {
         </View>
 
         {status === 'pending' ? (
-          <View style={{ marginTop: 22, padding: 16, borderRadius: radius.lg, backgroundColor: tokens.surfaceCard, ...cardShadow }}>
-            <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 16, lineHeight: 23, color: tokens.textPrimary }}>
+          <View style={{ marginTop: 22, padding: 16, borderRadius: radius.lg, backgroundColor: colors.surface, ...shadow.card }}>
+            <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 16, lineHeight: 23, color: colors.ink }}>
               {t('consent.pendingOnline')}
             </Text>
           </View>
@@ -147,7 +147,7 @@ export default function ConsentScreen() {
               <ConsentCheck label={t('consent.checkTerms')} checked={checked.terms} onToggle={() => toggle('terms')} />
               <ConsentCheck label={t('consent.checkHealth')} checked={checked.health} onToggle={() => toggle('health')} />
             </View>
-            {!allChecked ? <Text className="mt-3 font-body text-sm text-muted">{t('consent.required')}</Text> : null}
+            {!allChecked ? <Text className="mt-3 font-body text-base text-ink-muted">{t('consent.required')}</Text> : null}
           </>
         )}
         {/* A late refusal (after 'pending') arrives as a notice; shown here too, since the banner needs loaded child data. */}

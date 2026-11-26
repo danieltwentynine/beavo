@@ -61,7 +61,6 @@ GoogleService-Info.plist
 # Claude Code (machine-specific)
 .claude/settings.local.json
 
-
 # Design exports (source zips from Claude Design; adopted content lives in the repo)
 zing-design-system*.zip
 

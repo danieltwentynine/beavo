@@ -11,7 +11,7 @@ import { SafeScreen } from '@/components/ui/SafeScreen';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { radius, tokens } from '@/lib/tokens';
+import { colors, radius } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { background } from '@/src/data/firestore';
 import { canRemoveSlot, currentSlots, isValidWindow, moveSlot } from '@/src/data/schedule';
@@ -82,28 +82,28 @@ function SlotRow({ slot, isFirst, isLast, canRemove, onChange, onMove, onRemove 
             borderRadius: radius.pill,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: tokens.primarySoft,
+            backgroundColor: colors.primarySoft,
           }}
         >
-          <SlotIcon icon={slot.icon} size={24} color={tokens.brandPrimary} weight="fill" />
+          <SlotIcon icon={slot.icon} size={24} color={colors.primary} weight="fill" />
         </Pressable>
         <Input value={label} onChangeText={setLabel} onBlur={commitLabel} maxLength={40} accessibilityLabel={t('slots.label')} containerStyle={{ flex: 1 }} />
         <IconButton label={t('slots.remove', { label: slot.label })} disabled={!canRemove} onPress={onRemove}>
-          <Trash size={22} color={tokens.textSecondary} weight="bold" />
+          <Trash size={22} color={colors.inkMuted} weight="bold" />
         </IconButton>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', columnGap: 8 }}>
         <Input label={t('slots.start')} value={start} onChangeText={setStart} onBlur={commitWindow} maxLength={5} keyboardType="numbers-and-punctuation" containerStyle={{ flex: 1 }} />
         <Input label={t('slots.end')} value={end} onChangeText={setEnd} onBlur={commitWindow} maxLength={5} keyboardType="numbers-and-punctuation" containerStyle={{ flex: 1 }} />
         <IconButton label={t('slots.moveUp', { label: slot.label })} disabled={isFirst} onPress={() => onMove(-1)}>
-          <ArrowUp size={22} color={tokens.textPrimary} weight="bold" />
+          <ArrowUp size={22} color={colors.ink} weight="bold" />
         </IconButton>
         <IconButton label={t('slots.moveDown', { label: slot.label })} disabled={isLast} onPress={() => onMove(1)}>
-          <ArrowDown size={22} color={tokens.textPrimary} weight="bold" />
+          <ArrowDown size={22} color={colors.ink} weight="bold" />
         </IconButton>
       </View>
       {timeError ? (
-        <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
+        <Text className="font-body-semi" style={{ fontSize: 16, color: colors.inkMuted }}>
           {t('slots.errTime')}
         </Text>
       ) : null}
@@ -138,7 +138,7 @@ export default function SlotsScreen() {
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerClassName="px-6 pb-7 pt-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ rowGap: 14 }}>
           <Text className="font-display text-3xl text-ink">{t('slots.title')}</Text>
-          <Text className="font-body text-base text-muted">{t('slots.subtitle', { name: child.name })}</Text>
+          <Text className="font-body text-base text-ink-muted">{t('slots.subtitle', { name: child.name })}</Text>
           {current.map((slot, i) => (
             <SlotRow
               key={slot.id}
@@ -155,7 +155,7 @@ export default function SlotsScreen() {
             />
           ))}
           {!removable ? (
-            <Text className="font-body text-sm text-muted">{t('slots.minOne')}</Text>
+            <Text className="font-body text-base text-ink-muted">{t('slots.minOne')}</Text>
           ) : null}
           <Button label={t('slots.add')} variant="soft" onPress={add} />
           <Button label={t('childForm.back')} variant="ghost" onPress={() => router.back()} />

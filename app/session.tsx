@@ -17,16 +17,18 @@ import { Button } from '@/components/ui/Button';
 import { GlassSurface } from '@/components/ui/GlassSurface';
 import { SideLabels } from '@/components/ui/SideLabels';
 import { useActiveChild } from '@/hooks/useActiveChild';
-import { useSessionHistory } from '@/hooks/useSessions';
 import { brushingCheer, buildCoachMessage } from '@/lib/coach';
 import { ALL_TOOTH_ZONES, COUNTDOWN_SECONDS } from '@/lib/constants';
 import { t } from '@/lib/i18n';
-import { cardShadow, motion, radius, tokens } from '@/lib/tokens';
+import { colors, motion, radius, shadow } from '@/lib/tokens';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { brushingStoryStep, carriedSessionCount, resolveBrushingStory, type BrushingStory } from '@/src/data/brushingStory';
 import { scoreSession } from '@/src/data/score';
 import type { ToothZone } from '@/types';
+
+const CONTROL_SIZE = 56;
+const CONTROL_GAP = 12;
+const COUNTDOWN_MAX_FONT_SCALE = 1.25;
 
 function countReachedZones(elapsed: number, total: number) {
   return Math.min(ALL_TOOTH_ZONES.length, Math.floor((elapsed / total) * ALL_TOOTH_ZONES.length));
@@ -34,21 +36,15 @@ function countReachedZones(elapsed: number, total: number) {
 
 export default function SessionScreen() {
   const { child } = useActiveChild();
-  const history = useSessionHistory();
-  const [story, setStory] = useState<{ childId: string; id: BrushingStory } | null>(null);
   const [foamZone, setFoamZone] = useState<ToothZone>();
   // Slot chosen on the Brushing tab; the length is fixed for this session when it opens.
-  const { slotId, historyChildId, historyCount } = useLocalSearchParams<{
-    slotId?: string;
-    historyChildId?: string;
-    historyCount?: string;
-  }>();
+  const { slotId } = useLocalSearchParams<{ slotId?: string }>();
   const [total] = useState<number>(() => useSettingsStore.getState().brushingDurationSec);
   const setLastResult = useSessionStore((s) => s.setLastResult);
   const saveLastResult = useSessionStore((s) => s.saveLastResult);
 
   const insets = useSafeAreaInsets();
-  const { height, width } = useWindowDimensions();
+  const { fontScale, height, width } = useWindowDimensions();
   const mapSize = Math.min(height < 700 ? 220 : 260, width - 48);
   const timerSize = height < 700 ? 130 : 150;
   const reduceMotion = useReducedMotion();
@@ -60,11 +56,12 @@ export default function SessionScreen() {
   const camera = useCameraPermission();
   const device = useCameraDevice('front');
   const [skipCamera, setSkipCamera] = useState(false);
-  const mirrorDevice = camera.hasPermission && !skipCamera ? device : undefined;
 
   const [phase, setPhase] = useState<'countdown' | 'active' | 'paused'>('countdown');
   // A late camera discovery must not interrupt brushing once the guide starts.
   const askingForCamera = phase === 'countdown' && !!device && camera.canRequestPermission && !skipCamera;
+  const countdownVisible = phase === 'countdown' && !askingForCamera;
+  const mirrorDevice = camera.hasPermission && !skipCamera && !askingForCamera ? device : undefined;
   const [count, setCount] = useState(COUNTDOWN_SECONDS);
   const [remaining, setRemaining] = useState(total);
   const remainingRef = useRef(total);
@@ -173,15 +170,6 @@ export default function SessionScreen() {
 
   const currentZone = ALL_TOOTH_ZONES[Math.min(zonesReached, ALL_TOOTH_ZONES.length - 1)];
   const zoneInstruction = t(`zone.${currentZone}`);
-  const childId = child?.id;
-  const sessionCount = carriedSessionCount(childId, historyChildId, historyCount) ?? history?.confirmedCount ?? null;
-  const currentStory = story?.childId === childId ? story?.id ?? null : null;
-  const selectedStory = phase === 'countdown' ? null : resolveBrushingStory(currentStory, sessionCount);
-  // Lock the first known choice for this child without blocking the brushing guide.
-  if (childId && selectedStory !== null && currentStory !== selectedStory) {
-    setStory({ childId, id: selectedStory });
-  }
-  const storyLine = selectedStory === null ? null : t(`story.${selectedStory}.${brushingStoryStep(zonesReached)}`);
 
   useEffect(() => {
     if (Platform.OS !== 'ios' || askingForCamera || phase !== 'active') return;
@@ -235,7 +223,7 @@ export default function SessionScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: tokens.sessionBg }}>
+    <View style={{ flex: 1, backgroundColor: colors.sessionBg }}>
       <StatusBar style={mirrorDevice ? 'light' : 'dark'} />
       {mirrorDevice ? <CameraBackdrop device={mirrorDevice} /> : null}
       <SafeAreaView
@@ -251,42 +239,53 @@ export default function SessionScreen() {
             onPressIn={() => setControlPressed(true)}
             onPressOut={() => setControlPressed(false)}
             style={{
-              position: 'absolute',
-              top: insets.top + 12,
-              right: 20,
-              zIndex: 5,
-              width: 56,
-              height: 56,
+              width: CONTROL_SIZE,
+              height: CONTROL_SIZE,
+              ...(countdownVisible ? {
+                alignSelf: 'flex-end',
+                marginTop: CONTROL_GAP,
+                marginRight: 20,
+                marginBottom: CONTROL_GAP,
+              } : {
+                position: 'absolute',
+                top: insets.top + CONTROL_GAP,
+                right: 20,
+                zIndex: 5,
+              }),
               borderRadius: 28,
               transform: [{ scale: controlPressed && !reduceMotion ? motion.pressScale : 1 }],
-              ...cardShadow,
+              ...shadow.card,
             }}
           >
             <GlassSurface interactive ground="session" style={{ flex: 1, borderRadius: 28, alignItems: 'center', justifyContent: 'center' }}>
-              {active ? <Pause size={24} color={tokens.textPrimary} weight="fill" /> : <X size={24} color={tokens.textPrimary} weight="bold" />}
+              {active ? <Pause size={24} color={colors.cameraControlInk} weight="fill" /> : <X size={24} color={colors.cameraControlInk} weight="bold" />}
             </GlassSurface>
           </Pressable>
         )}
 
         {askingForCamera ? (
           <CameraGate onAllow={() => void camera.requestPermission()} onSkip={() => setSkipCamera(true)} />
-        ) : phase === 'countdown' ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 16, paddingHorizontal: 24 }}>
-            <GlassSurface ground="session" tint={tokens.sessionPill}
-              style={{ width: 200, height: 200, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' }}>
+        ) : countdownVisible ? (
+          <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="never"
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', rowGap: 16,
+              paddingHorizontal: 24, paddingBottom: 12 }}>
+            <GlassSurface ground="session" tint={{ glass: colors.sessionPill }}
+              style={{ minWidth: 156, minHeight: 156, maxWidth: '100%', paddingHorizontal: 24, paddingVertical: 10,
+                borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' }}>
               <Text accessibilityLiveRegion="assertive" className="font-numeric"
-                numberOfLines={1} adjustsFontSizeToFit
-                style={{ fontSize: 112, color: tokens.brandPrimaryPress, lineHeight: 120 }}>
+                allowFontScaling={fontScale >= 1}
+                maxFontSizeMultiplier={COUNTDOWN_MAX_FONT_SCALE}
+                style={{ fontSize: count <= 0 ? 76 : 112, color: colors.primaryPress, textAlign: 'center' }}>
                 {count <= 0 ? t('session.go') : count}
               </Text>
             </GlassSurface>
-            <GlassSurface ground="session" tint={tokens.sessionPill}
-              style={{ minHeight: 44, paddingVertical: 10, paddingHorizontal: 18, borderRadius: radius.pill }}>
-              <Text className="font-body-semi" style={{ fontSize: 18, lineHeight: 24, color: tokens.textPrimary, textAlign: 'center' }}>
+            <GlassSurface ground="session" tint={{ glass: colors.sessionPill }}
+              style={{ minHeight: 44, maxWidth: '100%', paddingVertical: 10, paddingHorizontal: 18, borderRadius: radius.pill }}>
+              <Text className="font-body-semi" style={{ fontSize: 18, lineHeight: 24, color: colors.ink, textAlign: 'center' }}>
                 {t('session.ready', { name: childName })}
               </Text>
             </GlassSurface>
-          </View>
+          </ScrollView>
         ) : (
           <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 20, paddingBottom: 4 }}>
             <Animated.View key={zonesReached} entering={zonesReached === 0 ? cheerIn : undefined} style={{ marginTop: 8, marginHorizontal: 52 }}>
@@ -294,24 +293,21 @@ export default function SessionScreen() {
             </Animated.View>
 
             <View style={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 8 }}>
-              <View style={{ backgroundColor: tokens.surfaceCard, borderRadius: radius.pill, ...cardShadow }}>
+              <View style={{ backgroundColor: colors.surface, borderRadius: radius.pill, ...shadow.card }}>
                 <MouthMap states={zoneStates} size={mapSize} foamZone={active && !reduceMotion ? foamZone : undefined} />
               </View>
               <SideLabels left={t('mouth.yourLeft')} right={t('mouth.yourRight')} width={mapSize} session />
-              <GlassSurface ground="session" tint={tokens.sessionPill}
+              <GlassSurface ground="session" tint={{ glass: colors.sessionPill }}
                 style={{ minHeight: 56, marginTop: 12, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 28, maxWidth: '100%', justifyContent: 'center' }}>
-                <Text accessibilityLiveRegion="polite" className="font-display" numberOfLines={2}
-                  style={{ fontSize: 22, lineHeight: 28, color: tokens.textPrimary, textAlign: 'center' }}>
+                <Text accessibilityLiveRegion="polite" className="font-display"
+                  style={{ fontSize: 22, lineHeight: 28, color: colors.ink, textAlign: 'center' }}>
                   {zoneInstruction}
                 </Text>
-                {storyLine ? <Text className="font-body-semi" style={{ fontSize: 16, marginTop: 4, color: tokens.textPrimary, textAlign: 'center' }}>
-                  {storyLine}
-                </Text> : null}
               </GlassSurface>
             </View>
 
-            <View style={{ marginVertical: 18 }}>
-              <BrushTimer remaining={remaining} total={total} size={timerSize} />
+            <View style={{ marginVertical: 18, maxWidth: '100%' }}>
+              <BrushTimer remaining={remaining} total={total} size={timerSize} translucent={!!mirrorDevice} />
             </View>
 
             <View style={{ minHeight: 48 }}>

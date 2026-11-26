@@ -71,10 +71,10 @@ export default function MoveDataScreen() {
           <BeavoWave width={140} />
         </View>
         <Text className="font-display text-3xl text-ink">{t('move.title')}</Text>
-        <Text className="mt-3 font-body text-base text-muted">
+        <Text className="mt-3 font-body text-base text-ink-muted">
           {unlocked ? t('move.body', { names: names.join(', ') }) : t('move.bodyLocked')}
         </Text>
-        <Text className="mt-3 font-body text-base text-muted">{t('move.keepHint')}</Text>
+        <Text className="mt-3 font-body text-base text-ink-muted">{t('move.keepHint')}</Text>
         {failed ? <Text className="mt-4 font-body-semi text-base text-ink">{t('move.fail')}</Text> : null}
 
         <View style={{ marginTop: 'auto', paddingTop: 28, rowGap: 12 }}>

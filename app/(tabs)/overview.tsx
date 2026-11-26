@@ -9,10 +9,11 @@ import { GlassSurface } from '@/components/ui/GlassSurface';
 import { Card } from '@/components/ui/Card';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
+import { TabScenery } from '@/components/ui/TabScenery';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useToothEvents } from '@/hooks/useToothEvents';
 import { t } from '@/lib/i18n';
-import { cardShadow, radius, tokens } from '@/lib/tokens';
+import { colors, radius, shadow } from '@/lib/tokens';
 import { countForYear, statusByTooth } from '@/src/data/teeth';
 
 const CARD_PADDING = 16;
@@ -50,14 +51,14 @@ function CornerButton({
           opacity: disabled ? 0.4 : 1,
           zIndex: 2,
         },
-        cardShadow,
+        shadow.card,
         style,
       ]}
     >
       {/* Floating chrome → Liquid Glass where available (GlassSurface falls back to solid). */}
       <GlassSurface
         interactive
-        tint={active ? tokens.brandPrimary : undefined}
+        tint={active ? { glass: colors.primary, opaque: colors.primary } : undefined}
         style={{ flex: 1, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' }}
       >
         {children}
@@ -70,10 +71,10 @@ function StatCard({ count, label, status }: { count: number; label: string; stat
   return (
     <Card padding={16} style={{ flex: 1, rowGap: 6 }}>
       <ToothStatusSwatch status={status} />
-      <Text className="font-numeric" style={{ fontSize: 36, color: tokens.textPrimary, lineHeight: 40 }}>
+      <Text className="font-numeric" style={{ fontSize: 36, color: colors.ink, lineHeight: 40 }}>
         {count}
       </Text>
-      <Text className="font-body-semi" style={{ fontSize: 15, color: tokens.textSecondary }}>
+      <Text className="font-body-semi" style={{ fontSize: 16, color: colors.inkMuted }}>
         {label}
       </Text>
     </Card>
@@ -114,8 +115,9 @@ export default function OverviewScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 22 }}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: colors.bg }}>
+      <TabScenery />
+      <ScrollView contentContainerStyle={{ width: '100%', maxWidth: 560, alignSelf: 'center', padding: 20, paddingTop: 4, rowGap: 22 }}>
         <TabHeader title={t('overview.title')} />
 
         <Card tone="plain" padding={CARD_PADDING} radius={radius.xl}>
@@ -127,7 +129,7 @@ export default function OverviewScreen() {
                 onPress={toggleMultiSelect}
                 style={{ left: 12 }}
               >
-                <SelectionPlus size={24} color={multiSelect ? tokens.textOnBrand : tokens.textPrimary} weight="bold" />
+                <SelectionPlus size={24} color={multiSelect ? colors.onPrimary : colors.ink} weight="bold" />
               </CornerButton>
               <CornerButton
                 label={t('arch.logSelection')}
@@ -136,7 +138,7 @@ export default function OverviewScreen() {
                 onPress={() => openToothSheet(selected)}
                 style={{ right: 12 }}
               >
-                <Check size={24} color={selected.length > 0 ? tokens.textOnBrand : tokens.textPrimary} weight="bold" />
+                <Check size={24} color={selected.length > 0 ? colors.onPrimary : colors.ink} weight="bold" />
               </CornerButton>
             </>
           )}
@@ -177,14 +179,14 @@ export default function OverviewScreen() {
             style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}
           >
             <View style={{ flex: 1 }}>
-              <Text className="font-display-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
+              <Text className="font-display-semi" style={{ fontSize: 18, color: colors.ink }}>
                 {t('overview.history')}
               </Text>
-              <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary }}>
+              <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
                 {t('overview.historyCount', { count: events.length })}
               </Text>
             </View>
-            <CaretRight size={22} color={tokens.textPrimary} weight="bold" />
+            <CaretRight size={22} color={colors.ink} weight="bold" />
           </Card>
         )}
       </ScrollView>

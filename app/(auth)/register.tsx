@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/Input';
 import { SafeScreen } from '@/components/ui/SafeScreen';
 import { auth } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 const registerSchema = z
   .object({
@@ -123,11 +123,11 @@ export default function RegisterScreen() {
             hitSlop={8}
             style={{ alignSelf: 'flex-start', padding: 4, marginBottom: 6 }}
           >
-            <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
+            <ArrowLeft size={26} color={colors.inkMuted} weight="bold" />
           </Pressable>
 
           <Text className="font-display text-3xl text-ink">{t('register.title')}</Text>
-          <Text className="mb-6 mt-1.5 font-body text-base text-muted">
+          <Text className="mb-6 mt-1.5 font-body text-base text-ink-muted">
             {t('register.subtitle')}
           </Text>
 
@@ -138,7 +138,7 @@ export default function RegisterScreen() {
               label={t('register.name')}
               placeholder={t('register.namePlaceholder')}
               autoCapitalize="words"
-              icon={<User size={20} color={tokens.textSecondary} weight="bold" />}
+              icon={<User size={20} color={colors.inkMuted} weight="bold" />}
             />
             <FormField
               control={control}
@@ -147,7 +147,7 @@ export default function RegisterScreen() {
               placeholder={t('form.emailPlaceholder')}
               autoCapitalize="none"
               keyboardType="email-address"
-              icon={<EnvelopeSimple size={20} color={tokens.textSecondary} weight="bold" />}
+              icon={<EnvelopeSimple size={20} color={colors.inkMuted} weight="bold" />}
             />
             <FormField
               control={control}
@@ -156,7 +156,7 @@ export default function RegisterScreen() {
               placeholder={t('register.passwordPlaceholder')}
               autoCapitalize="none"
               secureTextEntry
-              icon={<LockSimple size={20} color={tokens.textSecondary} weight="bold" />}
+              icon={<LockSimple size={20} color={colors.inkMuted} weight="bold" />}
             />
             <FormField
               control={control}
@@ -165,12 +165,12 @@ export default function RegisterScreen() {
               placeholder={t('register.confirmPlaceholder')}
               autoCapitalize="none"
               secureTextEntry
-              icon={<LockSimple size={20} color={tokens.textSecondary} weight="bold" />}
+              icon={<LockSimple size={20} color={colors.inkMuted} weight="bold" />}
             />
           </View>
 
           {submitError ? (
-            <Text className="mt-4 font-body-semi text-sm text-danger">{submitError}</Text>
+            <Text className="mt-4 font-body-semi text-base text-danger">{submitError}</Text>
           ) : null}
 
           <Button
@@ -181,10 +181,10 @@ export default function RegisterScreen() {
             style={{ marginTop: 20 }}
           />
 
-          <View className="mt-4 flex-row justify-center">
-            <Text className="font-body text-muted">{t('register.haveAccount')}</Text>
+          <View className="mt-4 flex-row flex-wrap justify-center">
+            <Text className="font-body text-base text-ink-muted">{t('register.haveAccount')}</Text>
             <Pressable onPress={() => router.replace('/(auth)/login')}>
-              <Text className="font-display-semi text-text-link">{t('register.logIn')}</Text>
+              <Text className="font-display-semi text-base text-primary">{t('register.logIn')}</Text>
             </Pressable>
           </View>
         </ScrollView>

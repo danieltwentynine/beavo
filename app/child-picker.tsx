@@ -8,7 +8,7 @@ import { GlassSurface } from '@/components/ui/GlassSurface';
 import { useParentalGate } from '@/components/ui/ParentalGate';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 /** Form sheet opened by the ProfilePill: switch child, edit one, or add one (gated here). */
 export default function ChildPickerScreen() {
@@ -25,7 +25,7 @@ export default function ChildPickerScreen() {
   return (
     <GlassSurface style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 20, rowGap: 12 }}>
-        <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary, marginBottom: 4 }}>
+        <Text className="font-display" style={{ fontSize: 24, color: colors.ink, marginBottom: 4 }}>
           {t('picker.title')}
         </Text>
         {children.map((c) => (
@@ -45,10 +45,10 @@ export default function ChildPickerScreen() {
             style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}
           >
             <Avatar avatarId={c.avatarIcon} color={c.avatarColor} size={48} />
-            <Text className="font-display-semi" style={{ flex: 1, fontSize: 18, color: tokens.textPrimary }}>
+            <Text className="font-display-semi" style={{ flex: 1, fontSize: 18, color: colors.ink }}>
               {c.name}
             </Text>
-            {c.id === active?.id ? <CheckCircle size={26} color={tokens.brandPrimary} weight="fill" /> : null}
+            {c.id === active?.id ? <CheckCircle size={26} color={colors.primary} weight="fill" /> : null}
             {kidMode ? null : (
               <Pressable
                 accessibilityRole="button"
@@ -57,7 +57,7 @@ export default function ChildPickerScreen() {
                 hitSlop={8}
                 style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
               >
-                <PencilSimple size={22} color={tokens.textSecondary} weight="bold" />
+                <PencilSimple size={22} color={colors.inkMuted} weight="bold" />
               </Pressable>
             )}
           </Card>
@@ -70,9 +70,9 @@ export default function ChildPickerScreen() {
             style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}
           >
             <View style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}>
-              <Plus size={26} color={tokens.brandPrimary} weight="bold" />
+              <Plus size={26} color={colors.primary} weight="bold" />
             </View>
-            <Text className="font-display-semi" style={{ fontSize: 18, color: tokens.textLink }}>
+            <Text className="font-display-semi" style={{ fontSize: 18, color: colors.primary }}>
               {t('picker.add')}
             </Text>
           </Card>

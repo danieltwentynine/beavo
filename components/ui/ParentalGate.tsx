@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Modal, Platform, Text, View } from 'react-native'
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { t, type StringKey } from '@/lib/i18n';
-import { cardShadow, radius, tokens } from '@/lib/tokens';
+import { colors, radius, shadow } from '@/lib/tokens';
 import { afterOwnerCheck, afterRightAnswer, firstGateStep, type GateMode, type GateNext, type GateStep, type OwnerCheck } from '@/src/data/gateFlow';
 import { isLocked } from '@/src/data/pinLock';
 import { isPin, useSettingsStore } from '@/stores/settingsStore';
@@ -160,14 +160,14 @@ export function ParentalGate({ visible, onPass, onCancel, mode = 'check' }: Pare
         <View
           accessibilityViewIsModal
           style={[
-            { backgroundColor: tokens.surfaceCard, borderRadius: radius.xl, padding: 22, rowGap: 14 },
-            cardShadow,
+            { backgroundColor: colors.surface, borderRadius: radius.xl, padding: 22, rowGap: 14 },
+            shadow.card,
           ]}
         >
-          <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary }}>
+          <Text className="font-display" style={{ fontSize: 24, color: colors.ink }}>
             {t('gate.title')}
           </Text>
-          <Text className="font-body-semi" style={{ fontSize: 18, color: tokens.textPrimary }}>
+          <Text className="font-body-semi" style={{ fontSize: 18, color: colors.ink }}>
             {step === 'owner' ? t('gate.ownerHint') : step === 'math' ? t('gate.question', question) : t(PROMPT[step])}
           </Text>
           {step === 'owner' ? (
@@ -188,7 +188,7 @@ export function ParentalGate({ visible, onPass, onCancel, mode = 'check' }: Pare
             />
           )}
           {message ? (
-            <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
+            <Text accessibilityLiveRegion="polite" className="font-body-semi" style={{ fontSize: 16, color: colors.inkMuted }}>
               {t(message)}
             </Text>
           ) : null}

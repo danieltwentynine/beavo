@@ -4,7 +4,7 @@ import { test } from 'node:test';
 
 import type { BrushingSession, BrushingSlot } from '@/types';
 
-import { addDays, dayStatus, formatDuration, sessionsNewestFirst, summarizeProgress, weekOf } from './progress.ts';
+import { addDays, dayStatus, formatDuration, latestCompletionsForDay, sessionsNewestFirst, summarizeProgress, weekOf } from './progress.ts';
 
 const at = (iso: string) => new Date(iso); // local time
 const slot = (id: string, over: Partial<BrushingSlot> = {}): BrushingSlot => ({
@@ -53,6 +53,24 @@ test('dayStatus: one dot per slot active that day; complete only when all are do
   const day = dayStatus(all, [brushed('b', '2026-10-22'), brushed('d', '2026-10-22'), brushed('l', '2026-10-22', false)], '2026-10-22');
   assert.deepEqual(day.slots.map((s) => s.done), [true, true, false]);
   assert.equal(day.complete, false, 'an incomplete (early-stopped) session does not count');
+});
+
+test('a completed slot stays done after an early stop and uses the latest completion time', () => {
+  const date = '2026-10-22';
+  const completed = brushed('b', date);
+  const partial = { ...brushed('b', date, false), startedAt: at(`${date}T09:00:00`) };
+  const laterCompletion = { ...brushed('b', date), startedAt: at(`${date}T09:30:00`) };
+  const otherDay = brushed('b', '2026-10-23');
+  for (const [sessions, expected] of [
+    [[completed, partial], completed],
+    [[partial, laterCompletion], laterCompletion],
+    [[partial, otherDay], undefined],
+    [[laterCompletion, partial, completed], laterCompletion],
+  ] satisfies [BrushingSession[], BrushingSession | undefined][]) {
+    const shown = latestCompletionsForDay(sessions, date).get(breakfast.id);
+    assert.equal(shown?.startedAt, expected?.startedAt);
+    assert.equal(Boolean(shown), dayStatus([breakfast], sessions, date).complete);
+  }
 });
 
 test('streak: consecutive complete days; an unfinished today does not break it', () => {

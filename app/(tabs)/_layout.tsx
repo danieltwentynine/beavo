@@ -6,7 +6,7 @@ import { GrownupsNavigation } from '@/components/ui/GrownupsNavigation';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useLocalChildNames } from '@/hooks/useLocalChildNames';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
 
@@ -54,19 +54,19 @@ export default function TabsLayout() {
 
   return (
     <GrownupsNavigation.Provider value={{ unlockingChildId, setUnlockingChildId }}>
-      <NativeTabs tintColor={tokens.brandPrimary}>
+      <NativeTabs tintColor={colors.primary}>
         <NativeTabs.Trigger name="brushing">
           <NativeTabs.Trigger.Label>{t('tabs.brushing')}</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf={{ default: 'mouth', selected: 'mouth.fill' }} md="brush" />
+          <NativeTabs.Trigger.Icon sf={{ default: 'paintbrush.pointed', selected: 'paintbrush.pointed.fill' }} md="brush" />
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="progress">
           <NativeTabs.Trigger.Label>{t('tabs.progress')}</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} md="bar_chart" />
+          <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="bar_chart" />
         </NativeTabs.Trigger>
         {!kidMode ? (
           <NativeTabs.Trigger name="overview">
             <NativeTabs.Trigger.Label>{t('tabs.overview')}</NativeTabs.Trigger.Label>
-            <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="dentistry" />
+            <NativeTabs.Trigger.Icon src={require('../../assets/tabs/tooth.png')} renderingMode="template" md="dentistry" />
           </NativeTabs.Trigger>
         ) : null}
         {!kidMode ? (

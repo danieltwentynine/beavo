@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 interface CameraGateProps {
   onAllow: () => void;
@@ -17,11 +17,11 @@ interface CameraGateProps {
 export function CameraGate({ onAllow, onSkip }: CameraGateProps) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, rowGap: 14 }}>
-      <CameraIcon size={56} color={tokens.brandPrimary} weight="fill" />
-      <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary, textAlign: 'center' }}>
+      <CameraIcon size={56} color={colors.primary} weight="fill" />
+      <Text className="font-display" style={{ fontSize: 28, color: colors.ink, textAlign: 'center' }}>
         {t('camera.title')}
       </Text>
-      <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary, textAlign: 'center' }}>
+      <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted, textAlign: 'center' }}>
         {t('camera.body')}
       </Text>
       <View style={{ rowGap: 10, alignSelf: 'stretch', marginTop: 10 }}>

@@ -21,3 +21,7 @@ ADR 0002 kept react-native-vision-camera v5 for a future on-device zone-detectio
 - Privacy Policy and Terms state "mirror only; nothing recorded, saved, sent or analyzed" and "no AI services".
 - Re-enabling Gemini or any frame analysis needs a new ADR, a Privacy Policy update (new `LEGAL_VERSIONS.privacy`, so parents re-consent) and the clinical advisor.
 - `react-native-vision-camera` is a frame-processor-capable library; the ESLint rules are what keep it preview-only. Revisit if VisionCamera renames its output hooks (update the banned names).
+
+## UI upgrade
+
+The mirror darkening layer is 24% opaque. The countdown, instructions, side labels and clock use light surfaces with a tested contrast floor of 4.5:1 on black and white frames. Reduce Transparency uses solid surfaces. The brighter mirror does not change camera permissions or attach outputs. The owner removed the mini-story from brushing. The timed zones, foam checks, iOS announcements and day stamp remain.

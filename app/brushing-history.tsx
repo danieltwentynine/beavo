@@ -9,7 +9,7 @@ import { SafeScreen } from '@/components/ui/SafeScreen';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessions } from '@/hooks/useSessions';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 import { formatDuration, formatWhen, sessionsNewestFirst } from '@/src/data/progress';
 
 
@@ -28,15 +28,15 @@ export default function BrushingHistoryScreen() {
         ListHeaderComponent={
           <View style={{ rowGap: 8, marginBottom: 4 }}>
             <Pressable accessibilityRole="button" accessibilityLabel={t('event.back')} onPress={() => router.back()} style={{ width: 48, height: 48, justifyContent: 'center' }}>
-              <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
+              <ArrowLeft size={26} color={colors.inkMuted} weight="bold" />
             </Pressable>
-            <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary }}>
+            <Text className="font-display" style={{ fontSize: 28, color: colors.ink }}>
               {t('brushHistory.title')}
             </Text>
           </View>
         }
         ListEmptyComponent={
-          <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
+          <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
             {t('brushHistory.empty')}
           </Text>
         }
@@ -50,12 +50,12 @@ export default function BrushingHistoryScreen() {
               onPress={() => router.push({ pathname: '/session-review', params: { id: s.id } })}
               accessibilityLabel={`${t('brushHistory.open', { label: slot?.label ?? t('brushHistory.unknownSlot'), when: formatWhen(s.startedAt) })}, ${formatDuration(s.durationSec)}, ${status}`}
             >
-              <SlotIcon icon={slot?.icon ?? 'tooth'} size={26} color={tokens.textPrimary} weight="fill" />
+              <SlotIcon icon={slot?.icon ?? 'tooth'} size={26} color={colors.ink} weight="fill" />
               <View style={{ flex: 1, rowGap: 2 }}>
-                <Text className="font-display-semi" style={{ fontSize: 16, color: tokens.textPrimary }}>
+                <Text className="font-display-semi" style={{ fontSize: 16, color: colors.ink }}>
                   {slot?.label ?? t('brushHistory.unknownSlot')}
                 </Text>
-                <Text className="font-body" style={{ fontSize: 14, color: tokens.textSecondary }}>
+                <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
                   {formatWhen(s.startedAt)} · {formatDuration(s.durationSec)}
                 </Text>
               </View>

@@ -49,13 +49,12 @@ export function watchAllSessions(
   db: Firestore,
   uid: string,
   childId: string,
-  onChange: (sessions: BrushingSession[], confirmed?: boolean) => void,
+  onChange: (sessions: BrushingSession[]) => void,
   onError?: WatchErrorHandler,
 ): Unsubscribe {
   if (uid === LOCAL_UID) return watchLocalSessions(childId, onChange);
-  return onSnapshot(sessionsRef(db, uid, childId), { includeMetadataChanges: true }, (snap) => {
-    const confirmed = !snap.metadata.fromCache && !snap.metadata.hasPendingWrites;
-    onChange(parseDocs(snap, sessionSchema), confirmed);
+  return onSnapshot(sessionsRef(db, uid, childId), (snap) => {
+    onChange(parseDocs(snap, sessionSchema));
   }, onError);
 }
 

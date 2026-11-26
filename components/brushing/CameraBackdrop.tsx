@@ -1,9 +1,10 @@
 import { useIsFocused } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera, type CameraDevice } from 'react-native-vision-camera';
 
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 /**
  * Live front-camera MIRROR behind the session UI — see CLAUDE.md > Camera
@@ -17,6 +18,7 @@ import { tokens } from '@/lib/tokens';
  */
 export function CameraBackdrop({ device }: { device: CameraDevice }) {
   const focused = useIsFocused();
+  const { top } = useSafeAreaInsets();
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
 
   useEffect(() => {
@@ -33,7 +35,10 @@ export function CameraBackdrop({ device }: { device: CameraDevice }) {
         resizeMode="cover"
         orientationSource="interface"
       />
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: tokens.cameraScrim }]} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.cameraScrim }]} />
+      {top > 0 ? (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: top, backgroundColor: colors.cameraStatusScrim }} />
+      ) : null}
     </View>
   );
 }

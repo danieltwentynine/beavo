@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { t } from '@/lib/i18n';
-import { cardShadow, radius, tokens } from '@/lib/tokens';
+import { colors, radius, shadow } from '@/lib/tokens';
 import { useChildStore } from '@/stores/childStore';
 import { useNoticeStore } from '@/stores/noticeStore';
 import { isParentContext } from '@/src/data/parentContext';
@@ -38,13 +38,13 @@ export function ParentNotice() {
           columnGap: 8,
           paddingLeft: 16,
           borderRadius: radius.lg,
-          backgroundColor: notice.tone === 'error' ? tokens.textPrimary : tokens.surfaceCard,
-          ...cardShadow,
+          backgroundColor: notice.tone === 'error' ? colors.ink : colors.surface,
+          ...shadow.card,
         }}
       >
         <Text
           className="font-body-semi"
-          style={{ flex: 1, fontSize: 16, lineHeight: 22, paddingVertical: 12, color: notice.tone === 'error' ? tokens.textOnBrand : tokens.textPrimary }}
+          style={{ flex: 1, fontSize: 16, lineHeight: 22, paddingVertical: 12, color: notice.tone === 'error' ? colors.onPrimary : colors.ink }}
         >
           {t(notice.key)}
         </Text>
@@ -54,7 +54,7 @@ export function ParentNotice() {
           onPress={dismiss}
           style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
         >
-          <X size={20} color={notice.tone === 'error' ? tokens.textOnBrand : tokens.textPrimary} weight="bold" />
+          <X size={20} color={notice.tone === 'error' ? colors.onPrimary : colors.ink} weight="bold" />
         </Pressable>
       </View>
     </View>

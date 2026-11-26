@@ -16,7 +16,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useToothEvents } from '@/hooks/useToothEvents';
 import { db } from '@/lib/firebase';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { background } from '@/src/data/firestore';
 import { localDate } from '@/src/data/schedule';
@@ -105,17 +105,17 @@ export default function ToothSheet() {
     <GlassSurface style={{ flex: 1 }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 20, rowGap: 14 }} keyboardShouldPersistTaps="handled">
-          <Text className="font-display" style={{ fontSize: 24, color: tokens.textPrimary }}>
+          <Text className="font-display" style={{ fontSize: 24, color: colors.ink }}>
             {single ? toothName(teeth[0]) : t('event.logForTeeth', { count: teeth.length })}
           </Text>
 
           {!single && !unlocked ? null : single && !formType ? (
             <>
-              <Text className="font-display-semi" style={{ fontSize: 17, color: tokens.textPrimary }}>
+              <Text className="font-display-semi" style={{ fontSize: 17, color: colors.ink }}>
                 {t('event.records')}
               </Text>
               {toothEvents.length === 0 ? (
-                <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
+                <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
                   {t('event.none')}
                 </Text>
               ) : (
@@ -127,15 +127,15 @@ export default function ToothSheet() {
                           label={t(e.type === 'symptom' ? 'event.symptom' : 'event.treatment')}
                           tone={e.type === 'symptom' ? 'symptom' : 'primary'}
                         />
-                        <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
+                        <Text className="font-body-semi" style={{ fontSize: 16, color: colors.inkMuted }}>
                           {formatEventDate(e.date)}
                         </Text>
                       </View>
-                      <Text className="font-body-semi" style={{ fontSize: 16, color: tokens.textPrimary }}>
+                      <Text className="font-body-semi" style={{ fontSize: 16, color: colors.ink }}>
                         {categoryName(e.categoryId)}
                       </Text>
                       {e.note ? (
-                        <Text className="font-body" style={{ fontSize: 15, color: tokens.textSecondary }}>
+                        <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
                           {e.note}
                         </Text>
                       ) : null}
@@ -146,7 +146,7 @@ export default function ToothSheet() {
                       onPress={() => (unlocked ? deleteEvent(e.id) : setPending({ deleteId: e.id }))}
                       style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}
                     >
-                      <Trash size={22} color={tokens.textSecondary} weight="bold" />
+                      <Trash size={22} color={colors.inkMuted} weight="bold" />
                     </Pressable>
                   </Card>
                 ))
@@ -171,11 +171,11 @@ export default function ToothSheet() {
                 />
               </View>
 
-              <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textPrimary }}>
+              <Text className="font-body-semi" style={{ fontSize: 16, color: colors.ink }}>
                 {t('event.category')}
               </Text>
               {typeCategories.length === 0 ? (
-                <Text className="font-body" style={{ fontSize: 15, color: tokens.textSecondary }}>
+                <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
                   {t('event.noCategories')}
                 </Text>
               ) : (
@@ -196,7 +196,7 @@ export default function ToothSheet() {
               />
 
               {error ? (
-                <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textPrimary }}>
+                <Text className="font-body-semi" style={{ fontSize: 16, color: colors.ink }}>
                   {error}
                 </Text>
               ) : null}

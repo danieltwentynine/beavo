@@ -37,6 +37,17 @@ function completedBySlotDay(sessions: readonly BrushingSession[]): Set<string> {
   return new Set(sessions.filter((s) => s.completed).map((s) => `${s.date}|${s.slotId}`));
 }
 
+/** Latest completed session in each slot on a given day. Early stops never replace it. */
+export function latestCompletionsForDay(sessions: readonly BrushingSession[], date: string): Map<string, BrushingSession> {
+  const bySlot = new Map<string, BrushingSession>();
+  for (const session of sessions) {
+    if (session.date !== date || !session.completed) continue;
+    const previous = bySlot.get(session.slotId);
+    if (!previous || session.startedAt > previous.startedAt) bySlot.set(session.slotId, session);
+  }
+  return bySlot;
+}
+
 export function dayStatus(slots: readonly BrushingSlot[], sessions: readonly BrushingSession[], day: string): DayStatus {
   return dayStatusWith(slots, completedBySlotDay(sessions), day);
 }

@@ -8,7 +8,7 @@ import { BeavoMark } from '@/components/brand/BeavoBrand';
 import { formatBrushTime } from '@/components/brushing/BrushTimer';
 import { Button } from '@/components/ui/Button';
 import { t } from '@/lib/i18n';
-import { cardShadow, radius, tokens } from '@/lib/tokens';
+import { colors, radius, shadow } from '@/lib/tokens';
 
 const ease = Easing.bezier(0.2, 0.8, 0.2, 1);
 const fadeIn = FadeIn.duration(200).reduceMotion(ReduceMotion.Never);
@@ -53,23 +53,23 @@ export function SessionPauseCard({ remaining, canSave, reduceMotion, onResume, o
 
   return (
     <Animated.View entering={fadeIn} exiting={fadeOut}
-      style={[StyleSheet.absoluteFill, { zIndex: 10, backgroundColor: tokens.pauseVeil }]}>
+      style={[StyleSheet.absoluteFill, { zIndex: 10, backgroundColor: colors.pauseVeil }]}>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
           <Animated.View accessibilityViewIsModal entering={reduceMotion ? fadeIn : cardIn} exiting={reduceMotion ? fadeOut : cardOut}
-            style={{ width: '100%', maxWidth: 360, padding: 24, rowGap: 16, borderRadius: radius.xl, backgroundColor: tokens.surfaceCard, ...cardShadow }}>
+            style={{ width: '100%', maxWidth: 360, padding: 24, rowGap: 16, borderRadius: radius.xl, backgroundColor: colors.surface, ...shadow.card }}>
             <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ alignSelf: 'center' }}>
               <BeavoMark width={72} />
             </View>
             <Text ref={title} accessibilityRole="header" className="font-display"
-              style={{ fontSize: 28, lineHeight: 34, color: tokens.textPrimary, textAlign: 'center' }}>
+              style={{ fontSize: 28, lineHeight: 34, color: colors.ink, textAlign: 'center' }}>
               {heading}
             </Text>
-            <Text className="font-body-semi" style={{ fontSize: 18, color: tokens.textSecondary, textAlign: 'center' }}>
+            <Text className="font-body-semi" style={{ fontSize: 18, color: colors.inkMuted, textAlign: 'center' }}>
               {t('session.pausedLeft', { time: formatBrushTime(remaining) })}
             </Text>
             <Button size="lg" label={t('session.resume')} onPress={onResume}
-              icon={<Play size={22} color={tokens.textOnBrand} weight="fill" />} />
+              icon={<Play size={22} color={colors.onPrimary} weight="fill" />} />
             <Button variant="outline" label={t(canSave ? 'session.endSave' : 'session.stop')} onPress={onEnd} />
           </Animated.View>
         </ScrollView>

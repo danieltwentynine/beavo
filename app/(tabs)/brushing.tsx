@@ -4,34 +4,37 @@ import { useContext, useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   Easing,
+  cancelAnimation,
   useAnimatedStyle,
-  useReducedMotion,
   useSharedValue,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Riverbank, useRiverbankMotion } from '@/components/brushing/Riverbank';
 import { SlotIcon } from '@/components/brushing/SlotIcon';
 import { Card } from '@/components/ui/Card';
 import { GrownupsNavigation } from '@/components/ui/GrownupsNavigation';
 import { useParentalGate } from '@/components/ui/ParentalGate';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
+import { useLiveReduceMotion } from '@/hooks/useLiveReduceMotion';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessionHistory } from '@/hooks/useSessions';
 import { db } from '@/lib/firebase';
-import { t } from '@/lib/i18n';
-import { motion, pressShadow, radius, tokens } from '@/lib/tokens';
+import { locale, t } from '@/lib/i18n';
+import { colors, motion, pressShadow, radius, shadow, size } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
+import { latestCompletionsForDay } from '@/src/data/progress';
 import { updateChild } from '@/src/data/children';
 import { localDate, slotAt, slotsActiveOn } from '@/src/data/schedule';
 import type { BrushingSession, BrushingSlot } from '@/types';
 
 const GAP = 10;
-/** Fits the 212 pt halo at its largest breath (×1.06 ≈ 225 pt). */
-const HALO_BOX = 230;
-const formatTime = (date: Date) => date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+/** Fits the 196 pt halo at its largest breath. */
+const HALO_BOX = 208;
+const formatTime = (date: Date) => date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
 /** 1–3 slots: one row. 4: 2×2. 5–6: rows of 3. Never overflows. */
 const columnsFor = (n: number) => (n <= 3 ? Math.max(n, 1) : n === 4 ? 2 : 3);
@@ -44,6 +47,14 @@ function useNow(): Date {
     return () => clearInterval(id);
   }, []);
   return now;
+}
+
+function slotIconColor(icon: string, selected: boolean) {
+  if (icon === 'sun' || icon === 'sun-horizon' || icon === 'cloud-sun') {
+    return selected ? colors.slotSunOnPrimary : colors.slotSun;
+  }
+  if (selected) return colors.onPrimary;
+  return icon === 'moon' ? colors.slotMoon : colors.ink;
 }
 
 function SlotCard({
@@ -61,66 +72,71 @@ function SlotCard({
   target: boolean;
   onPress: () => void;
 }) {
-  const done = session?.completed ?? false;
-  const time = session ? formatTime(session.startedAt) : t('today.noTime');
+  const done = session !== undefined;
+  const time = session ? formatTime(session.startedAt) : null;
   return (
     <Card
       onPress={onPress}
       accessibilityLabel={t('today.slotA11y', {
         label: current ? `${slot.label}, ${t('today.now')}` : slot.label,
-        state: session ? t('today.doneAt', { time }) : t('today.notYet'),
+        state: time ? t('today.doneAt', { time }) : t('today.notYet'),
       })}
-      padding={12}
-      tone={target ? 'primary' : current ? 'soft' : 'plain'}
-      style={{ width, alignItems: 'center', rowGap: 6, minHeight: 124 }}
+      accessibilityState={{ selected: target }}
+      padding={8}
+      style={{
+        width, alignItems: 'center', justifyContent: 'center', rowGap: 4, minHeight: 144, paddingTop: 28,
+        backgroundColor: target ? colors.primary : current ? colors.primarySoft : done ? colors.slotDone : colors.surface,
+        borderBottomWidth: 5, borderBottomColor: target ? colors.primaryPress : colors.line,
+      }}
     >
       {current ? (
-        <View style={{ position: 'absolute', top: -12, backgroundColor: tokens.secondary, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 2 }}>
-          <Text className="font-display-semi" style={{ fontSize: 12, color: tokens.onSecondary }}>
+        <View style={{ position: 'absolute', top: -12, backgroundColor: colors.secondary, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 2 }}>
+          <Text className="font-display-semi" style={{ fontSize: 16, color: colors.onSecondary }}>
             {t('today.now')}
           </Text>
         </View>
       ) : null}
       {done ? (
-        <CheckCircle size={30} color={target ? tokens.textOnBrand : tokens.brandPrimary} weight="fill" />
+        <CheckCircle size={24} color={target ? colors.onPrimary : colors.primary} weight="fill"
+          style={{ position: 'absolute', right: 8, top: 15 }} />
       ) : (
-        <SlotIcon icon={slot.icon} size={30} color={target ? tokens.textOnBrand : tokens.textPrimary} weight="fill" />
+        <View style={{ position: 'absolute', right: 8, top: 15, width: 22, height: 22, borderRadius: 11,
+          borderWidth: 2, borderStyle: 'dashed', borderColor: target ? colors.onPrimary : colors.zoneLine }} />
       )}
-      <Text
-        className="font-display-semi"
-        numberOfLines={2}
-        style={{ fontSize: 15, textAlign: 'center', color: target ? tokens.textOnBrand : tokens.textPrimary }}
-      >
+      <SlotIcon icon={slot.icon} size={34} color={slotIconColor(slot.icon, target)} weight="fill" />
+      <Text className="font-display-semi" style={{ fontSize: 16, textAlign: 'center',
+        color: target ? colors.onPrimary : colors.ink }}>
         {slot.label}
       </Text>
-      <Text className="font-numeric" style={{ fontSize: 18, color: target ? tokens.textOnBrand : session ? tokens.textLink : tokens.textSecondary }}>
-        {time}
-      </Text>
+      {time ? (
+        <Text className="font-numeric" style={{ fontSize: 18, color: target ? colors.onPrimary : colors.primary }}>
+          {time}
+        </Text>
+      ) : null}
     </Card>
   );
 }
 
 /** Big round start button with a soft (flat) halo that breathes unless Reduce Motion is on. */
-function StartButton({ label, disabled, onPress }: { label: string; disabled: boolean; onPress: () => void }) {
-  const reduceMotion = useReducedMotion();
+function StartButton({ label, disabled, animated, onPress }: { label: string; disabled: boolean; animated: boolean; onPress: () => void }) {
   const breath = useSharedValue(0);
   useEffect(() => {
-    if (reduceMotion || disabled) {
+    if (!animated || disabled) {
       breath.value = 0;
       return;
     }
     breath.value = withRepeat(withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [breath, reduceMotion, disabled]);
-  const haloStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + breath.value * 0.06 }] }));
+    return () => cancelAnimation(breath);
+  }, [breath, animated, disabled]);
+  const haloStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + breath.value * 0.05 }] }));
 
-  // Halo and button share one square so they stay concentric (the halo's 6% breath still fits);
-  // the caption sits below that square, never under the halo.
+  // The play disc and halo share a square, leaving the caption clear of the animation.
   return (
     <View style={{ alignItems: 'center' }}>
       <View style={{ width: HALO_BOX, height: HALO_BOX, alignItems: 'center', justifyContent: 'center' }}>
         <Animated.View
           pointerEvents="none"
-          style={[{ position: 'absolute', width: 212, height: 212, borderRadius: 106, backgroundColor: tokens.primarySoft, opacity: disabled ? 0.4 : 1 }, haloStyle]}
+          style={[{ position: 'absolute', width: 196, height: 196, borderRadius: 98, backgroundColor: colors.halo, opacity: disabled ? 0.4 : 1 }, haloStyle]}
         />
         <Pressable
           accessibilityRole="button"
@@ -135,39 +151,40 @@ function StartButton({ label, disabled, onPress }: { label: string; disabled: bo
               borderRadius: 82,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: disabled ? tokens.sessionTrack : tokens.brandPrimary,
+              backgroundColor: disabled ? colors.sessionTrack : colors.primary,
             },
             pressShadow(disabled),
           ]}
         >
-          <Play size={52} color={tokens.textOnBrand} weight="fill" />
+          <Play size={52} color={disabled ? colors.inkMuted : colors.onPrimary} weight="fill" />
         </Pressable>
       </View>
-      <Text className="font-display" style={{ fontSize: 20, color: tokens.textPrimary, marginTop: 8, textAlign: 'center' }}>
-        {label}
-      </Text>
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+        style={[{ backgroundColor: colors.surface, borderRadius: radius.pill, marginTop: 12, paddingHorizontal: 20, paddingVertical: 8 }, shadow.card]}>
+        <Text className="font-display" style={{ fontSize: 20, color: colors.ink, textAlign: 'center' }}>{label}</Text>
+      </View>
     </View>
   );
 }
 
 function GrownupsChip({ onPress }: { onPress: () => void }) {
   const [pressed, setPressed] = useState(false);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useLiveReduceMotion();
   const label = t('kidLock.chip');
   const pressStyle = useAnimatedStyle(() => ({
     transform: [{ scale: reduceMotion ? 1 : withTiming(pressed ? motion.pressScale : 1, { duration: 100 }) }],
   }));
   return (
-    <Animated.View style={[{ alignSelf: 'center', marginTop: 6 }, pressStyle]}>
+    <Animated.View style={[{ alignSelf: 'center' }, pressStyle]}>
       <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityHint={t('kidLock.hint')}
         onPress={onPress} onPressIn={() => setPressed(true)} onPressOut={() => setPressed(false)}
         style={{
           flexDirection: 'row', alignItems: 'center', columnGap: 8,
-          minHeight: 48, paddingHorizontal: 20, borderRadius: radius.pill,
-          borderWidth: 2, borderColor: tokens.brandPrimary, backgroundColor: tokens.primarySoft,
+          minHeight: size.targetMin, paddingHorizontal: 20, borderRadius: radius.pill,
+          borderWidth: 2, borderColor: colors.primary, backgroundColor: colors.primarySoft,
         }}>
-        <LockSimple size={20} weight="bold" color={tokens.brandPrimaryPress} />
-        <Text className="font-display" style={{ fontSize: 16, color: tokens.brandPrimaryPress }}>{label}</Text>
+        <LockSimple size={20} weight="bold" color={colors.primaryPress} />
+        <Text className="font-display" style={{ fontSize: 16, color: colors.primaryPress }}>{label}</Text>
       </Pressable>
     </Animated.View>
   );
@@ -175,6 +192,9 @@ function GrownupsChip({ onPress }: { onPress: () => void }) {
 
 /** Today only: the active child's slots, the start button and protected access to Grownups. */
 export default function BrushingTab() {
+  const animated = useRiverbankMotion();
+  const insets = useSafeAreaInsets();
+  const [grownupsBottom, setGrownupsBottom] = useState(0);
   const uid = useAuthStore(ownerIdOf);
   const { child, slots } = useActiveChild();
   const history = useSessionHistory();
@@ -202,64 +222,60 @@ export default function BrushingTab() {
   const pickedSlot = picked && picked.childId === child?.id ? todaySlots.find((s) => s.id === picked.slotId) : undefined;
   const target = pickedSlot ?? current;
 
-  // Latest session per slot today.
-  const latestBySlot = new Map<string, BrushingSession>();
-  for (const s of history?.items ?? []) {
-    if (s.date !== today) continue;
-    const prev = latestBySlot.get(s.slotId);
-    if (!prev || s.startedAt > prev.startedAt) latestBySlot.set(s.slotId, s);
-  }
+  const latestBySlot = latestCompletionsForDay(history?.items ?? [], today);
 
   const cols = columnsFor(todaySlots.length);
   const cardWidth = gridWidth > 0 ? (gridWidth - GAP * (cols - 1)) / cols : 0;
 
   const start = () => {
     if (!target) return;
-    const knownCount = history?.confirmedCount;
-    router.push({
-      pathname: '/session',
-      params: {
-        slotId: target.id,
-        ...(knownCount != null && child ? { historyChildId: child.id, historyCount: String(knownCount) } : {}),
-      },
-    });
+    router.push({ pathname: '/session', params: { slotId: target.id } });
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 18 }}>
-        <TabHeader title={t('tabs.brushing')} />
-        <View>
-          <SectionTitle>{t('today.title')}</SectionTitle>
-          <View
-            onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}
-            style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: GAP, rowGap: GAP + 8, paddingTop: 10 }}
-          >
-            {cardWidth > 0
-              ? todaySlots.map((slot) => (
-                  <SlotCard
-                    key={slot.id}
-                    slot={slot}
-                    width={cardWidth}
-                    session={latestBySlot.get(slot.id)}
-                    current={slot.id === current?.id}
-                    target={slot.id === target?.id}
-                    onPress={() => setPicked({ childId: child?.id ?? null, slotId: slot.id })}
-                  />
-                ))
-              : null}
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Riverbank animated={animated} clearThrough={child?.kidMode && grownupsBottom > 0 ? insets.top + grownupsBottom + 8 : 0} />
+      <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, width: '100%', maxWidth: 560, alignSelf: 'center', padding: 20, paddingTop: 4, rowGap: 16 }}>
+          <TabHeader title={t('tabs.brushing')} />
+          <View>
+            <SectionTitle>{t('today.title')}</SectionTitle>
+            <View
+              onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}
+              style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: GAP, rowGap: GAP + 8, paddingTop: 10 }}
+            >
+              {cardWidth > 0
+                ? todaySlots.map((slot) => (
+                    <SlotCard
+                      key={slot.id}
+                      slot={slot}
+                      width={cardWidth}
+                      session={latestBySlot.get(slot.id)}
+                      current={slot.id === current?.id}
+                      target={slot.id === target?.id}
+                      onPress={() => setPicked({ childId: child?.id ?? null, slotId: slot.id })}
+                    />
+                  ))
+                : null}
+            </View>
           </View>
-        </View>
 
-        <StartButton
-          label={target ? t('today.startFor', { label: target.label }) : t('today.pickSlot')}
-          disabled={!target}
-          onPress={start}
-        />
+          <View style={{ height: 16 }} />
+          <StartButton
+            animated={animated}
+            label={target ? t('today.startFor', { label: target.label }) : t('today.pickSlot')}
+            disabled={!target}
+            onPress={start}
+          />
 
-        {child?.kidMode && uid ? <GrownupsChip onPress={openGrownups} /> : null}
-      </ScrollView>
-      {gate}
-    </SafeAreaView>
+          {child?.kidMode && uid ? (
+            <View onLayout={({ nativeEvent: { layout } }) => setGrownupsBottom(layout.y + layout.height)}>
+              <GrownupsChip onPress={openGrownups} />
+            </View>
+          ) : null}
+        </ScrollView>
+        {gate}
+      </SafeAreaView>
+    </View>
   );
 }

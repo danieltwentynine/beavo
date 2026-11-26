@@ -1,4 +1,6 @@
 // assets/brand/*.svg (design-system export) → components/brand/BeavoBrand.tsx.
+// The design kit's components/beavo/* map here: BeavoHead = BeavoMark (same art),
+// BeavoWave = BeavoWave, BeavoPoint and BeavoIdle are generated from their SVGs.
 // Never redraw the brand art by hand: replace the SVGs and run `node scripts/build-brand.mjs`.
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -8,6 +10,8 @@ const MARKS = [
   ['BeavoWordmark', 'wordmark-ink.svg', 'Beavo', 'Outlined wordmark; pass `color` (ink by default, cream on dark grounds, teal).'],
   ['BeavoLockup', 'lockup-horizontal.svg', 'Beavo', 'Default lockup for cream and white grounds.'],
   ['BeavoWave', 'beavo-wave.svg', 'Beavo', 'Beavo waving — intro, empty states.'],
+  ['BeavoPoint', 'beavo-point.svg', 'Beavo', 'Beavo pointing — shows the child where to tap or look.'],
+  ['BeavoIdle', 'beavo-idle.svg', 'Beavo', 'Beavo standing, arms down — calm states, the riverbank.'],
 ];
 
 const toJsx = (svg) =>

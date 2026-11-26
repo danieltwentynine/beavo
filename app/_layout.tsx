@@ -16,7 +16,7 @@ import { isLocalMode, startLocalStore } from '@/lib/localData';
 import { checkConsent } from '@/lib/consent';
 import { auth } from '@/lib/firebase';
 import { flushOutbox } from '@/lib/sync';
-import { tokens } from '@/lib/tokens';
+import { colors, fonts } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
 import { clearSnapshot } from '@/stores/childStore';
 
@@ -41,11 +41,14 @@ export default function RootLayout() {
   const lastUid = useRef<string | null>(null);
 
   // Static weights: the family name picks the weight (see font in lib/tokens.ts).
+  // Static weights bundled in assets/fonts/ (Google Fonts download, static/, OFL), registered
+  // under the names in lib/tokens.ts `fonts` and the NativeWind font-* classes.
   const [fontsLoaded] = useFonts({
-    'Baloo2-ExtraBold': require('../assets/fonts/Baloo2-ExtraBold.ttf'),
-    'Baloo2-Bold': require('../assets/fonts/Baloo2-Bold.ttf'),
-    'Nunito-Regular': require('../assets/fonts/Nunito-Regular.ttf'),
-    'Nunito-SemiBold': require('../assets/fonts/Nunito-SemiBold.ttf'),
+    [fonts.display]: require('../assets/fonts/Baloo2-Bold.ttf'),
+    [fonts.displayExtraBold]: require('../assets/fonts/Baloo2-ExtraBold.ttf'),
+    [fonts.body]: require('../assets/fonts/Nunito-Regular.ttf'),
+    [fonts.bodySemiBold]: require('../assets/fonts/Nunito-SemiBold.ttf'),
+    [fonts.bodyBold]: require('../assets/fonts/Nunito-Bold.ttf'),
   });
 
   useEffect(() => {
@@ -98,7 +101,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: tokens.surfacePage },
+          contentStyle: { backgroundColor: colors.bg },
         }}
       >
         <Stack.Screen name="session" options={{ gestureEnabled: false }} />

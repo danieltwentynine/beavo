@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { t } from '@/lib/i18n';
 import { enterLocalMode } from '@/lib/localData';
 import { signInWithGoogle } from '@/lib/socialAuth';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 /** Google's official four-colour "G". Unmodified — required for OAuth branding review. */
 function GoogleG() {
@@ -98,74 +98,76 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
-      <SafeAreaView style={{ flex: 1, paddingHorizontal: 28, paddingBottom: 32 }}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 6 }}>
-          <FloatingMascot width={200} />
-          <View style={{ marginTop: 12 }}>
-            <BeavoLockup width={180} />
-          </View>
-          <Text
-            className="font-body"
-            style={{
-              fontSize: 18,
-              lineHeight: 26,
-              color: tokens.textSecondary,
-              textAlign: 'center',
-              maxWidth: 280,
-              marginTop: 10,
-            }}
-          >
-            {t('welcome.tagline')}
-          </Text>
-        </View>
-        <View style={{ rowGap: 12, marginTop: 24 }}>
-          {signInError ? (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 28, paddingBottom: 32 }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', rowGap: 6 }}>
+            <FloatingMascot width={200} />
+            <View style={{ marginTop: 12 }}>
+              <BeavoLockup width={180} />
+            </View>
             <Text
-              className="font-body-semi text-sm text-danger"
-              style={{ textAlign: 'center' }}
+              className="font-body"
+              style={{
+                fontSize: 18,
+                lineHeight: 26,
+                color: colors.inkMuted,
+                textAlign: 'center',
+                maxWidth: 280,
+                marginTop: 10,
+              }}
             >
-              {signInError}
+              {t('welcome.tagline')}
             </Text>
-          ) : null}
-          <Button
-            label={t('welcome.getStarted')}
-            size="lg"
-            style={{ height: 72 }}
-            onPress={() => router.push('/(auth)/register')}
-          />
-          <Button
-            label={t('welcome.google')}
-            variant="outline"
-            icon={<GoogleG />}
-            loading={googlePending}
-            style={{ height: 72, paddingHorizontal: 8 }}
-            onPress={onGoogleSignIn}
-          />
-          <View className="flex-row gap-2">
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-12 flex-1 items-center justify-center py-2 active:opacity-70"
-              onPress={() => router.push('/(auth)/login')}
-            >
-              <Text className="text-center font-display text-sm leading-5 text-primary">
-                {t('welcome.haveAccount')}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-12 flex-1 items-center justify-center py-2 active:opacity-70"
-              onPress={onUseWithoutAccount}
-            >
-              <Text className="text-center font-display text-sm leading-5 text-primary">
-                {t('local.use')}
-              </Text>
-            </Pressable>
           </View>
-          <Text className="font-body" style={{ fontSize: 14, lineHeight: 20, color: tokens.textSecondary, textAlign: 'center' }}>
-            {t('local.note')}
-          </Text>
-        </View>
+          <View style={{ rowGap: 12, marginTop: 24 }}>
+            {signInError ? (
+              <Text
+                className="font-body-semi text-base text-danger"
+                style={{ textAlign: 'center' }}
+              >
+                {signInError}
+              </Text>
+            ) : null}
+            <Button
+              label={t('welcome.getStarted')}
+              size="lg"
+              style={{ minHeight: 72 }}
+              onPress={() => router.push('/(auth)/register')}
+            />
+            <Button
+              label={t('welcome.google')}
+              variant="outline"
+              icon={<GoogleG />}
+              loading={googlePending}
+              style={{ minHeight: 72, paddingHorizontal: 8 }}
+              onPress={onGoogleSignIn}
+            />
+            <View className="flex-row gap-2">
+              <Pressable
+                accessibilityRole="button"
+                className="min-h-12 flex-1 items-center justify-center py-2 active:opacity-70"
+                onPress={() => router.push('/(auth)/login')}
+              >
+                <Text className="text-center font-display text-base leading-5 text-primary">
+                  {t('welcome.haveAccount')}
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                className="min-h-12 flex-1 items-center justify-center py-2 active:opacity-70"
+                onPress={onUseWithoutAccount}
+              >
+                <Text className="text-center font-display text-base leading-5 text-primary">
+                  {t('local.use')}
+                </Text>
+              </Pressable>
+            </View>
+            <Text className="font-body" style={{ fontSize: 16, lineHeight: 20, color: colors.inkMuted, textAlign: 'center' }}>
+              {t('local.note')}
+            </Text>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );

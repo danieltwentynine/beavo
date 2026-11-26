@@ -10,7 +10,7 @@ import { SafeScreen } from '@/components/ui/SafeScreen';
 import { useCategories } from '@/hooks/useCategories';
 import { useToothEvents } from '@/hooks/useToothEvents';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 import { newestFirst } from '@/src/data/teeth';
 
 /** All tooth events of the active child, newest first. Tapping one opens its tooth. */
@@ -34,15 +34,15 @@ export default function DentalHistoryScreen() {
               onPress={() => router.back()}
               style={{ width: 48, height: 48, justifyContent: 'center' }}
             >
-              <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
+              <ArrowLeft size={26} color={colors.inkMuted} weight="bold" />
             </Pressable>
-            <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary }}>
+            <Text className="font-display" style={{ fontSize: 28, color: colors.ink }}>
               {t('history.title')}
             </Text>
           </View>
         }
         ListEmptyComponent={
-          <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
+          <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
             {t('history.empty')}
           </Text>
         }
@@ -55,14 +55,14 @@ export default function DentalHistoryScreen() {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
               <Badge label={t(e.type === 'symptom' ? 'event.symptom' : 'event.treatment')} tone={e.type === 'symptom' ? 'symptom' : 'primary'} />
-              <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
+              <Text className="font-body-semi" style={{ fontSize: 16, color: colors.inkMuted }}>
                 {formatEventDate(e.date)}
               </Text>
             </View>
-            <Text className="font-display-semi" style={{ fontSize: 17, color: tokens.textPrimary }}>
+            <Text className="font-display-semi" style={{ fontSize: 17, color: colors.ink }}>
               {toothName(e.fdi)}
             </Text>
-            <Text className="font-body" style={{ fontSize: 15, color: tokens.textSecondary }}>
+            <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
               {[categoryName(e.categoryId), e.note].filter(Boolean).join(' · ')}
             </Text>
           </Card>

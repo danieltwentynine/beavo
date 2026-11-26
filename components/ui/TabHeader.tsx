@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
 import { ProfilePill } from '@/components/kids/ProfilePill';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 interface TabHeaderProps {
   title?: string;
@@ -17,7 +17,7 @@ export function TabHeader({ title, children, showProfile = true }: TabHeaderProp
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 12, minHeight: 52 }}>
       <View style={{ flex: 1 }}>
         {children ?? (
-          <Text className="font-display" style={{ fontSize: 28, color: tokens.textPrimary }}>
+          <Text className="font-numeric" accessibilityRole="header" style={{ fontSize: 32, color: colors.ink }}>
             {title}
           </Text>
         )}

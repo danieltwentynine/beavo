@@ -6,7 +6,7 @@ import { CoachCard } from '@/components/brushing/CoachCard';
 import { DayStamp } from '@/components/brushing/DayStamp';
 import { MouthMap } from '@/components/brushing/MouthMap';
 import { Button } from '@/components/ui/Button';
-import { controlBorder, tokens } from '@/lib/tokens';
+import { colors, controlBorder } from '@/lib/tokens';
 import { t } from '@/lib/i18n';
 import { useSessionStore } from '@/stores/sessionStore';
 
@@ -14,7 +14,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 5 }}>
       <View style={{ width: 16, height: 16, borderRadius: 5, backgroundColor: color, ...controlBorder }} />
-      <Text className="font-body-semi" style={{ fontSize: 14, color: tokens.textSecondary }}>
+      <Text className="font-body-semi" style={{ fontSize: 16, color: colors.inkMuted }}>
         {label}
       </Text>
     </View>
@@ -33,25 +33,25 @@ export default function ResultsScreen() {
   const title = result.score >= 80 ? t('results.great') : t('results.good');
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: tokens.surfacePage }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 28, paddingTop: 8, alignItems: 'center' }}>
         <Text
           className="font-display-semi"
-          style={{ fontSize: 15, letterSpacing: 1.1, color: tokens.textLink, marginTop: 6 }}
+          style={{ fontSize: 16, letterSpacing: 1.1, color: colors.primary, marginTop: 6 }}
         >
           {t('results.complete')}
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginVertical: 4 }}>
-          <Text className="font-numeric" style={{ fontSize: 88, color: tokens.textPrimary, lineHeight: 116 }}>
+          <Text className="font-numeric" style={{ fontSize: 88, color: colors.ink, lineHeight: 116 }}>
             {result.score}
           </Text>
-          <Text className="font-numeric" style={{ fontSize: 34, color: tokens.textSecondary, marginBottom: 10 }}>
+          <Text className="font-numeric" style={{ fontSize: 34, color: colors.inkMuted, marginBottom: 10 }}>
             /100
           </Text>
         </View>
 
-        <Text className="font-display" style={{ fontSize: 26, color: tokens.textPrimary }}>
+        <Text className="font-display" style={{ fontSize: 26, color: colors.ink }}>
           {title}
         </Text>
 
@@ -62,13 +62,13 @@ export default function ResultsScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', columnGap: 16, marginBottom: 18 }}>
-          <LegendDot color={tokens.zoneDone} label={t('results.brushed')} />
-          <LegendDot color={tokens.zoneMissed} label={t('results.missed')} />
+          <LegendDot color={colors.sessionAccent} label={t('results.brushed')} />
+          <LegendDot color={colors.warning} label={t('results.missed')} />
         </View>
 
         <CoachCard score={result.score} message={result.coachMessage} style={{ width: '100%' }} />
         {result.totalSec < 120 ? (
-          <Text className="font-body" style={{ marginTop: 12, fontSize: 16, color: tokens.textSecondary, textAlign: 'center' }}>
+          <Text className="font-body" style={{ marginTop: 12, fontSize: 16, color: colors.inkMuted, textAlign: 'center' }}>
             {t('results.shortTimer')}
           </Text>
         ) : null}
@@ -79,7 +79,7 @@ export default function ResultsScreen() {
         {saveStatus === 'saving' ? (
           <Text
             className="font-body-semi"
-            style={{ fontSize: 14, color: tokens.textSecondary, marginTop: 14 }}
+            style={{ fontSize: 16, color: colors.inkMuted, marginTop: 14 }}
           >
             {t('results.saving')}
           </Text>
@@ -88,7 +88,7 @@ export default function ResultsScreen() {
         {saveStatus === 'pending' ? (
           <Text
             className="font-body-semi"
-            style={{ fontSize: 14, color: tokens.textSecondary, marginTop: 14, textAlign: 'center' }}
+            style={{ fontSize: 16, color: colors.inkMuted, marginTop: 14, textAlign: 'center' }}
           >
             {t('results.pending')}
           </Text>
@@ -98,7 +98,7 @@ export default function ResultsScreen() {
           <View style={{ alignItems: 'center', rowGap: 10, marginTop: 14 }}>
             <Text
               className="font-body-semi"
-              style={{ fontSize: 14, color: tokens.textPrimary, textAlign: 'center' }}
+              style={{ fontSize: 16, color: colors.ink, textAlign: 'center' }}
             >
               {t('results.failed')}
             </Text>

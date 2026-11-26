@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native';
 
-import { radius, tokens } from '@/lib/tokens';
+import { colors, radius } from '@/lib/tokens';
 
 interface StickerProps {
   label: string;
@@ -12,14 +12,14 @@ export function Sticker({ label }: StickerProps) {
     <View
       style={{
           alignSelf: 'center',
-          backgroundColor: tokens.reward,
+          backgroundColor: colors.reward,
           borderRadius: radius.pill,
           paddingHorizontal: 14,
           paddingVertical: 6,
           transform: [{ rotate: '-4deg' }],
         }}
     >
-      <Text className="font-display-semi" style={{ fontSize: 15, color: tokens.onReward }}>
+      <Text className="font-display-semi" style={{ fontSize: 16, color: colors.onReward }}>
         {label}
       </Text>
     </View>

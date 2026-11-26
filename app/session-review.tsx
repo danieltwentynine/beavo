@@ -9,7 +9,7 @@ import { SafeScreen } from '@/components/ui/SafeScreen';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessions } from '@/hooks/useSessions';
 import { t } from '@/lib/i18n';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 import { formatDuration, formatWhen } from '@/src/data/progress';
 
 /**
@@ -27,28 +27,28 @@ export default function SessionReviewScreen() {
     <SafeScreen>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 4, rowGap: 16 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('event.back')} onPress={() => router.back()} style={{ width: 48, height: 48, justifyContent: 'center' }}>
-          <ArrowLeft size={26} color={tokens.textSecondary} weight="bold" />
+          <ArrowLeft size={26} color={colors.inkMuted} weight="bold" />
         </Pressable>
 
         {session ? (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12 }}>
-              <SlotIcon icon={slot?.icon ?? 'tooth'} size={32} color={tokens.textPrimary} weight="fill" />
+              <SlotIcon icon={slot?.icon ?? 'tooth'} size={32} color={colors.ink} weight="fill" />
               <View style={{ flex: 1 }}>
-                <Text accessibilityRole="header" className="font-display" style={{ fontSize: 28, color: tokens.textPrimary }}>
+                <Text accessibilityRole="header" className="font-display" style={{ fontSize: 28, color: colors.ink }}>
                   {slot?.label ?? t('brushHistory.unknownSlot')}
                 </Text>
-                <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
+                <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
                   {formatWhen(session.startedAt)}
                 </Text>
               </View>
             </View>
 
             <Card padding={20} style={{ alignItems: 'center', rowGap: 10 }}>
-              <Text className="font-body-semi" style={{ fontSize: 16, color: tokens.textSecondary }}>
+              <Text className="font-body-semi" style={{ fontSize: 16, color: colors.inkMuted }}>
                 {t('sessionReview.duration')}
               </Text>
-              <Text className="font-numeric" style={{ fontSize: 56, lineHeight: 72, color: tokens.textPrimary }}>
+              <Text className="font-numeric" style={{ fontSize: 56, lineHeight: 72, color: colors.ink }}>
                 {formatDuration(session.durationSec)}
               </Text>
               <Badge
@@ -56,13 +56,13 @@ export default function SessionReviewScreen() {
                 tone={session.completed ? 'primary' : 'neutral'}
                 solid={session.completed}
               />
-              <Text className="font-body" style={{ fontSize: 16, color: tokens.textPrimary, textAlign: 'center' }}>
+              <Text className="font-body" style={{ fontSize: 16, color: colors.ink, textAlign: 'center' }}>
                 {session.completed ? t('sessionReview.completedBody') : t('sessionReview.stoppedBody')}
               </Text>
             </Card>
           </>
         ) : (
-          <Text className="font-body" style={{ fontSize: 16, color: tokens.textSecondary }}>
+          <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
             {t('sessionReview.missing')}
           </Text>
         )}

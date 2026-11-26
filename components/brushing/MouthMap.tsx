@@ -4,7 +4,7 @@ import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { ToothZone } from '@/types';
-import { tokens } from '@/lib/tokens';
+import { colors } from '@/lib/tokens';
 
 import { mouthMapZoneAngles } from './mouthMapGeometry';
 
@@ -12,10 +12,10 @@ export type ZoneState = 'empty' | 'active' | 'done' | 'missed';
 
 // [fill, outline, outline width]. Every state also has its own glyph or fill — never colour alone.
 const STATE_STYLE: Record<ZoneState, [string, string, number]> = {
-  empty: [tokens.zoneEmpty, tokens.zoneLine, 3],
-  active: [tokens.zoneActive, tokens.zoneDone, 5],
-  done: [tokens.zoneDone, tokens.zoneDone, 3],
-  missed: [tokens.zoneMissed, tokens.warningLine, 3],
+  empty: [colors.zoneEmpty, colors.ink, 3],
+  active: [colors.zoneActive, colors.sessionAccent, 5],
+  done: [colors.sessionAccent, colors.sessionAccent, 3],
+  missed: [colors.warning, colors.onWarning, 3],
 };
 
 function polar(cx: number, cy: number, r: number, deg: number): [number, number] {
@@ -71,8 +71,8 @@ export function MouthMap({ states = {}, size = 220, foamZone }: MouthMapProps) {
         style={{ position: 'absolute', left: (foam.lx - 8) * scale, top: (foam.ly - 13) * scale }}
       >
         <Svg width={18 * scale} height={14 * scale} viewBox="0 0 18 14">
-          <Circle cx={4} cy={9} r={2.4} fill={tokens.primarySoft} />
-          <Circle cx={14} cy={4} r={3} fill={tokens.textOnBrand} />
+          <Circle cx={4} cy={9} r={2.4} fill={colors.primarySoft} />
+          <Circle cx={14} cy={4} r={3} fill={colors.onPrimary} />
         </Svg>
       </Animated.View> : null}
     </View>
@@ -82,7 +82,7 @@ export function MouthMap({ states = {}, size = 220, foamZone }: MouthMapProps) {
 function MouthMapSvg({ states, size }: Required<Pick<MouthMapProps, 'states' | 'size'>>) {
   return (
     <Svg width={size} height={size} viewBox="0 0 220 220">
-      <Circle cx={cx} cy={cy} r={ri - 8} fill={tokens.primarySoft} />
+      <Circle cx={cx} cy={cy} r={ri - 8} fill={colors.primarySoft} />
       {segments.map(({ zone, path, lx, ly }) => {
         const st = states[zone] ?? 'empty';
         return (
@@ -96,16 +96,16 @@ function MouthMapSvg({ states, size }: Required<Pick<MouthMapProps, 'states' | '
             />
             {st === 'active' ? (
               <>
-                <Circle cx={lx - 5} cy={ly + 1} r={2.7} fill={tokens.zoneDone} />
-                <Circle cx={lx + 2} cy={ly - 4} r={3.7} fill={tokens.zoneDone} />
-                <Circle cx={lx + 5.5} cy={ly + 3} r={2} fill={tokens.zoneDone} />
+                <Circle cx={lx - 5} cy={ly + 1} r={2.7} fill={colors.sessionAccent} />
+                <Circle cx={lx + 2} cy={ly - 4} r={3.7} fill={colors.sessionAccent} />
+                <Circle cx={lx + 5.5} cy={ly + 3} r={2} fill={colors.sessionAccent} />
               </>
             ) : null}
             {st === 'done' ? (
-              <Path d={`M ${lx - 6} ${ly} l4 4 l8 -9`} fill="none" stroke={tokens.textOnBrand} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d={`M ${lx - 6} ${ly} l4 4 l8 -9`} fill="none" stroke={colors.onPrimary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
             ) : null}
             {st === 'missed' ? (
-              <Path d={`M ${lx + 5} ${ly - 2} a5.5 5.5 0 1 0 0.5 4 M ${lx + 6} ${ly - 7} v5 h-5`} fill="none" stroke={tokens.onWarning} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d={`M ${lx + 5} ${ly - 2} a5.5 5.5 0 1 0 0.5 4 M ${lx + 6} ${ly - 7} v5 h-5`} fill="none" stroke={colors.onWarning} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
             ) : null}
           </Fragment>
         );

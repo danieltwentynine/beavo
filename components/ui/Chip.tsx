@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, type ViewStyle } from 'react-native';
 
-import { cardShadow, motion, radius, tokens } from '@/lib/tokens';
+import { colors, motion, radius, shadow } from '@/lib/tokens';
 
 interface ChipProps {
   label: string;
@@ -44,16 +44,16 @@ export function Chip({
           minHeight: 48,
           paddingHorizontal: 18,
           borderRadius: radius.pill,
-          backgroundColor: selected ? tokens.brandPrimary : tokens.surfaceCard,
+          backgroundColor: selected ? colors.primary : colors.surface,
           transform: [{ scale: pressed ? motion.pressScale : 1 }, { translateY: pressed ? 2 : 0 }],
         },
-        cardShadow,
+        shadow.card,
         style,
       ]}
     >
       <Text
         className="font-display"
-        style={{ color: selected ? tokens.textOnBrand : tokens.textPrimary, fontSize: 18 }}
+        style={{ color: selected ? colors.onPrimary : colors.ink, fontSize: 18 }}
       >
         {label}
       </Text>
