@@ -38,6 +38,7 @@ test('sign-up and sign-in screens never use the gate', () => {
 test('the gate is used only on settings and child-management screens', () => {
   const allowed = new Set([
     'app/settings.tsx', // PIN
+    'app/reminder-offer.tsx', // accepting changes reminder settings; declining stays open
     'app/child-picker.tsx', // add a child; leave kid mode by switching child
     'app/child-form.tsx', // delete a child
     'app/move-data.tsx', // move / erase device data
@@ -56,7 +57,7 @@ test('More tab: legal and review links, sign-in, sign-up and sign-out are not ga
   assert.doesNotMatch(more, /requireParent\([^)]*openExternal/);
   assert.doesNotMatch(more, /requireParent\(confirmSignOut\)/);
   assert.doesNotMatch(more, /requireParent\(\(\) => router\.push\('\/\(auth\)/);
-  for (const kept of ["router.push('/settings')", "router.push('/slots')", "router.push('/categories')", 'requireParent(confirmDelete)', 'requireParent(confirmErase)']) {
+  for (const kept of ["router.push('/reminders')", "router.push('/settings')", "router.push('/slots')", "router.push('/categories')", 'requireParent(confirmDelete)', 'requireParent(confirmErase)']) {
     assert.ok(more.includes(kept), `still gated: ${kept}`);
   }
 });
@@ -65,4 +66,14 @@ test('tooth sheet: only deleting a record is gated, adding opens directly', () =
   const sheet = read('app/tooth-sheet.tsx');
   assert.match(sheet, /const startForm = \(type: ToothEventType\) => openForm\(type\);/);
   assert.match(sheet, /setPending\(\{ deleteId: e\.id \}\)/);
+});
+
+test('reminder setup uses the grown-ups check; declining remains a direct action', () => {
+  assert.match(read('app/(tabs)/more.tsx'), /requireParent\(\(\) => \{\s+if \(grantReminderSettingsAccess\(uid, child\.id\)\) router\.push\('\/reminders'\);/);
+  assert.match(read('app/reminders.tsx'), /!hasReminderSettingsAccess\(owner, child\.id\)/);
+  const offer = read('app/reminder-offer.tsx');
+  assert.match(offer, /onAccept=\{\(\) => requireParent\(/);
+  assert.match(offer, /onDecline=\{\(\) => void decline\(\)\}/);
+  const launcher = read('components/reminders/ReminderOfferLauncher.tsx');
+  assert.match(launcher, /if \(child\.kidMode\) \{[\s\S]*?return;/);
 });

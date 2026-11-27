@@ -67,13 +67,15 @@ components/
 ├── kids/ Avatar, BadgeCard, Sticker, ProfilePill
 ├── teeth/ DentalArch (+ legend; CHART_PERSPECTIVE), toothName
 └── ui/ Badge, Button, Card, Chip, Input, SafeScreen, SectionTitle, ParentalGate (+ useParentalGate; decisions in src/data/gateFlow.ts), ParentNotice (parent-only error/info banner), TabHeader, ListRow, GlassSurface
-hooks/ useActiveChild.ts, useChildDataSync.ts, useChildWatch.ts (shared by the next two), useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts, useRetryingWatch.ts (re-subscribes a failed listener, marks data stale)
+hooks/ useActiveChild.ts, useChildDataSync.ts, useReminderSync.ts (applies the reminder plan; mounted in app/_layout.tsx), useChildWatch.ts (shared by the next two), useToothEvents.ts, useCategories.ts, useSessions.ts, useLocalChildNames.ts, useRetryingWatch.ts (re-subscribes a failed listener, marks data stale)
 src/data/                         # REPOSITORY LAYER — the only code that touches Firestore
 ├── children.ts, slots.ts, sessions.ts, toothEvents.ts (+ categories), account.ts (profile, consent, export, delete-all)
 ├── firestore.ts                  # Shared helpers (Timestamp parsing, background writes, batched collection delete)
 ├── schedule.ts                   # Pure slot logic: defaults, slotsActiveOn(date), pickSlotForTime, archive-vs-delete
 ├── teeth.ts                      # Pure tooth logic: primary FDI teeth, arch geometry/shapes, nearestTooth, stats
-├── progress.ts                   # Pure: week dots, streak (all slots completed), 30-day completion rate, derived badges
+├── progress.ts                   # Pure: week dots (all slots completed), 30-day completion rate, derived badges
+├── streak.ts                     # Pure: daily streak + silent freeze (seeded draw) + 3-day bridge, all derived from sessions — ADR 0008
+├── reminders.ts                  # Pure: local reminder planner (7 days, quiet hours, ≤3/day), opt-in offer — ADR 0008
 ├── backup.ts                     # Pure: backup file format + validation (import)
 ├── local.ts                      # Pure: device-only store (a Backup in memory) used when the owner is LOCAL_UID
 ├── outbox.ts                     # Pure outbox codec for unsynced sessions

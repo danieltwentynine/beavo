@@ -1,23 +1,17 @@
 import type { BrushingSession, BrushingSlot } from '@/types';
 
-import { localDate, slotsActiveOn } from './schedule.ts';
+import { addDays, localDate, parseDay, slotsActiveOn } from './schedule.ts';
+import { summarizeStreak } from './streak.ts';
+
+export { addDays };
 
 /**
  * Progress for one child, from its slots (archived included) and sessions.
  * A day is COMPLETE when every slot active that day has a completed session
- * (owner decision, 2026-10-31). Pure, so `node --test` runs it.
+ * (owner decision, 2026-10-31): the week dots, completion rate and full-week
+ * badge use it. The STREAK is daily instead (owner, 2026-11-27): see streak.ts.
+ * Pure, so `node --test` runs it.
  */
-
-const parseDay = (day: string): Date => {
-  const [y, m, d] = day.split('-').map(Number);
-  return new Date(y, m - 1, d);
-};
-
-/** `day` shifted by `n` calendar days (DST-safe: works on Y/M/D, not milliseconds). */
-export function addDays(day: string, n: number): string {
-  const d = parseDay(day);
-  return localDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n));
-}
 
 /** Monday → Sunday of the week containing `day`. */
 export function weekOf(day: string): string[] {
@@ -78,30 +72,31 @@ export const STREAK_BADGE_DAYS = 3;
 const RATE_DAYS = 30;
 
 /**
- * Everything the Progress tab shows. Today counts toward the streak only once
- * it is complete — an unfinished today never breaks it. For the rate, today's
- * slots count only when done or when their window has ended.
+ * Everything the Progress tab shows. The streak numbers come from streak.ts
+ * (daily, with freezes and bridges); pass `childId` so the freeze gifts are
+ * computed for this child — without it no freeze is ever granted. The weekly
+ * badge still needs seven COMPLETE days Mon–Sun. For the rate, today's slots
+ * count only when done or when their window has ended.
  */
 export function summarizeProgress(
   slots: readonly BrushingSlot[],
   sessions: readonly BrushingSession[],
   now: Date,
+  childId?: string,
 ): ProgressSummary {
   const today = localDate(now);
   const done = completedBySlotDay(sessions);
   const status = (day: string) => dayStatusWith(slots, done, day);
   const start = firstDay(slots);
+  const { currentStreak, bestStreak } = summarizeStreak(sessions, now, childId ?? null);
 
-  // Streaks: walk every day of the child's history once.
-  let bestStreak = 0;
+  // Full Mon–Sun week of complete days: walk the child's history once.
   let run = 0;
   let fullWeek = false;
   if (start) {
     for (let day = start; day <= today; day = addDays(day, 1)) {
-      const complete = status(day).complete;
-      if (complete) {
+      if (status(day).complete) {
         run++;
-        bestStreak = Math.max(bestStreak, run);
         // A run that ends on a Sunday and covers Mon–Sun is a complete week.
         if (run >= 7 && parseDay(day).getDay() === 0) fullWeek = true;
       } else if (day !== today) {
@@ -109,9 +104,6 @@ export function summarizeProgress(
       }
     }
   }
-  const todayComplete = status(today).complete;
-  let currentStreak = todayComplete ? 1 : 0;
-  for (let day = addDays(today, -1); start && day >= start && status(day).complete; day = addDays(day, -1)) currentStreak++;
 
   // Completion rate over the last 30 days.
   const nowMinutes = now.getHours() * 60 + now.getMinutes();

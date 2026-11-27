@@ -8,13 +8,16 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
+import { ReminderOfferLauncher } from '@/components/reminders/ReminderOfferLauncher';
 import { LogoScreen } from '@/components/brand/LogoScreen';
 import { ParentNotice } from '@/components/ui/ParentNotice';
 import { useChildDataSync } from '@/hooks/useChildDataSync';
+import { useReminderSync } from '@/hooks/useReminderSync';
 import { cleanupBackupFiles, reconcilePendingOps } from '@/lib/account';
 import { isLocalMode, startLocalStore } from '@/lib/localData';
 import { checkConsent } from '@/lib/consent';
 import { auth } from '@/lib/firebase';
+import { configureReminders } from '@/lib/reminders';
 import { flushOutbox } from '@/lib/sync';
 import { colors, fonts } from '@/lib/tokens';
 import { ownerIdOf, useAuthStore } from '@/stores/authStore';
@@ -22,6 +25,8 @@ import { clearSnapshot } from '@/stores/childStore';
 
 // The native splash stays up until the logo screen has drawn the same image in the same spot.
 void SplashScreen.preventAutoHideAsync();
+// Local reminders only (no push): how they show while the app is open, and the Android channel.
+configureReminders();
 
 export default function RootLayout() {
   const [logoDone, setLogoDone] = useState(false);
@@ -38,6 +43,7 @@ export default function RootLayout() {
   // The signed-in parent, or this device when Beavo is used without an account.
   const uid = useAuthStore((state) => (state.isLoading ? null : ownerIdOf(state)));
   useChildDataSync(uid);
+  useReminderSync();
   const lastUid = useRef<string | null>(null);
 
   // Static weights: the family name picks the weight (see font in lib/tokens.ts).
@@ -109,6 +115,9 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="session" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="reminder-offer"
+          options={{ presentation: 'formSheet', sheetAllowedDetents: [1], gestureEnabled: false, sheetGrabberVisible: false }}
+        />
         <Stack.Screen
           name="child-picker"
           options={{ presentation: 'formSheet', sheetAllowedDetents: [0.5, 1], sheetGrabberVisible: true, contentStyle: { backgroundColor: 'transparent' } }}
@@ -119,6 +128,7 @@ export default function RootLayout() {
         />
       </Stack>
       <ParentNotice />
+      <ReminderOfferLauncher ready={logoDone} />
       {logoDone ? null : <LogoScreen onDone={hideLogo} />}
     </>
   );

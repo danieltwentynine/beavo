@@ -56,6 +56,16 @@
       "./plugins/withSceneLifecycle",
       "expo-localization",
       "expo-sharing",
+      "./plugins/withoutPushEntitlement",
+      [
+        "expo-notifications",
+        {
+          "enableRemoteNotifications": false,
+          "enableBackgroundRemoteNotifications": false,
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#0A746E"
+        }
+      ],
       [
         "expo-secure-store",
         {

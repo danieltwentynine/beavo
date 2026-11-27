@@ -1,21 +1,25 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { CaretRight, Tooth } from 'phosphor-react-native';
-import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { AppState, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Circle, G, Rect, Svg } from 'react-native-svg';
 
 import { BeavoMark } from '@/components/brand/BeavoBrand';
 import { BadgeCard } from '@/components/kids/BadgeCard';
+import { StreakTrail } from '@/components/kids/StreakTrail';
 import { Card } from '@/components/ui/Card';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TabHeader } from '@/components/ui/TabHeader';
 import { TabScenery } from '@/components/ui/TabScenery';
 import { useActiveChild } from '@/hooks/useActiveChild';
 import { useSessionHistory } from '@/hooks/useSessions';
+import { useStreakSummary } from '@/hooks/useStreakSummary';
 import { t } from '@/lib/i18n';
 import { colors, radius } from '@/lib/tokens';
 import { localDate } from '@/src/data/schedule';
 import { summarizeProgress } from '@/src/data/progress';
+import { recentTrail } from '@/src/data/streak';
 
 const WEEKDAYS = t('progress.weekdays').split(',');
 
@@ -67,15 +71,25 @@ function CompletionRing({ rate }: { rate: number | null }) {
 
 /** Streak, completion rate, this week by slot, badges, and the way into the full history. Active child only. */
 export default function ProgressTab() {
-  const { slots } = useActiveChild();
+  const { child, slots } = useActiveChild();
   const history = useSessionHistory();
   const sessions = history?.items ?? [];
-  const damDays = new Set(sessions.filter((session) => session.durationSec > 0).map((session) => session.date)).size;
-  const { width, fontScale } = useWindowDimensions();
-  const stackStats = width < 340 || fontScale >= 1.5;
-  const now = new Date();
+  const [now, setNow] = useState(() => new Date());
+  useFocusEffect(useCallback(() => {
+    const refresh = () => setNow(new Date());
+    refresh();
+    const timer = setInterval(refresh, 60_000);
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh();
+    });
+    return () => {
+      clearInterval(timer);
+      appState.remove();
+    };
+  }, []));
   const today = localDate(now);
-  const summary = summarizeProgress(slots, sessions, now);
+  const summary = summarizeProgress(slots, sessions, now, child?.id);
+  const streak = useStreakSummary(child?.id ?? null, history?.items ?? null, now);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -83,23 +97,18 @@ export default function ProgressTab() {
       <ScrollView contentContainerStyle={{ width: '100%', maxWidth: 560, alignSelf: 'center', padding: 20, paddingTop: 4, rowGap: 22 }}>
         <TabHeader title={t('progress.title')} />
 
-        <View style={{ flexDirection: stackStats ? 'column' : 'row', gap: 12 }}>
-          <Card padding={14} style={{ flex: 1, rowGap: 4, backgroundColor: colors.surfaceWarm }}>
-            <Text className="font-numeric" style={{ fontSize: 36, lineHeight: 42, color: colors.ink }}>
-              {t('progress.days', { count: summary.currentStreak })}
-            </Text>
-            <Text className="font-body-semi" style={{ fontSize: 17, color: colors.ink }}>{t('progress.streak')}</Text>
-            <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>
-              {t('progress.best', { count: summary.bestStreak })}
-            </Text>
-            {history ? <Dam days={damDays} /> : null}
-          </Card>
-          <Card padding={14} style={{ flex: 1, rowGap: 4 }}>
-            <CompletionRing rate={summary.completionRate} />
-            <Text className="font-body-semi" style={{ marginTop: 4, fontSize: 17, color: colors.ink }}>{t('progress.rate')}</Text>
+        <StreakTrail current={streak?.currentStreak ?? null} best={streak?.bestStreak ?? null}
+          days={streak ? recentTrail(streak, now) : []}>
+          {streak ? <Dam days={streak.brushedDays} /> : null}
+        </StreakTrail>
+
+        <Card padding={14} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
+          <CompletionRing rate={summary.completionRate} />
+          <View style={{ flexGrow: 1, flexBasis: 150, rowGap: 4 }}>
+            <Text className="font-body-semi" style={{ fontSize: 17, color: colors.ink }}>{t('progress.rate')}</Text>
             <Text className="font-body" style={{ fontSize: 16, color: colors.inkMuted }}>{t('progress.rateHint')}</Text>
-          </Card>
-        </View>
+          </View>
+        </Card>
 
         <Card padding={12}>
           <SectionTitle>{t('progress.thisWeek')}</SectionTitle>

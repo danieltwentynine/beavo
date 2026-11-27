@@ -58,6 +58,24 @@ export function watchAllSessions(
   }, onError);
 }
 
+/**
+ * The child's sessions on one local date, live — what the reminders need to
+ * skip a slot already brushed. Includes writes still waiting to sync.
+ */
+export function watchSessionsOn(
+  db: Firestore,
+  uid: string,
+  childId: string,
+  date: string,
+  onChange: (sessions: BrushingSession[]) => void,
+  onError?: WatchErrorHandler,
+): Unsubscribe {
+  if (uid === LOCAL_UID) return watchLocalSessions(childId, (sessions) => onChange(sessions.filter((s) => s.date === date)));
+  return onSnapshot(query(sessionsRef(db, uid, childId), where('date', '==', date)), (snap) => {
+    onChange(parseDocs(snap, sessionSchema));
+  }, onError);
+}
+
 /** Whether any session uses the slot — asked of the server. Null when it can't be reached. */
 export async function hasSessionsForSlot(db: Firestore, uid: string, childId: string, slotId: string): Promise<boolean | null> {
   if (uid === LOCAL_UID) return localHasSessionsForSlot(childId, slotId);

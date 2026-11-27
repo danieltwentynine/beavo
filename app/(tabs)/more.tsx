@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import {
+  Bell,
   CaretRight,
   DownloadSimple,
   FileText,
@@ -21,6 +22,7 @@ import { Alert, Linking, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BeavoMark } from '@/components/brand/BeavoBrand';
+import { grantReminderSettingsAccess } from '@/components/reminders/reminderAudience';
 import { Avatar } from '@/components/kids/Avatar';
 import { Card } from '@/components/ui/Card';
 import { ListRow } from '@/components/ui/ListRow';
@@ -209,6 +211,10 @@ export default function MoreTab() {
                 />
               }
             />
+            <ListRow Icon={Bell} tile="routine" label={t('reminders.title')}
+              onPress={() => requireParent(() => {
+                if (grantReminderSettingsAccess(uid, child.id)) router.push('/reminders');
+              })} />
             <ListRow Icon={PencilSimple} tile="routine" label={t('today.editRoutine')} onPress={() => requireParent(() => router.push('/slots'))} last />
           </Section>
         ) : null}

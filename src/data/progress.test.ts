@@ -73,14 +73,14 @@ test('a completed slot stays done after an early stop and uses the latest comple
   }
 });
 
-test('streak: consecutive complete days; an unfinished today does not break it', () => {
-  const sessions = [...both('2026-10-28'), ...both('2026-10-29'), ...both('2026-10-30'), brushed('b', '2026-10-31')];
-  const summary = summarizeProgress(slots, sessions, at('2026-10-31T09:00:00'));
-  assert.equal(summary.currentStreak, 3);
-  assert.equal(summary.bestStreak, 3);
-  assert.equal(summary.badges.streak, true);
+test('streak is daily (streak.ts): one brushing a day counts, even an early stop; an unfinished today does not break it', () => {
+  const sessions = [...both('2026-10-28'), brushed('b', '2026-10-29', false), ...both('2026-10-30')];
+  const morning = summarizeProgress(slots, sessions, at('2026-10-31T07:00:00'));
+  assert.equal(morning.currentStreak, 3);
+  assert.equal(morning.bestStreak, 3);
+  assert.equal(morning.badges.streak, true);
 
-  const done = summarizeProgress(slots, [...sessions, brushed('d', '2026-10-31')], at('2026-10-31T21:00:00'));
+  const done = summarizeProgress(slots, [...sessions, brushed('b', '2026-10-31')], at('2026-10-31T09:00:00'));
   assert.equal(done.currentStreak, 4);
 });
 

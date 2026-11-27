@@ -12,6 +12,18 @@ export function localDate(d: Date): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+/** A YYYY-MM-DD day as local midnight. */
+export const parseDay = (day: string): Date => {
+  const [y, m, d] = day.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+/** `day` shifted by `n` calendar days (DST-safe: works on Y/M/D, not milliseconds). */
+export function addDays(day: string, n: number): string {
+  const d = parseDay(day);
+  return localDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n));
+}
+
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export const isValidTime = (s: string): boolean => TIME.test(s);

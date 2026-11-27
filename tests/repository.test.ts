@@ -13,7 +13,7 @@ import { childRef, childrenRef, createChild, deleteChild, updateChild, watchChil
 import { consentAfterWrite, localConsentRecord, planConsentCheck } from '../src/data/consent.ts';
 import { ServerTimeoutError, withTimeout } from '../src/data/firestore.ts';
 import { localDate, slotsActiveOn } from '../src/data/schedule.ts';
-import { hasSessionsForSlot, writeSession } from '../src/data/sessions.ts';
+import { hasSessionsForSlot, watchSessionsOn, writeSession } from '../src/data/sessions.ts';
 import { addSlot, removeSlot, slotsRef, watchSlots } from '../src/data/slots.ts';
 import { addToothEvents, categoriesRef, seedDefaultCategories, toothEventsRef } from '../src/data/toothEvents.ts';
 import type { BrushingSlot, Child } from '../types/index.ts';
@@ -138,6 +138,14 @@ test('removeSlot archives a slot that has sessions, and past days still see it',
   // …and gone from tomorrow on.
   const tomorrow = new Date(Date.now() + 86_400_000);
   assert.ok(!slotsActiveOn(slots, localDate(tomorrow)).some((s) => s.id === lunch.id));
+});
+
+test('watchSessionsOn sees only that date (the reminders skip a slot already brushed)', async () => {
+  const id = await newChild();
+  await writeSession(db, UID, id, { id: 'a', slotId: 'x', date: '2026-11-26', startedAt: new Date('2026-11-26T10:00:00Z'), durationSec: 120, completed: true });
+  await writeSession(db, UID, id, { id: 'b', slotId: 'y', date: '2026-11-27', startedAt: new Date('2026-11-27T10:00:00Z'), durationSec: 30, completed: false });
+  const sessions = await nextValue<{ id: string; date: string }[]>((cb) => watchSessionsOn(db, UID, id, '2026-11-27', cb), (s) => s.length > 0);
+  assert.deepEqual(sessions.map((s) => [s.id, s.date]), [['b', '2026-11-27']]);
 });
 
 test('deleteChild removes the child and every subcollection', async () => {
